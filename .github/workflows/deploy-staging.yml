@@ -1,13 +1,23 @@
+# ============================================================
+# 部署到 Staging — 複製此檔案到你的 .github/workflows/ 資料夾
+# 
+# Push 到 main 即自動部署至 https://你的repo名.staging.ai-go.app
+# 也可在 GitHub Actions 頁面手動觸發
+# ============================================================
+
 name: 部署到 Staging
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:    # 允許在 GitHub 網頁手動觸發
   push:
     branches: [ main ]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
 
 jobs:
   deploy:
     uses: AI-GO-APP/.github/.github/workflows/staging-deploy.yml@main
     with:
       project-name: ${{ github.event.repository.name }}
-    secrets: inherit
+    secrets: inherit    # 自動繼承 Org Secrets（STAGING_HOST、STAGING_SSH_KEY 等）
