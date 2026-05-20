@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReLoop — 設備回收媒合平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{
+  --ink:#1A1A18;
+  --ink2:#3D3D38;
+  --ink3:#7A7A72;
+  --ink4:#AEADA6;
+  --paper:#F7F6F2;
+  --paper2:#EFEDE8;
+  --paper3:#E4E2DB;
+  --white:#FFFFFF;
+  --green:#1A7A5E;
+  --green-l:#E2F4EE;
+  --green-m:#9FD9C6;
+  --blue:#1A4F8A;
+  --blue-l:#E2EBF8;
+  --blue-m:#8FB4E0;
+  --amber:#8A5A1A;
+  --amber-l:#F8EEE2;
+  --amber-m:#E0BB8F;
+  --red:#8A1A1A;
+  --red-l:#F8E2E2;
+  --red-m:#E08F8F;
+  --purple:#4A1A8A;
+  --purple-l:#EDE2F8;
+  --radius:10px;
+  --radius-lg:16px;
+  --radius-xl:24px;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,0.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden}
+input,select,textarea,button{font-family:'DM Sans',sans-serif}
+
+/* ── Nav ── */
+.topnav{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--ink);height:52px;display:flex;align-items:center;padding:0 20px;gap:0}
+.brand{font-size:16px;font-weight:600;color:var(--white);letter-spacing:-0.3px;margin-right:28px}
+.brand span{color:var(--green-m)}
+.view-tab{padding:0 16px;height:52px;display:flex;align-items:center;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.view-tab:hover{color:rgba(255,255,255,.75)}
+.view-tab.act{color:#fff;border-bottom-color:var(--green-m)}
+.view-tab .dot{width:6px;height:6px;border-radius:50%;margin-right:6px;flex-shrink:0}
+.dot-blue{background:var(--blue-m)}
+.dot-green{background:var(--green-m)}
+.dot-amber{background:var(--amber-m)}
+
+/* ── Pages ── */
+.page{display:none;min-height:calc(100vh - 52px);margin-top:52px}
+.page.act{display:flex}
+
+/* ════════════════════════════
+   PHONE VIEW
+════════════════════════════ */
+#view-phone{background:var(--paper2);align-items:center;justify-content:center;padding:32px 20px}
+.phone-shell{width:360px;min-height:720px;background:var(--white);border-radius:36px;border:1px solid var(--paper3);box-shadow:var(--shadow-md);overflow:hidden;display:flex;flex-direction:column;position:relative}
+.ph-statusbar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px 4px;flex-shrink:0}
+.ph-time{font-size:13px;font-weight:500;color:var(--ink)}
+.ph-icons{display:flex;gap:4px;color:var(--ink3)}
+.ph-icons i{font-size:14px}
+
+/* phone screens */
+.ph-screen{display:none;flex:1;flex-direction:column;overflow:hidden}
+.ph-screen.act{display:flex}
+
+/* phone topbar */
+.ph-topbar{display:flex;align-items:center;padding:8px 16px 10px;flex-shrink:0}
+.ph-back{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);transition:background .12s}
+.ph-back:hover{background:var(--paper2)}
+.ph-back i{font-size:18px}
+.ph-title{flex:1;font-size:15px;font-weight:600;color:var(--ink);text-align:center}
+.ph-action{font-size:13px;font-weight:600;color:var(--green);cursor:pointer;min-width:34px;text-align:right}
+
+/* progress bar */
+.ph-progress{height:3px;background:var(--paper2);flex-shrink:0}
+.ph-progress-fill{height:100%;background:var(--green);border-radius:0;transition:width .4s}
+
+.ph-scroll{flex:1;overflow-y:auto;padding:0}
+
+/* login screen */
+.login-hero{padding:32px 24px 20px;text-align:center}
+.login-logo{width:64px;height:64px;border-radius:20px;background:var(--ink);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.login-logo i{font-size:32px;color:var(--green-m)}
+.login-h1{font-size:22px;font-weight:600;color:var(--ink);letter-spacing:-0.5px}
+.login-sub{font-size:13px;color:var(--ink3);margin-top:4px}
+.login-body{padding:0 24px 24px}
+.field{margin-bottom:14px}
+.field label{font-size:11px;font-weight:500;color:var(--ink3);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.field input,.field select{width:100%;padding:11px 14px;font-size:14px;border:1px solid var(--paper3);border-radius:var(--radius);background:var(--paper);color:var(--ink);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--ink)}
+/* LINE 登入按鈕 */
+.line-btn{width:100%;padding:13px 14px;border-radius:var(--radius);border:none;background:#06C755;color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s;margin-bottom:16px}
+.line-btn:hover{background:#05b34c}
+.line-btn-icon{width:22px;height:22px;flex-shrink:0}
+/* 分隔線 */
+.login-divider{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.login-divider-line{flex:1;height:1px;background:var(--paper3)}
+.login-divider-text{font-size:11px;color:var(--ink4);white-space:nowrap}
+/* 錯誤訊息 */
+.login-error{background:var(--red-l);color:var(--red);border-radius:var(--radius);padding:9px 12px;font-size:12px;margin-bottom:12px;display:none}
+.login-error.show{display:block}
+/* 忘記密碼 */
+.login-forgot{text-align:right;margin-top:-8px;margin-bottom:14px}
+.login-forgot a{font-size:12px;color:var(--ink3);text-decoration:none;cursor:pointer}
+.login-forgot a:hover{color:var(--ink)}
+.btn-full{width:100%;padding:14px;border-radius:var(--radius);border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-green{background:var(--ink);color:#fff}
+.btn-green:hover{background:var(--ink2)}
+.btn-ghost{background:var(--paper2);color:var(--ink);border:1px solid var(--paper3)}
+.btn-ghost:hover{background:var(--paper3)}
+.btn-danger{background:var(--red-l);color:var(--red)}
+
+/* list screen */
+.ph-section{padding:14px 16px 0}
+.ph-section-label{font-size:10px;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding:0 16px}
+.stat-card{background:var(--paper);border:1px solid var(--paper3);border-radius:var(--radius);padding:12px}
+.stat-card .val{font-size:26px;font-weight:600;color:var(--ink);font-family:'DM Mono',monospace}
+.stat-card .lbl{font-size:10px;color:var(--ink3);margin-top:2px}
+.record-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--paper2);cursor:pointer;transition:background .1s}
+.record-item:hover{background:var(--paper2)}
+.rec-thumb{width:48px;height:48px;border-radius:var(--radius);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.rec-info{flex:1;min-width:0}
+.rec-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-meta{font-size:11px;color:var(--ink3);margin-top:2px}
+.rec-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{padding:2px 7px;border-radius:999px;font-size:10px;font-weight:500}
+.tag-blue{background:var(--blue-l);color:var(--blue)}
+.tag-green{background:var(--green-l);color:var(--green)}
+.tag-amber{background:var(--amber-l);color:var(--amber)}
+.tag-gray{background:var(--paper2);color:var(--ink3);border:1px solid var(--paper3)}
+.ph-bottom{padding:14px 16px 24px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--paper2)}
+
+/* capture screen */
+.camera-view{height:220px;background:#1a1a18;position:relative;flex-shrink:0;overflow:hidden}
+.cam-canvas{position:absolute;inset:0;width:100%;height:100%}
+.scan-corner{position:absolute;width:28px;height:28px;border-color:rgba(255,255,255,.7);border-style:solid;border-width:0}
+.sc-tl{top:14px;left:14px;border-top-width:2px;border-left-width:2px}
+.sc-tr{top:14px;right:14px;border-top-width:2px;border-right-width:2px}
+.sc-bl{bottom:14px;left:14px;border-bottom-width:2px;border-left-width:2px}
+.sc-br{bottom:14px;right:14px;border-bottom-width:2px;border-right-width:2px}
+.cam-hint{position:absolute;bottom:44px;left:0;right:0;text-align:center;font-size:11px;color:rgba(255,255,255,.6)}
+.cam-btns{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 8px;background:rgba(0,0,0,.35)}
+.shutter{width:50px;height:50px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.shutter:active{transform:scale(.92)}
+.shutter-inner{width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid #ccc}
+.cam-side{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff}
+.thumb-strip{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;border-bottom:1px solid var(--paper2);flex-shrink:0}
+.thumb{width:56px;height:56px;border-radius:8px;flex-shrink:0;border:1px solid var(--paper3);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;position:relative}
+.thumb.active{border:2px solid var(--ink)}
+.thumb-add{background:var(--paper2);color:var(--ink4);border-style:dashed}
+
+/* form section */
+.form-sec{padding:12px 16px;border-bottom:1px solid var(--paper2)}
+.form-sec-label{font-size:10px;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.form-sec-label i{font-size:13px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:11px;color:var(--ink3)}
+.form-field input,.form-field select,.form-field textarea{padding:8px 10px;font-size:13px;border:1px solid var(--paper3);border-radius:8px;background:var(--paper);color:var(--ink);outline:none}
+.form-field textarea{resize:none;min-height:60px}
+.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cond-btn{padding:10px 8px;border-radius:var(--radius);border:1px solid var(--paper3);background:var(--paper);font-size:12px;cursor:pointer;text-align:center;transition:all .15s;color:var(--ink)}
+.cond-btn .grade{font-size:18px;font-weight:600;font-family:'DM Mono',monospace}
+.cond-btn .grade-lbl{font-size:11px;margin-top:2px}
+.cond-btn .grade-sub{font-size:10px;color:var(--ink3);margin-top:1px}
+.cond-btn.sel-a{background:var(--green-l);border-color:var(--green-m);color:var(--green)}
+.cond-btn.sel-b{background:var(--blue-l);border-color:var(--blue-m);color:var(--blue)}
+.cond-btn.sel-c{background:var(--amber-l);border-color:var(--amber-m);color:var(--amber)}
+.cond-btn.sel-d{background:var(--red-l);border-color:var(--red-m);color:var(--red)}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.tag-rm{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;font-size:11px;background:var(--ink);color:#fff;cursor:pointer}
+.tag-rm i{font-size:10px}
+.tag-input-row{display:flex;gap:6px}
+.tag-input-row input{flex:1;font-size:13px;padding:7px 10px;border:1px solid var(--paper3);border-radius:8px;background:var(--paper);color:var(--ink);outline:none}
+.tag-input-row button{padding:7px 12px;font-size:12px;border-radius:8px;border:1px solid var(--paper3);background:var(--paper2);color:var(--ink);cursor:pointer}
+
+/* success flash */
+.success-overlay{position:absolute;inset:0;background:var(--green-l);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.success-overlay.show{opacity:1;pointer-events:auto}
+.success-overlay i{font-size:56px;color:var(--green);margin-bottom:14px}
+.success-overlay h3{font-size:18px;font-weight:600;color:var(--green)}
+.success-overlay p{font-size:12px;color:var(--green);margin-top:4px}
+
+/* ════════════════════════════
+   ADMIN VIEW
+════════════════════════════ */
+#view-admin{background:var(--paper)}
+.admin-sidebar{width:200px;flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;padding:16px 0;min-height:100%}
+.admin-logo{padding:0 16px 16px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}
+.admin-logo-name{font-size:14px;font-weight:600;color:#fff;letter-spacing:-.3px}
+.admin-logo-name span{color:var(--green-m)}
+.admin-logo-sub{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+.ani{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:12px;color:rgba(255,255,255,.45);cursor:pointer;border-left:2px solid transparent;transition:all .12s}
+.ani:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.ani.act{color:#fff;background:rgba(255,255,255,.08);border-left-color:var(--green-m)}
+.ani i{font-size:16px;flex-shrink:0}
+.ani .badge-num{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px}
+
+.admin-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.admin-topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--white);border-bottom:1px solid var(--paper3);flex-shrink:0}
+.admin-topbar-title{font-size:14px;font-weight:600;color:var(--ink)}
+.admin-topbar-right{display:flex;gap:8px;align-items:center}
+.abtn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;border-radius:var(--radius);border:1px solid var(--paper3);background:var(--white);color:var(--ink);cursor:pointer;font-weight:500;transition:background .12s}
+.abtn:hover{background:var(--paper)}
+.abtn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.abtn-dark:hover{background:var(--ink2)}
+
+.admin-content{flex:1;overflow-y:auto;padding:20px}
+.apage{display:none}.apage.act{display:block}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.scard{background:var(--white);border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:16px}
+.scard-val{font-size:28px;font-weight:600;color:var(--ink);font-family:'DM Mono',monospace}
+.scard-lbl{font-size:11px;color:var(--ink3);margin-top:3px}
+.scard-sub{font-size:10px;color:var(--ink4);margin-top:4px}
+
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-hd-title{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:var(--white);border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:16px}
+
+.eq-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--paper2)}
+.eq-row:last-child{border-bottom:none}
+.eq-ico{width:36px;height:36px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.eq-info{flex:1;min-width:0}
+.eq-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eq-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.b-pend{background:var(--amber-l);color:var(--amber)}
+.b-match{background:var(--blue-l);color:var(--blue)}
+.b-conf{background:var(--green-l);color:var(--green)}
+.b-done{background:var(--paper2);color:var(--ink3)}
+
+.match-card{background:var(--white);border:1px solid var(--paper3);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
+.mc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.mc-name{font-size:14px;font-weight:600;color:var(--ink)}
+.mc-proj{font-size:11px;color:var(--ink3);margin-top:1px}
+.mc-score{text-align:right}
+.mc-score-val{font-size:22px;font-weight:600;color:var(--ink);font-family:'DM Mono',monospace}
+.mc-score-lbl{font-size:9px;color:var(--ink4);text-transform:uppercase}
+.mc-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:var(--paper);border:1px solid var(--paper3);border-radius:999px;font-size:11px;color:var(--ink3)}
+.chip i{font-size:11px}
+.mc-actions{display:flex;gap:6px;justify-content:flex-end}
+
+.rec-list .rec-row2{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--paper2)}
+.rec-row2:last-child{border-bottom:none}
+.rec-av{width:34px;height:34px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.rec-info2{flex:1;min-width:0}
+.rec-name2{font-size:13px;font-weight:600;color:var(--ink)}
+.rec-meta2{font-size:11px;color:var(--ink3);margin-top:1px}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.online-dot.off{background:var(--paper3)}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--paper3);margin-bottom:14px}
+.atab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s}
+.atab:hover{color:var(--ink)}
+.atab.act{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-start;justify-content:center;z-index:300;padding:60px 16px;overflow-y:auto}
+.modal{background:var(--white);border-radius:var(--radius-xl);width:520px;max-width:95%;padding:20px;max-height:80vh;overflow-y:auto}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:16px;font-weight:600;color:var(--ink)}
+.modal-close{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);background:var(--paper);border:none;font-size:18px}
+.modal-close:hover{background:var(--paper2)}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--paper3)}
+
+.divider{height:1px;background:var(--paper3);margin:12px 0}
+
+/* ════════════════════════════
+   RECYCLER VIEW
+════════════════════════════ */
+#view-recycler{background:var(--paper2);align-items:flex-start;justify-content:center;padding:32px 20px}
+.recycler-shell{width:440px;background:var(--white);border-radius:var(--radius-xl);border:1px solid var(--paper3);box-shadow:var(--shadow-md);overflow:hidden}
+.rsh-topbar{background:var(--ink);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.rsh-logo{font-size:14px;font-weight:600;color:#fff;letter-spacing:-.3px}
+.rsh-logo span{color:var(--green-m)}
+.rsh-user{font-size:12px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:6px}
+.rsh-user .dot{width:7px;height:7px;border-radius:50%;background:var(--green-m)}
+.rscreen{display:none}.rscreen.act{display:block}
+.rcard{padding:20px}
+.rcard-header{margin-bottom:16px}
+.rcard-title{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.3px}
+.rcard-sub{font-size:12px;color:var(--ink3);margin-top:3px}
+.eq-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.eq-detail-item{background:var(--paper);border-radius:var(--radius);padding:12px}
+.eq-detail-lbl{font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.eq-detail-val{font-size:14px;font-weight:600;color:var(--ink)}
+.eq-photos{display:flex;gap:8px;margin-bottom:16px}
+.eq-photo{width:80px;height:80px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:32px;border:1px solid var(--paper3)}
+.addr-blur{background:var(--paper2);border:1px solid var(--paper3);border-radius:var(--radius);padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.addr-blur i{font-size:16px;color:var(--ink4)}
+.addr-blur span{font-size:12px;color:var(--ink4);font-style:italic}
+.r-actions{display:flex;gap:8px;padding:0 20px 20px}
+.rbtn{flex:1;padding:13px;border-radius:var(--radius);border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.rbtn-accept{background:var(--ink);color:#fff}
+.rbtn-accept:hover{background:var(--ink2)}
+.rbtn-reject{background:var(--red-l);color:var(--red)}
+.rbtn-reject:hover{background:#f8d0d0}
+
+/* notification list */
+.notif-item{display:flex;gap:12px;padding:14px 20px;border-bottom:1px solid var(--paper2);cursor:pointer;transition:background .1s}
+.notif-item:hover{background:var(--paper)}
+.notif-item.unread{background:var(--blue-l)}
+.notif-ico{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.notif-info{flex:1}
+.notif-title{font-size:13px;font-weight:600;color:var(--ink)}
+.notif-desc{font-size:11px;color:var(--ink3);margin-top:2px}
+.notif-time{font-size:10px;color:var(--ink4);margin-top:4px}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast i{font-size:16px;color:var(--green-m)}
+
+/* detail screen */
+.detail-hero{padding:16px;background:var(--paper);border-bottom:1px solid var(--paper2)}
+.detail-photos{display:flex;gap:8px;margin-bottom:14px}
+.detail-photo{width:76px;height:76px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:34px;border:1px solid var(--paper3);flex-shrink:0}
+.detail-name{font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.3px;margin-bottom:4px}
+.detail-proj{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:4px}
+.detail-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.detail-section{padding:14px 16px;border-bottom:1px solid var(--paper2)}
+.detail-section-title{font-size:10px;font-weight:600;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.detail-item{background:var(--paper);border-radius:var(--radius);padding:10px 12px}
+.detail-item-lbl{font-size:10px;color:var(--ink4);margin-bottom:3px}
+.detail-item-val{font-size:13px;font-weight:600;color:var(--ink)}
+.cond-indicator{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--radius)}
+.cond-grade{font-size:24px;font-weight:600;font-family:'DM Mono',monospace}
+.cond-info{flex:1}
+.cond-name{font-size:13px;font-weight:600}
+.cond-desc{font-size:11px;margin-top:1px}
+.detail-note{background:var(--paper);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--ink2);line-height:1.5}
+.detail-status-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}
+.detail-status-label{font-size:12px;color:var(--ink3)}
+.detail-bottom{padding:14px 16px 24px;flex-shrink:0;border-top:1px solid var(--paper2)}
+</style>
+</head>
+<body>
+
+<!-- ── Top Nav ── -->
+<nav class="topnav">
+  <div class="brand">Re<span>Loop</span></div>
+  <div class="view-tab act" onclick="switchView('phone')" id="vtab-phone">
+    <span class="dot dot-blue"></span>手機端（代理人現場）
+  </div>
+  <div class="view-tab" onclick="switchView('admin')" id="vtab-admin">
+    <span class="dot dot-green"></span>後台（代理人管理）
+  </div>
+  <div class="view-tab" onclick="switchView('recycler')" id="vtab-recycler">
+    <span class="dot dot-amber"></span>設備商端
+  </div>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<!-- ══════════════════════════════════════════
+     PHONE VIEW
+══════════════════════════════════════════ -->
+<div class="page act" id="view-phone">
+<div class="phone-shell">
+  <div class="ph-statusbar">
+    <span class="ph-time" id="ph-clock">09:41</span>
+    <div class="ph-icons"><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></div>
+  </div>
+
+  <!-- Login Screen -->
+  <div class="ph-screen act" id="ps-login">
+    <div class="ph-scroll">
+      <div class="login-hero">
+        <div class="login-logo"><i class="ti ti-recycle"></i></div>
+        <div class="login-h1">ReLoop</div>
+        <div class="login-sub">現場設備記錄工具</div>
+      </div>
+      <div class="login-body">
+
+        <!-- LINE 登入 -->
+        <button class="line-btn" onclick="lineLogin()">
+          <svg class="line-btn-icon" viewBox="0 0 24 24" fill="white">
+            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+          </svg>
+          使用 LINE 帳號登入
+        </button>
+
+        <!-- 分隔線 -->
+        <div class="login-divider">
+          <div class="login-divider-line"></div>
+          <div class="login-divider-text">或使用帳號密碼</div>
+          <div class="login-divider-line"></div>
+        </div>
+
+        <!-- 錯誤訊息 -->
+        <div class="login-error" id="login-error">帳號或密碼錯誤，請重新輸入</div>
+
+        <!-- Email + 密碼 -->
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="your@email.com" value="agent@reloop.tw">
+        </div>
+        <div class="field">
+          <label>密碼</label>
+          <input type="password" id="login-password" placeholder="請輸入密碼" value="demo1234"
+                 onkeydown="if(event.key==='Enter') emailLogin()">
+        </div>
+        <div class="login-forgot"><a onclick="showToast('密碼重設連結已寄至您的 Email')">忘記密碼？</a></div>
+
+        <button class="btn-full btn-green" onclick="emailLogin()">登入</button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- List Screen -->
+  <div class="ph-screen" id="ps-list">
+    <div class="ph-topbar">
+      <div style="width:34px"></div>
+      <div class="ph-title">今日記錄</div>
+      <div class="ph-action" onclick="logout()"><i class="ti ti-logout" style="font-size:16px"></i></div>
+    </div>
+    <div style="padding:10px 16px;background:var(--paper);border-bottom:1px solid var(--paper2);display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <i class="ti ti-building" style="font-size:14px;color:var(--ink3)"></i>
+      <span style="font-size:12px;color:var(--ink3)">案場：</span>
+      <span style="font-size:13px;font-weight:600;color:var(--ink)">信義區王宅翻新</span>
+    </div>
+    <div class="ph-scroll">
+      <div class="stat-row mt8">
+        <div class="stat-card"><div class="val" id="ph-rec-count">3</div><div class="lbl">已記錄</div></div>
+        <div class="stat-card"><div class="val" style="color:var(--blue)" id="ph-pending-count">3</div><div class="lbl">待送出</div></div>
+      </div>
+      <div id="ph-record-list"></div>
+    </div>
+    <div class="ph-bottom">
+      <button class="btn-full btn-green" onclick="goCapture()"><i class="ti ti-camera" style="font-size:16px;vertical-align:-2px;margin-right:6px"></i>拍照新增設備</button>
+      <button class="btn-full btn-ghost" onclick="submitAll()"><i class="ti ti-send" style="font-size:15px;vertical-align:-2px;margin-right:6px"></i>全部送出媒合</button>
+    </div>
+  </div>
+
+  <!-- Capture Screen -->
+  <div class="ph-screen" id="ps-capture">
+    <div class="ph-topbar">
+      <div class="ph-back" onclick="goList()"><i class="ti ti-arrow-left"></i></div>
+      <div class="ph-title">拍照記錄</div>
+      <div class="ph-action" onclick="skipPhoto()">略過</div>
+    </div>
+    <div class="ph-progress"><div class="ph-progress-fill" style="width:33%"></div></div>
+    <div class="camera-view">
+      <canvas id="cam-canvas" class="cam-canvas"></canvas>
+      <div class="scan-corner sc-tl"></div>
+      <div class="scan-corner sc-tr"></div>
+      <div class="scan-corner sc-bl"></div>
+      <div class="scan-corner sc-br"></div>
+      <div class="cam-hint">對準設備拍照</div>
+      <div class="cam-btns">
+        <div class="cam-side"><i class="ti ti-bolt" style="font-size:18px"></i></div>
+        <div class="shutter" onclick="takePhoto()"><div class="shutter-inner"></div></div>
+        <div class="cam-side"><i class="ti ti-photo" style="font-size:18px"></i></div>
+      </div>
+    </div>
+    <div class="thumb-strip" id="thumb-strip">
+      <div class="thumb thumb-add"><i class="ti ti-plus" style="font-size:20px"></i></div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center" id="cam-idle">
+      <div>
+        <i class="ti ti-camera-spark" style="font-size:40px;color:var(--ink4);display:block;margin-bottom:10px"></i>
+        <div style="font-size:13px;color:var(--ink3)">拍照後繼續填寫設備資料</div>
+      </div>
+    </div>
+    <div style="padding:12px 16px 20px;flex-shrink:0;display:none" id="cam-next">
+      <button class="btn-full btn-green" onclick="goForm()"><i class="ti ti-arrow-right" style="font-size:15px;vertical-align:-2px;margin-right:6px"></i>繼續填寫資料</button>
+    </div>
+  </div>
+
+  <!-- Form Screen -->
+  <div class="ph-screen" id="ps-form">
+    <div class="ph-topbar">
+      <div class="ph-back" onclick="goCapture()"><i class="ti ti-arrow-left"></i></div>
+      <div class="ph-title">設備資料</div>
+      <div class="ph-action" onclick="saveRecord()">儲存</div>
+    </div>
+    <div class="ph-progress"><div class="ph-progress-fill" style="width:66%"></div></div>
+    <div class="ph-scroll">
+
+      <div class="form-sec">
+        <div class="form-sec-label"><i class="ti ti-tag"></i>標籤</div>
+        <div class="tags-wrap" id="form-tags-wrap"></div>
+        <div class="tag-input-row">
+          <input type="text" id="tag-inp" placeholder="輸入標籤..." onkeydown="if(event.key==='Enter'){event.preventDefault();addTag()}">
+          <button onclick="addTag()">＋ 新增</button>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-label"><i class="ti ti-device-tv"></i>設備類型</div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>類型</label>
+            <select id="f-cat">
+              <option>請選擇...</option>
+              <option>冰箱</option><option>洗衣機</option><option>冷氣</option>
+              <option>電視</option><option>沙發</option><option>床架</option>
+              <option>衣櫃</option><option>辦公桌椅</option><option>其他</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>品牌</label>
+            <input type="text" id="f-brand" placeholder="例：LG">
+          </div>
+          <div class="form-field">
+            <label>型號</label>
+            <input type="text" id="f-model" placeholder="選填">
+          </div>
+          <div class="form-field">
+            <label>出廠年份</label>
+            <input type="number" id="f-year" placeholder="例：2018">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-label"><i class="ti ti-heart-rate-monitor"></i>設備狀況</div>
+        <div class="cond-grid">
+          <div class="cond-btn" id="cb-a" onclick="selCond('a')">
+            <div class="grade">A</div>
+            <div class="grade-lbl">良好</div>
+            <div class="grade-sub">可正常使用</div>
+          </div>
+          <div class="cond-btn" id="cb-b" onclick="selCond('b')">
+            <div class="grade">B</div>
+            <div class="grade-lbl">普通</div>
+            <div class="grade-sub">輕微磨損</div>
+          </div>
+          <div class="cond-btn" id="cb-c" onclick="selCond('c')">
+            <div class="grade">C</div>
+            <div class="grade-lbl">堪用</div>
+            <div class="grade-sub">明顯損傷</div>
+          </div>
+          <div class="cond-btn" id="cb-d" onclick="selCond('d')">
+            <div class="grade">D</div>
+            <div class="grade-lbl">待修</div>
+            <div class="grade-sub">無法運作</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-label"><i class="ti ti-ruler"></i>尺寸（公分）</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="form-field">
+            <label>寬</label>
+            <input type="number" id="f-w" placeholder="cm">
+          </div>
+          <div class="form-field">
+            <label>高</label>
+            <input type="number" id="f-h" placeholder="cm">
+          </div>
+          <div class="form-field">
+            <label>深</label>
+            <input type="number" id="f-d" placeholder="cm">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-sec">
+        <div class="form-sec-label"><i class="ti ti-message"></i>備註</div>
+        <div class="form-field full">
+          <textarea id="f-note" placeholder="例：門板有刮痕、附原廠遙控器..."></textarea>
+        </div>
+      </div>
+
+      <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:8px">
+        <button class="btn-full btn-green" onclick="saveRecord()"><i class="ti ti-device-floppy" style="font-size:15px;vertical-align:-2px;margin-right:6px"></i>儲存設備記錄</button>
+        <button class="btn-full btn-danger" onclick="goList()"><i class="ti ti-trash" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>放棄此筆</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Screen -->
+  <div class="ph-screen" id="ps-detail">
+    <div class="ph-topbar">
+      <div class="ph-back" onclick="showPhScreen('ps-list')"><i class="ti ti-arrow-left"></i></div>
+      <div class="ph-title">設備詳情</div>
+      <div class="ph-action" id="detail-match-btn" onclick="detailMatch()">媒合</div>
+    </div>
+    <div class="ph-scroll" id="detail-scroll"></div>
+
+    <!-- Bottom sheet：修改規格 -->
+    <div id="edit-spec-sheet" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.4);align-items:flex-end;z-index:20">
+      <div style="background:var(--white);border-radius:20px 20px 0 0;width:100%;padding:16px 16px 28px;max-height:80%">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">修改規格</div>
+          <div onclick="closeEditSpec()" style="font-size:13px;color:var(--ink3);cursor:pointer">取消</div>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+          <div class="form-field">
+            <label>品牌</label>
+            <input type="text" id="es-brand" placeholder="例：LG">
+          </div>
+          <div class="form-field">
+            <label>出廠年份</label>
+            <input type="number" id="es-year" placeholder="例：2018">
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--ink3);margin-bottom:6px">尺寸（公分）</div>
+        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:10px">
+          <div class="form-field"><label>寬</label><input type="number" id="es-w" placeholder="cm"></div>
+          <div class="form-field"><label>高</label><input type="number" id="es-h" placeholder="cm"></div>
+          <div class="form-field"><label>深</label><input type="number" id="es-d" placeholder="cm"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px">
+          <div class="form-field">
+            <label>重量（kg）</label>
+            <input type="number" id="es-weight" placeholder="kg">
+          </div>
+        </div>
+        <button class="btn-full btn-green" onclick="saveEditSpec()">
+          <i class="ti ti-check" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>儲存規格
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom sheet：修改備註 -->
+    <div id="edit-note-sheet" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.4);align-items:flex-end;z-index:20">
+      <div style="background:var(--white);border-radius:20px 20px 0 0;width:100%;padding:16px 16px 28px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">修改備註</div>
+          <div onclick="closeEditNote()" style="font-size:13px;color:var(--ink3);cursor:pointer">取消</div>
+        </div>
+        <div class="form-field full" style="margin-bottom:14px">
+          <textarea id="en-note" style="min-height:100px;width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--paper3);border-radius:var(--radius);background:var(--paper);color:var(--ink);outline:none;resize:none;font-family:'DM Sans',sans-serif" placeholder="設備狀況補充說明、特殊需求..."></textarea>
+        </div>
+        <button class="btn-full btn-green" onclick="saveEditNote()">
+          <i class="ti ti-check" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>儲存備註
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success overlay -->
+  <div class="success-overlay" id="ph-success">
+    <i class="ti ti-circle-check"></i>
+    <h3 id="success-title">記錄儲存成功</h3>
+    <p id="success-desc">已加入待送出清單</p>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADMIN VIEW
+══════════════════════════════════════════ -->
+<div class="page" id="view-admin">
+<div class="admin-sidebar">
+  <div class="admin-logo">
+    <div class="admin-logo-name">Re<span>Loop</span></div>
+    <div class="admin-logo-sub">代理人後台</div>
+  </div>
+  <div class="ani act" onclick="switchAdmin('dashboard')" id="ani-dashboard"><i class="ti ti-layout-dashboard"></i>總覽</div>
+  <div class="ani" onclick="switchAdmin('projects')" id="ani-projects"><i class="ti ti-building"></i>案場管理</div>
+  <div class="ani" onclick="switchAdmin('equipment')" id="ani-equipment"><i class="ti ti-device-tv"></i>設備清單<span class="badge-num" id="badge-pending">4</span></div>
+  <div class="ani" onclick="switchAdmin('match')" id="ani-match"><i class="ti ti-adjustments"></i>媒合管理</div>
+  <div class="ani" onclick="switchAdmin('recyclers')" id="ani-recyclers"><i class="ti ti-users"></i>設備商</div>
+</div>
+<div class="admin-main">
+  <div class="admin-topbar">
+    <div class="admin-topbar-title" id="admin-topbar-title">總覽</div>
+    <div class="admin-topbar-right">
+      <div class="abtn abtn-dark" onclick="switchView('phone')"><i class="ti ti-device-mobile"></i> 切換手機端</div>
+    </div>
+  </div>
+  <div class="admin-content">
+
+    <!-- 總覽 -->
+    <div class="apage act" id="ap-dashboard">
+      <div class="stats-grid">
+        <div class="scard"><div class="scard-val">3</div><div class="scard-lbl">進行中案場</div><div class="scard-sub">本月新增 1 個</div></div>
+        <div class="scard"><div class="scard-val" id="admin-pending-count">4</div><div class="scard-lbl">待媒合設備</div><div class="scard-sub">等待配對中</div></div>
+        <div class="scard"><div class="scard-val">12</div><div class="scard-lbl">媒合成功</div><div class="scard-sub">本月成功率 85%</div></div>
+        <div class="scard"><div class="scard-val">28</div><div class="scard-lbl">已完成回收</div><div class="scard-sub">累計件數</div></div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-hd"><div class="section-hd-title">最近設備</div></div>
+          <div class="card" id="admin-eq-list"></div>
+        </div>
+        <div>
+          <div class="section-hd"><div class="section-hd-title">待媒合</div></div>
+          <div id="admin-pending-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 設備清單 -->
+    <div class="apage" id="ap-equipment">
+      <div class="tabs">
+        <div class="atab act" onclick="switchEqTab(this,'eqt-all')">全部</div>
+        <div class="atab" onclick="switchEqTab(this,'eqt-pending')">待媒合</div>
+        <div class="atab" onclick="switchEqTab(this,'eqt-matched')">媒合中</div>
+        <div class="atab" onclick="switchEqTab(this,'eqt-done')">已完成</div>
+      </div>
+      <div id="eqt-all" class="card" style="padding:0 12px"></div>
+      <div id="eqt-pending" style="display:none" class="card" style="padding:0 12px"></div>
+      <div id="eqt-matched" style="display:none" class="card" style="padding:0 12px"></div>
+      <div id="eqt-done" style="display:none;text-align:center;padding:40px;color:var(--ink3)" class="card">暫無完成記錄</div>
+    </div>
+
+    <!-- 媒合管理 -->
+    <div class="apage" id="ap-match">
+      <div class="tabs">
+        <div class="atab act" onclick="switchMatchTab(this,'mt-pending')">待媒合</div>
+        <div class="atab" onclick="switchMatchTab(this,'mt-inprog')">進行中</div>
+      </div>
+      <div id="mt-pending"></div>
+      <div id="mt-inprog" style="display:none"></div>
+    </div>
+
+    <!-- 案場管理 -->
+    <div class="apage" id="ap-projects">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+        <div class="abtn abtn-dark"><i class="ti ti-plus"></i> 新增案場</div>
+      </div>
+      <div id="proj-list"></div>
+    </div>
+
+    <!-- 設備商 -->
+    <div class="apage" id="ap-recyclers">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+        <div class="abtn abtn-dark"><i class="ti ti-plus"></i> 新增設備商</div>
+      </div>
+      <div class="card" style="padding:0 12px" id="admin-rec-list"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Modal: 媒合設備商 -->
+<div class="modal-overlay" id="modal-match" style="display:none" onclick="if(event.target===this)closeModal()">
+<div class="modal">
+  <div class="modal-head">
+    <div class="modal-title" id="modal-eq-name">選擇設備商</div>
+    <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:10px">自動媒合推薦（依評分排序）</div>
+  <div id="auto-match-list"></div>
+  <div class="divider"></div>
+  <div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:10px">手動指定</div>
+  <div id="manual-rec-list"></div>
+  <div class="modal-foot">
+    <div class="abtn" onclick="closeModal()">取消</div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     RECYCLER VIEW
+══════════════════════════════════════════ -->
+<div class="page" id="view-recycler">
+<div style="display:flex;gap:24px;align-items:flex-start;padding:32px 24px;flex-wrap:wrap;background:var(--paper2);min-height:100%;width:100%">
+
+  <!-- 左：LINE 通知模擬 -->
+  <div style="flex:1;min-width:280px;max-width:340px">
+    <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <span style="width:8px;height:8px;border-radius:50%;background:#06C755;display:inline-block"></span>
+      LINE 通知（主要管道）
+    </div>
+
+    <!-- LINE 手機模擬 -->
+    <div style="background:#1A1A18;border-radius:28px;padding:14px 10px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+      <!-- 狀態列 -->
+      <div style="display:flex;justify-content:space-between;padding:0 6px 8px;font-size:11px;color:rgba(255,255,255,.5)">
+        <span id="line-clock">09:41</span>
+        <div style="display:flex;gap:4px"><i class="ti ti-wifi" style="font-size:12px"></i><i class="ti ti-battery-3" style="font-size:12px"></i></div>
+      </div>
+
+      <!-- LINE 介面 -->
+      <div style="background:#fff;border-radius:18px;overflow:hidden">
+        <!-- LINE topbar -->
+        <div style="background:#06C755;padding:10px 14px;display:flex;align-items:center;gap:8px">
+          <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:16px">🔄</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#fff">ReLoop 官方帳號</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.75)">設備回收媒合平台</div>
+          </div>
+        </div>
+
+        <!-- 聊天內容 -->
+        <div style="background:#E2F4EE;padding:12px 10px;min-height:360px;display:flex;flex-direction:column;gap:10px" id="line-chat-area">
+
+          <!-- 系統訊息：時間戳 -->
+          <div style="text-align:center;font-size:10px;color:#7A7A72">今天 09:38</div>
+
+          <!-- 舊通知（已讀） -->
+          <div style="display:flex;gap:6px;align-items:flex-end">
+            <div style="width:28px;height:28px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔄</div>
+            <div>
+              <div style="background:#fff;border-radius:12px 12px 12px 2px;padding:10px 12px;max-width:220px;box-shadow:0 1px 2px rgba(0,0,0,.06)">
+                <div style="font-size:10px;font-weight:600;color:#06C755;margin-bottom:4px">【媒合通知】</div>
+                <div style="font-size:11px;color:#1A1A18;line-height:1.5">您有一批設備媒合邀請：</div>
+                <div style="font-size:11px;color:#3D3D38;margin-top:4px">📦 <b>SHARP 洗衣機</b></div>
+                <div style="font-size:10px;color:#7A7A72">台北市信義區 · 堪用</div>
+                <div style="margin-top:8px;display:flex;gap:6px">
+                  <div style="flex:1;background:#1A1A18;color:#fff;border-radius:6px;padding:5px;font-size:10px;font-weight:600;text-align:center;cursor:pointer" onclick="simulateLineAccept()">✓ 接受</div>
+                  <div style="flex:1;background:#F1EFE8;color:#5F5E5A;border-radius:6px;padding:5px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;border:1px solid #E4E2DB" onclick="simulateLineReject()">✗ 婉拒</div>
+                </div>
+              </div>
+              <div style="font-size:9px;color:#AEADA6;margin-top:3px;padding-left:4px">已讀</div>
+            </div>
+          </div>
+
+          <!-- 新通知（未讀，閃動） -->
+          <div style="text-align:center;font-size:10px;color:#7A7A72">今天 09:41</div>
+          <div style="display:flex;gap:6px;align-items:flex-end" id="line-new-notif">
+            <div style="width:28px;height:28px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔄</div>
+            <div>
+              <div style="background:#fff;border-radius:12px 12px 12px 2px;padding:10px 12px;max-width:220px;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1.5px solid #06C755">
+                <div style="font-size:10px;font-weight:600;color:#06C755;margin-bottom:4px">【新媒合通知】🔔</div>
+                <div style="font-size:11px;color:#1A1A18;line-height:1.5">您有一批設備媒合邀請：</div>
+                <div style="font-size:11px;color:#3D3D38;margin-top:4px">📦 <b>LG 雙門冰箱</b></div>
+                <div style="font-size:10px;color:#7A7A72">台北市信義區 · 普通 · 70×180×65 cm</div>
+                <div style="font-size:10px;color:#7A7A72;margin-top:2px">⚠️ 地址於接受後揭露</div>
+                <div style="font-size:10px;color:#E24B4A;margin-top:4px">⏰ 請於 48 小時內回應</div>
+                <div style="margin-top:8px;display:flex;gap:6px">
+                  <div style="flex:1;background:#06C755;color:#fff;border-radius:6px;padding:6px;font-size:10px;font-weight:600;text-align:center;cursor:pointer" onclick="simulateLineAccept()">✓ 接受媒合</div>
+                  <div style="flex:1;background:#F1EFE8;color:#5F5E5A;border-radius:6px;padding:6px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;border:1px solid #E4E2DB" onclick="simulateLineReject()">✗ 婉拒</div>
+                </div>
+              </div>
+              <div style="font-size:9px;color:#06C755;margin-top:3px;padding-left:4px;font-weight:500">未讀</div>
+            </div>
+          </div>
+
+          <!-- 回應後的狀態訊息（預設隱藏） -->
+          <div id="line-response-msg" style="display:none">
+            <div style="display:flex;justify-content:flex-end">
+              <div style="background:#06C755;border-radius:12px 12px 2px 12px;padding:8px 12px;max-width:180px">
+                <div style="font-size:11px;color:#fff;font-weight:500" id="line-response-text">✓ 接受媒合</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:flex-end;margin-top:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔄</div>
+              <div style="background:#fff;border-radius:12px 12px 12px 2px;padding:10px 12px;max-width:220px;box-shadow:0 1px 2px rgba(0,0,0,.06)" id="line-confirm-msg">
+                <div style="font-size:10px;font-weight:600;color:#06C755;margin-bottom:4px">已確認 ✅</div>
+                <div style="font-size:11px;color:#1A1A18;line-height:1.5">感謝您接受媒合！</div>
+                <div style="font-size:10px;color:#7A7A72;margin-top:4px">案場地址：台北市信義區信義路五段 7 號</div>
+                <div style="font-size:10px;color:#7A7A72">聯絡人：王先生 · 0912-345-678</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- LINE 輸入列 -->
+        <div style="background:#fff;padding:8px 12px;display:flex;align-items:center;gap:8px;border-top:1px solid #F1EFE8">
+          <div style="flex:1;background:#F7F6F2;border-radius:20px;padding:7px 12px;font-size:12px;color:#AEADA6">Aa</div>
+          <div style="width:30px;height:30px;border-radius:50%;background:#06C755;display:flex;align-items:center;justify-content:center">
+            <i class="ti ti-send" style="font-size:14px;color:#fff"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 中間：箭頭說明 -->
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-top:80px;min-width:60px">
+    <div style="font-size:10px;font-weight:600;color:#7A7A72;text-transform:uppercase;letter-spacing:.05em;writing-mode:vertical-lr;transform:rotate(180deg)">點連結也可以</div>
+    <i class="ti ti-arrows-right-left" style="font-size:20px;color:#D3D1C7"></i>
+  </div>
+
+  <!-- 右：Email 通知 + 設備商系統介面 -->
+  <div style="flex:1;min-width:300px;max-width:420px;display:flex;flex-direction:column;gap:14px">
+
+    <!-- Email 通知模擬 -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#1A1A18;display:inline-block"></span>
+        Email 通知（備用管道）
+      </div>
+      <div style="background:#fff;border-radius:16px;border:1px solid var(--paper3);overflow:hidden;box-shadow:var(--shadow)">
+        <!-- Email header -->
+        <div style="background:#1A1A18;padding:12px 16px;display:flex;align-items:center;gap:8px">
+          <i class="ti ti-mail" style="font-size:18px;color:#9FD9C6"></i>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#fff">【ReLoop】新設備媒合通知</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.5)">from: noreply@reloop.tw</div>
+          </div>
+          <div style="margin-left:auto;background:#E24B4A;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px">新郵件</div>
+        </div>
+        <!-- Email body -->
+        <div style="padding:14px 16px">
+          <div style="font-size:12px;color:var(--ink2);margin-bottom:10px;line-height:1.6">
+            親愛的 <b>環保家電回收行</b>，<br>
+            您有一批設備媒合邀請，詳情如下：
+          </div>
+          <div style="background:var(--paper);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div><div style="font-size:9px;color:var(--ink4)">設備</div><div style="font-size:12px;font-weight:600;color:var(--ink)">LG 雙門冰箱</div></div>
+              <div><div style="font-size:9px;color:var(--ink4)">狀況</div><div style="font-size:12px;font-weight:600;color:var(--ink)">普通（B）</div></div>
+              <div><div style="font-size:9px;color:var(--ink4)">地區</div><div style="font-size:12px;font-weight:600;color:var(--ink)">台北市信義區</div></div>
+              <div><div style="font-size:9px;color:var(--ink4)">尺寸</div><div style="font-size:12px;font-weight:600;color:var(--ink)">70×180×65 cm</div></div>
+            </div>
+            <div style="margin-top:8px;font-size:10px;color:var(--ink4)">⚠️ 完整地址於接受後揭露　　⏰ 請於 48 小時內回應</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="flex:1;background:#1A1A18;color:#fff;border-radius:8px;padding:10px;font-size:12px;font-weight:600;text-align:center;cursor:pointer" onclick="simulateEmailAccept()">✓ 接受媒合</div>
+            <div style="flex:1;background:var(--paper2);color:var(--ink2);border-radius:8px;padding:10px;font-size:12px;font-weight:600;text-align:center;cursor:pointer;border:1px solid var(--paper3)" onclick="simulateLineReject()">✗ 婉拒</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 設備商系統介面 -->
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:#85B7EB;display:inline-block"></span>
+        設備商系統介面（第二版）
+      </div>
+      <div class="recycler-shell" style="width:100%;max-width:420px">
+        <div class="rsh-topbar">
+          <div class="rsh-logo">Re<span>Loop</span> — 設備商</div>
+          <div class="rsh-user"><span class="dot"></span>環保家電回收行</div>
+        </div>
+        <div class="rscreen act" id="rs-notif">
+          <div style="padding:12px 16px 6px;border-bottom:1px solid var(--paper2);display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--ink)">媒合通知</div>
+              <div style="font-size:11px;color:var(--ink3);margin-top:1px">共 2 則待處理</div>
+            </div>
+            <div style="background:#E24B4A;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">2 則新通知</div>
+          </div>
+          <div id="notif-list"></div>
+        </div>
+        <div class="rscreen" id="rs-detail">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--paper2)">
+            <div style="cursor:pointer;color:var(--ink3)" onclick="showRScreen('rs-notif')"><i class="ti ti-arrow-left" style="font-size:18px"></i></div>
+            <div style="font-size:13px;font-weight:600;color:var(--ink)">媒合詳情</div>
+          </div>
+          <div class="rcard" id="r-detail-content"></div>
+          <div class="r-actions" id="r-actions"></div>
+        </div>
+        <div class="rscreen" id="rs-accepted">
+          <div style="padding:30px 16px;text-align:center">
+            <i class="ti ti-circle-check" style="font-size:48px;color:var(--green);display:block;margin-bottom:12px"></i>
+            <div style="font-size:17px;font-weight:600;color:var(--ink);margin-bottom:4px">已確認接受</div>
+            <div style="font-size:12px;color:var(--ink3);margin-bottom:16px">代理人已收到通知</div>
+            <div style="background:var(--paper);border-radius:var(--radius-lg);padding:14px;text-align:left;margin-bottom:16px">
+              <div style="font-size:10px;color:var(--ink4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">案場地址（得標後揭露）</div>
+              <div style="font-size:13px;font-weight:600;color:var(--ink)">台北市信義區信義路五段 7 號</div>
+              <div style="font-size:11px;color:var(--ink3);margin-top:2px">聯絡人：王先生 · 0912-345-678</div>
+            </div>
+            <button class="rbtn rbtn-accept" style="width:100%;border-radius:var(--radius);padding:10px" onclick="showRScreen('rs-notif')">返回通知列表</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══ JS ══ -->
+<script>
+// ── DATA ──
+const EQUIPMENTS = [
+  {id:'e1',proj:'信義區王宅翻新',name:'LG 雙門冰箱',cat:'冰箱',brand:'LG',cond:'b',status:'pending',w:70,h:180,d:65,weight:60,note:'外觀良好',tags:['冰箱','LG','家電'],emoji:'🧊',photoIdx:0},
+  {id:'e2',proj:'信義區王宅翻新',name:'SHARP 洗衣機',cat:'洗衣機',brand:'SHARP',cond:'c',status:'matched',w:60,h:90,d:55,weight:45,note:'有輕微鏽斑',tags:['洗衣機','SHARP'],emoji:'🫧',photoIdx:1},
+  {id:'e3',proj:'信義區王宅翻新',name:'三人座皮革沙發',cat:'沙發',brand:'',cond:'c',status:'pending',w:200,h:85,d:90,weight:80,note:'皮革多處裂痕',tags:['沙發','皮革','客廳'],emoji:'🛋️',photoIdx:2},
+  {id:'e4',proj:'大安區林宅改造',name:'Samsung 50吋電視',cat:'電視',brand:'Samsung',cond:'a',status:'confirmed',w:112,h:65,d:8,weight:14,note:'附遙控器',tags:['電視','Samsung','4K'],emoji:'📺',photoIdx:0},
+  {id:'e5',proj:'大安區林宅改造',name:'TECO 冷氣',cat:'冷氣',brand:'TECO',cond:'b',status:'pending',w:80,h:28,d:22,weight:12,note:'需搭配室外機',tags:['冷氣','TECO'],emoji:'❄️',photoIdx:1},
+];
+const RECYCLERS = [
+  {id:'r1',name:'環保家電回收行',init:'環保',city:'台北市',cats:['冰箱','洗衣機','冷氣','電視'],score:4.8,active:true},
+  {id:'r2',name:'綠能資源再生有限公司',init:'綠能',city:'台北市',cats:['冰箱','電視','其他'],score:4.5,active:true},
+  {id:'r3',name:'大台北廢家具回收',init:'家具',city:'台北市',cats:['沙發','床架','辦公桌椅'],score:4.2,active:true},
+  {id:'r4',name:'永續物料行',init:'永續',city:'台北市',cats:['洗衣機','冷氣','電視'],score:4.6,active:false},
+];
+const PROJECTS = [
+  {name:'信義區王宅翻新',addr:'台北市信義區信義路五段 7 號',contact:'王先生',eqCount:3},
+  {name:'大安區林宅改造',addr:'台北市大安區敦化南路 100 號',contact:'林小姐',eqCount:5},
+  {name:'松山區辦公室翻修',addr:'台北市松山區南京東路四段 50 號',contact:'陳先生',eqCount:2},
+];
+const PHOTOS = [
+  {bg:'#E2EBF8',emoji:'🧊'},{bg:'#E2F4EE',emoji:'🫧'},{bg:'#F8EEE2',emoji:'🛋️'}
+];
+const condLabel = {a:'良好',b:'普通',c:'堪用',d:'待修'};
+const statusLabel = {pending:'待媒合',matched:'媒合中',confirmed:'已確認',completed:'已完成'};
+const statusBadge = {pending:'b-pend',matched:'b-match',confirmed:'b-conf',completed:'b-done'};
+
+let currentTags = [];
+let currentCond = null;
+let capturePhotoCount = 0;
+let currentMatchEqId = null;
+let camAF = null;
+
+// ── CLOCK ──
+function updateClock(){
+  const d=new Date();
+  const el=document.getElementById('ph-clock');
+  if(el) el.textContent=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+setInterval(updateClock,15000);
+
+// ── VIEW SWITCH ──
+function switchView(v){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.view-tab').forEach(t=>t.classList.remove('act'));
+  document.getElementById('view-'+v).classList.add('act');
+  document.getElementById('vtab-'+v).classList.add('act');
+  if(v==='admin'){renderAdmin();}
+  if(v==='recycler'){renderRecycler();}
+}
+
+// ── PHONE ──
+function showPhScreen(id){
+  document.querySelectorAll('.ph-screen').forEach(s=>s.classList.remove('act'));
+  document.getElementById(id).classList.add('act');
+}
+function logout(){showPhScreen('ps-login');}
+
+// LINE 登入
+function lineLogin(){
+  showFlash('LINE 登入成功','歡迎回來，陳代理人');
+  setTimeout(()=>{
+    document.getElementById('ph-success').classList.remove('show');
+    showPhScreen('ps-list');
+    renderPhList();
+  },900);
+}
+
+// Email + 密碼登入
+function emailLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+
+  if(!email || !password){
+    errEl.textContent = '請填寫 Email 與密碼';
+    errEl.classList.add('show');
+    return;
+  }
+  // POC 模擬：任何非空帳密都可以登入
+  errEl.classList.remove('show');
+  showFlash('登入成功','歡迎回來，'+email.split('@')[0]);
+  setTimeout(()=>{
+    document.getElementById('ph-success').classList.remove('show');
+    showPhScreen('ps-list');
+    renderPhList();
+  },900);
+}
+
+function showFlash(title,desc){
+  document.getElementById('success-title').textContent=title;
+  document.getElementById('success-desc').textContent=desc;
+  document.getElementById('ph-success').classList.add('show');
+}
+
+function renderPhList(){
+  const list=document.getElementById('ph-record-list');
+  list.innerHTML=EQUIPMENTS.slice(0,4).map(e=>`
+    <div class="record-item" onclick="goDetail('${e.id}')">
+      <div class="rec-thumb" style="background:${PHOTOS[e.photoIdx].bg}">${PHOTOS[e.photoIdx].emoji}</div>
+      <div class="rec-info">
+        <div class="rec-name">${e.name}</div>
+        <div class="rec-meta">${e.proj} · ${condLabel[e.cond]}</div>
+        <div class="rec-tags">${e.tags.slice(0,2).map(t=>`<span class="tag tag-gray">${t}</span>`).join('')}<span class="tag ${statusBadge[e.status]}">${statusLabel[e.status]}</span></div>
+      </div>
+      <i class="ti ti-chevron-right" style="font-size:16px;color:var(--ink4);flex-shrink:0"></i>
+    </div>`).join('');
+}
+
+// ── DETAIL ──
+const condStyle = {
+  a:{bg:'var(--green-l)',text:'var(--green)',label:'良好',desc:'可正常使用'},
+  b:{bg:'var(--blue-l)', text:'var(--blue)', label:'普通',desc:'功能正常，有輕微磨損'},
+  c:{bg:'var(--amber-l)',text:'var(--amber)',label:'堪用',desc:'有明顯損傷但可運作'},
+  d:{bg:'var(--red-l)',  text:'var(--red)',  label:'待修',desc:'無法正常使用'},
+};
+
+let currentDetailEqId = null;
+
+function goDetail(eqId){
+  currentDetailEqId = eqId;
+  renderDetailPage(eqId);
+  showPhScreen('ps-detail');
+}
+
+function renderDetailPage(eqId){
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(!e) return;
+  const p  = PHOTOS[e.photoIdx];
+  const p2 = PHOTOS[(e.photoIdx+1)%3];
+  const cs = condStyle[e.cond] || condStyle.b;
+  const canEdit = e.status === 'pending';
+
+  // topbar 右側按鈕
+  const matchBtn = document.getElementById('detail-match-btn');
+  matchBtn.dataset.eqId = eqId;
+  if(canEdit){
+    matchBtn.style.display = 'block';
+    matchBtn.textContent = '媒合';
+    matchBtn.style.color = 'var(--green)';
+  } else {
+    matchBtn.style.display = 'none';
+  }
+
+  document.getElementById('detail-scroll').innerHTML = `
+
+    <!-- 照片 + 基本資訊 -->
+    <div class="detail-hero">
+      <div class="detail-photos">
+        <div class="detail-photo" style="background:${p.bg}">${p.emoji}</div>
+        <div class="detail-photo" style="background:${p2.bg}">${p2.emoji}</div>
+        <div class="detail-photo" style="background:var(--paper2);border-style:dashed">
+          <i class="ti ti-plus" style="font-size:20px;color:var(--ink4)"></i>
+        </div>
+      </div>
+      <div class="detail-name">${e.name}</div>
+      <div class="detail-proj">
+        <i class="ti ti-map-pin" style="font-size:13px"></i>${e.proj}
+      </div>
+      <div class="detail-tags">
+        ${e.tags.map(t=>`<span class="tag tag-gray">${t}</span>`).join('')}
+        <span class="tag ${statusBadge[e.status]}">${statusLabel[e.status]}</span>
+      </div>
+    </div>
+
+    <!-- 設備狀況（待媒合可編輯） -->
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between">
+        設備狀況
+        ${canEdit ? `<span onclick="openEditCond('${eqId}')"
+          style="font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:3px">
+          <i class="ti ti-pencil" style="font-size:12px"></i>修改
+        </span>` : ''}
+      </div>
+      <div class="cond-indicator" style="background:${cs.bg}">
+        <div class="cond-grade" style="color:${cs.text}">${e.cond.toUpperCase()}</div>
+        <div class="cond-info">
+          <div class="cond-name" style="color:${cs.text}">${cs.label}</div>
+          <div class="cond-desc" style="color:${cs.text};opacity:.75">${cs.desc}</div>
+        </div>
+        ${canEdit ? `<i class="ti ti-chevron-right" style="font-size:16px;color:${cs.text};opacity:.5"></i>` : ''}
+      </div>
+    </div>
+
+    <!-- 規格資訊（待媒合可編輯） -->
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between">
+        規格資訊
+        ${canEdit ? `<span onclick="openEditSpec('${eqId}')"
+          style="font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:3px">
+          <i class="ti ti-pencil" style="font-size:12px"></i>修改
+        </span>` : ''}
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-item-lbl">類型</div>
+          <div class="detail-item-val">${e.cat}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-lbl">品牌</div>
+          <div class="detail-item-val">${e.brand||'—'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-lbl">尺寸（cm）</div>
+          <div class="detail-item-val">${e.w&&e.h&&e.d ? e.w+'×'+e.h+'×'+e.d : '—'}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-item-lbl">重量</div>
+          <div class="detail-item-val">${e.weight ? e.weight+' kg' : '—'}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 備註（待媒合可編輯） -->
+    <div class="detail-section">
+      <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between">
+        備註說明
+        ${canEdit ? `<span onclick="openEditNote('${eqId}')"
+          style="font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:3px">
+          <i class="ti ti-pencil" style="font-size:12px"></i>修改
+        </span>` : ''}
+      </div>
+      <div class="detail-note">${e.note || '<span style="color:var(--ink4)">無備註</span>'}</div>
+    </div>
+
+    <!-- 媒合狀態 -->
+    <div class="detail-status-row">
+      <span class="detail-status-label">媒合狀態</span>
+      <span class="badge ${statusBadge[e.status]}">${statusLabel[e.status]}</span>
+    </div>
+
+    <!-- 底部按鈕 -->
+    <div class="detail-bottom">
+      ${canEdit ? `
+        <button class="btn-full btn-green" onclick="detailMatch()" style="margin-bottom:8px">
+          <i class="ti ti-adjustments" style="font-size:15px;vertical-align:-2px;margin-right:6px"></i>送出媒合
+        </button>` : ''}
+      <button class="btn-full btn-ghost" onclick="showPhScreen('ps-list')">返回清單</button>
+    </div>
+  `;
+}
+
+// ── 修改狀況（inline 展開，不離開詳情頁）──
+function openEditCond(eqId){
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(!e) return;
+
+  // 把 cond-indicator 替換成選擇器
+  const section = document.querySelector('.cond-indicator');
+  if(!section) return;
+  const parent = section.parentElement;
+  parent.innerHTML = `
+    <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      設備狀況
+      <span onclick="cancelEditCond('${eqId}')"
+        style="font-size:11px;font-weight:600;color:var(--ink3);cursor:pointer">取消</span>
+    </div>
+    <div class="cond-grid" id="inline-cond-grid">
+      ${['a','b','c','d'].map(c=>{
+        const cs2 = condStyle[c];
+        const sel = e.cond===c;
+        return `<div class="cond-btn ${sel?'sel-'+c:''}" id="icb-${c}" onclick="selectInlineCond('${eqId}','${c}')">
+          <div class="grade">${c.toUpperCase()}</div>
+          <div class="grade-lbl">${cs2.label}</div>
+          <div class="grade-sub" style="font-size:10px;margin-top:1px">${cs2.desc}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn-full btn-green" style="margin-top:10px" onclick="saveEditCond('${eqId}')">
+      <i class="ti ti-check" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>確認修改
+    </button>
+  `;
+}
+
+let tempCond = null;
+function selectInlineCond(eqId, c){
+  tempCond = c;
+  ['a','b','c','d'].forEach(x=>{
+    const btn = document.getElementById('icb-'+x);
+    if(btn) btn.className = 'cond-btn'+(x===c?' sel-'+x:'');
+  });
+}
+function cancelEditCond(eqId){ tempCond=null; renderDetailPage(eqId); }
+function saveEditCond(eqId){
+  if(!tempCond){ showToast('請先選擇狀況'); return; }
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(e){ e.cond = tempCond; }
+  tempCond = null;
+  renderDetailPage(eqId);
+  showToast('設備狀況已更新');
+  renderPhList();
+}
+
+// ── 修改規格（bottom sheet 效果）──
+function openEditSpec(eqId){
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(!e) return;
+  document.getElementById('edit-spec-sheet').style.display='flex';
+  document.getElementById('es-brand').value = e.brand||'';
+  document.getElementById('es-w').value = e.w||'';
+  document.getElementById('es-h').value = e.h||'';
+  document.getElementById('es-d').value = e.d||'';
+  document.getElementById('es-weight').value = e.weight||'';
+  document.getElementById('es-year').value = e.manufacture_year||'';
+  document.getElementById('edit-spec-sheet').dataset.eqId = eqId;
+}
+function closeEditSpec(){ document.getElementById('edit-spec-sheet').style.display='none'; }
+function saveEditSpec(){
+  const eqId = document.getElementById('edit-spec-sheet').dataset.eqId;
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(!e) return;
+  e.brand  = document.getElementById('es-brand').value;
+  e.w      = parseFloat(document.getElementById('es-w').value)||0;
+  e.h      = parseFloat(document.getElementById('es-h').value)||0;
+  e.d      = parseFloat(document.getElementById('es-d').value)||0;
+  e.weight = parseFloat(document.getElementById('es-weight').value)||0;
+  e.manufacture_year = parseInt(document.getElementById('es-year').value)||null;
+  closeEditSpec();
+  renderDetailPage(eqId);
+  renderPhList();
+  showToast('規格已更新');
+}
+
+// ── 修改備註──
+function openEditNote(eqId){
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(!e) return;
+  document.getElementById('edit-note-sheet').style.display='flex';
+  document.getElementById('en-note').value = e.note||'';
+  document.getElementById('edit-note-sheet').dataset.eqId = eqId;
+}
+function closeEditNote(){ document.getElementById('edit-note-sheet').style.display='none'; }
+function saveEditNote(){
+  const eqId = document.getElementById('edit-note-sheet').dataset.eqId;
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(!e) return;
+  e.note = document.getElementById('en-note').value;
+  closeEditNote();
+  renderDetailPage(eqId);
+  showToast('備註已更新');
+}
+
+function detailMatch(){
+  const btn = document.getElementById('detail-match-btn');
+  const eqId = btn.dataset.eqId || currentDetailEqId;
+  const e = EQUIPMENTS.find(eq=>eq.id===eqId);
+  if(e){ e.status='matched'; }
+  showToast('已送出媒合，設備商將收到通知');
+  showPhScreen('ps-list');
+  renderPhList();
+  updatePendingCount();
+}
+
+function goCapture(){
+  capturePhotoCount=0;
+  document.getElementById('thumb-strip').innerHTML='<div class="thumb thumb-add"><i class="ti ti-plus" style="font-size:20px"></i></div>';
+  document.getElementById('cam-idle').style.display='flex';
+  document.getElementById('cam-next').style.display='none';
+  currentTags=[];currentCond=null;
+  showPhScreen('ps-capture');
+  startCam();
+}
+function goList(){stopCam();showPhScreen('ps-list');}
+function skipPhoto(){stopCam();currentTags=['設備','未拍照'];goForm();}
+function goForm(){
+  stopCam();
+  renderFormTags();
+  renderCondBtns();
+  ['f-cat','f-brand','f-model','f-year','f-note','f-w','f-h','f-d'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  showPhScreen('ps-form');
+}
+
+function startCam(){
+  const canvas=document.getElementById('cam-canvas');
+  const ctx=canvas.getContext('2d');
+  canvas.width=360;canvas.height=220;
+  const themes=[
+    {bg:'#1a2535',rects:[{x:60,y:30,w:240,h:140,c:'#253448'},{x:80,y:50,w:200,h:100,c:'#2e4060'}]},
+    {bg:'#2a1f18',rects:[{x:30,y:40,w:300,h:120,c:'#3d2e22'},{x:50,y:60,w:260,h:80,c:'#4a3828'}]},
+    {bg:'#1a1a2e',rects:[{x:50,y:25,w:260,h:150,c:'#252540'},{x:80,y:50,w:200,h:100,c:'#30305a'}]},
+  ];
+  const t=themes[Math.floor(Math.random()*themes.length)];
+  let tick=0;
+  function draw(){
+    ctx.fillStyle=t.bg;ctx.fillRect(0,0,360,220);
+    t.rects.forEach(r=>{ctx.fillStyle=r.c;ctx.beginPath();ctx.roundRect(r.x,r.y,r.w,r.h,8);ctx.fill();});
+    const sy=16+(tick%160)*(180/160);
+    ctx.strokeStyle='rgba(159,217,198,.5)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(8,sy);ctx.lineTo(352,sy);ctx.stroke();
+    tick++;camAF=requestAnimationFrame(draw);
+  }
+  draw();
+}
+function stopCam(){if(camAF){cancelAnimationFrame(camAF);camAF=null;}}
+
+const CAM_PRESETS=[
+  ['冰箱','家電','LG','雙門'],['沙發','皮革','三人座','客廳家具'],
+  ['洗衣機','SAMSUNG','滾筒','家電'],['電視','55吋','Sony','4K']
+];
+function takePhoto(){
+  capturePhotoCount++;
+  const preset=CAM_PRESETS[(capturePhotoCount-1)%CAM_PRESETS.length];
+  currentTags=[...preset];
+  const strip=document.getElementById('thumb-strip');
+  const th=document.createElement('div');
+  th.className='thumb active';
+  th.style.background=PHOTOS[(capturePhotoCount-1)%3].bg;
+  th.innerHTML=PHOTOS[(capturePhotoCount-1)%3].emoji;
+  strip.querySelectorAll('.thumb:not(.thumb-add)').forEach(t=>t.classList.remove('active'));
+  strip.insertBefore(th,strip.querySelector('.thumb-add'));
+  document.getElementById('cam-idle').style.display='none';
+  document.getElementById('cam-next').style.display='block';
+}
+
+function renderFormTags(){
+  const wrap=document.getElementById('form-tags-wrap');
+  wrap.innerHTML=currentTags.map((t,i)=>`<span class="tag-rm">${t}<i class="ti ti-x" onclick="removeTag(${i})"></i></span>`).join('');
+}
+function removeTag(i){currentTags.splice(i,1);renderFormTags();}
+function addTag(){
+  const inp=document.getElementById('tag-inp');
+  const v=inp.value.trim();
+  if(!v)return;
+  if(!currentTags.includes(v))currentTags.push(v);
+  inp.value='';renderFormTags();
+}
+function renderCondBtns(){
+  ['a','b','c','d'].forEach(c=>{
+    const btn=document.getElementById('cb-'+c);
+    btn.className='cond-btn'+(currentCond===c?' sel-'+c:'');
+  });
+}
+function selCond(c){currentCond=c;renderCondBtns();}
+
+function saveRecord(){
+  const cat=document.getElementById('f-cat').value;
+  const brand=document.getElementById('f-brand').value;
+  if(!cat||cat==='請選擇...'||!currentCond){showToast('請填寫設備類型與狀況');return;}
+  const name=(brand?brand+' ':'')+cat;
+  const photoIdx=capturePhotoCount>0?(capturePhotoCount-1)%3:0;
+  EQUIPMENTS.push({
+    id:'e'+(EQUIPMENTS.length+1),proj:'信義區王宅翻新',
+    name,cat,brand,cond:currentCond,status:'pending',
+    w:parseInt(document.getElementById('f-w').value)||0,
+    h:parseInt(document.getElementById('f-h').value)||0,
+    d:parseInt(document.getElementById('f-d').value)||0,
+    note:document.getElementById('f-note').value,
+    tags:currentTags.slice(),emoji:PHOTOS[photoIdx].emoji,photoIdx
+  });
+  updatePendingCount();
+  showFlash('設備記錄儲存成功','已加入待送出清單');
+  setTimeout(()=>{document.getElementById('ph-success').classList.remove('show');showPhScreen('ps-list');renderPhList();},1100);
+}
+
+function submitAll(){
+  showToast('已送出 '+EQUIPMENTS.filter(e=>e.status==='pending').length+' 筆設備，媒合系統處理中');
+  document.getElementById('ph-pending-count').textContent='0';
+}
+function updatePendingCount(){
+  const n=EQUIPMENTS.filter(e=>e.status==='pending').length;
+  document.getElementById('ph-rec-count').textContent=EQUIPMENTS.length;
+  document.getElementById('ph-pending-count').textContent=n;
+}
+
+// ── ADMIN ──
+function switchAdmin(p){
+  document.querySelectorAll('.apage').forEach(el=>el.classList.remove('act'));
+  document.querySelectorAll('.ani').forEach(el=>el.classList.remove('act'));
+  document.getElementById('ap-'+p).classList.add('act');
+  document.getElementById('ani-'+p).classList.add('act');
+  const titles={dashboard:'總覽',projects:'案場管理',equipment:'設備清單',match:'媒合管理',recyclers:'設備商管理'};
+  document.getElementById('admin-topbar-title').textContent=titles[p];
+  if(p==='match')renderMatchPage();
+  if(p==='equipment')renderEqPage();
+  if(p==='projects')renderProjPage();
+  if(p==='recyclers')renderRecPage();
+}
+
+function renderAdmin(){
+  renderAdminEqList();
+  renderAdminPendingList();
+  renderRecPage();
+}
+
+function renderAdminEqList(){
+  const el=document.getElementById('admin-eq-list');
+  if(!el)return;
+  el.style.padding='0 4px';
+  el.innerHTML=EQUIPMENTS.slice(0,4).map(e=>`
+    <div class="eq-row">
+      <div class="eq-ico" style="background:${PHOTOS[e.photoIdx].bg}">${PHOTOS[e.photoIdx].emoji}</div>
+      <div class="eq-info">
+        <div class="eq-name">${e.name}</div>
+        <div class="eq-sub">${e.proj}</div>
+      </div>
+      <span class="badge ${statusBadge[e.status]}">${statusLabel[e.status]}</span>
+    </div>`).join('');
+}
+
+function renderAdminPendingList(){
+  const el=document.getElementById('admin-pending-list');
+  if(!el)return;
+  const pending=EQUIPMENTS.filter(e=>e.status==='pending');
+  el.innerHTML=pending.map(e=>`
+    <div class="match-card">
+      <div class="mc-head">
+        <div><div class="mc-name">${e.name}</div><div class="mc-proj">${e.proj}</div></div>
+        <span class="badge b-pend">待媒合</span>
+      </div>
+      <div class="mc-chips">
+        <span class="chip"><i class="ti ti-tag"></i>${e.cat}</span>
+        <span class="chip"><i class="ti ti-ruler"></i>${e.w}×${e.h}×${e.d} cm</span>
+        <span class="chip"><i class="ti ti-star"></i>${condLabel[e.cond]}</span>
+      </div>
+      <div class="mc-actions">
+        <div class="abtn abtn-dark" onclick="openMatchModal('${e.id}')"><i class="ti ti-adjustments"></i> 媒合</div>
+      </div>
+    </div>`).join('') || '<div style="text-align:center;padding:20px;color:var(--ink3)">無待媒合設備</div>';
+}
+
+function renderEqPage(){
+  const all=document.getElementById('eqt-all');
+  const pending=document.getElementById('eqt-pending');
+  all.style.padding='0 4px';pending.style.padding='0 4px';
+  all.innerHTML=EQUIPMENTS.map(eqRow).join('');
+  pending.innerHTML=EQUIPMENTS.filter(e=>e.status==='pending').map(eqRow).join('');
+}
+function eqRow(e){return `
+  <div class="eq-row">
+    <div class="eq-ico" style="background:${PHOTOS[e.photoIdx].bg}">${PHOTOS[e.photoIdx].emoji}</div>
+    <div class="eq-info">
+      <div class="eq-name">${e.name}</div>
+      <div class="eq-sub">${e.proj} · ${condLabel[e.cond]}</div>
+    </div>
+    <span class="badge ${statusBadge[e.status]}">${statusLabel[e.status]}</span>
+    ${e.status==='pending'?`<div class="abtn" style="margin-left:6px" onclick="openMatchModal('${e.id}')">媒合</div>`:''}
+  </div>`;}
+
+function renderMatchPage(){
+  const pending=EQUIPMENTS.filter(e=>e.status==='pending');
+  const inprog=EQUIPMENTS.filter(e=>e.status==='matched'||e.status==='confirmed');
+  document.getElementById('mt-pending').innerHTML=pending.map(e=>`
+    <div class="match-card">
+      <div class="mc-head">
+        <div><div class="mc-name">${e.name}</div><div class="mc-proj">${e.proj}</div></div>
+        <span class="badge b-pend">待媒合</span>
+      </div>
+      <div class="mc-chips">
+        <span class="chip"><i class="ti ti-tag"></i>${e.cat}</span>
+        <span class="chip"><i class="ti ti-ruler"></i>${e.w}×${e.h} cm</span>
+        <span class="chip">${condLabel[e.cond]}</span>
+      </div>
+      <div class="mc-actions">
+        <div class="abtn" onclick="autoMatchEq('${e.id}')"><i class="ti ti-wand"></i> 自動媒合</div>
+        <div class="abtn abtn-dark" onclick="openMatchModal('${e.id}')"><i class="ti ti-adjustments"></i> 手動媒合</div>
+      </div>
+    </div>`).join('') || '<div style="text-align:center;padding:30px;color:var(--ink3)">無待媒合設備 ✓</div>';
+
+  document.getElementById('mt-inprog').innerHTML=inprog.map(e=>{
+    const r=RECYCLERS.find(rc=>rc.active)||RECYCLERS[0];
+    return `<div class="match-card">
+      <div class="mc-head">
+        <div><div class="mc-name">${e.name}</div><div class="mc-proj">媒合設備商：${r.name}</div></div>
+        <span class="badge ${statusBadge[e.status]}">${statusLabel[e.status]}</span>
+      </div>
+      <div class="mc-actions">
+        <div class="abtn abtn-dark" onclick="completeMatch('${e.id}')"><i class="ti ti-circle-check"></i> 標記完成</div>
+      </div>
+    </div>`;}).join('') || '<div style="text-align:center;padding:30px;color:var(--ink3)">無進行中媒合</div>';
+}
+
+function renderProjPage(){
+  document.getElementById('proj-list').innerHTML=PROJECTS.map(p=>`
+    <div class="match-card">
+      <div class="mc-head">
+        <div><div class="mc-name">${p.name}</div><div class="mc-proj">${p.addr}</div></div>
+        <span class="badge b-match">${p.eqCount} 件</span>
+      </div>
+      <div class="mc-chips">
+        <span class="chip"><i class="ti ti-user"></i>${p.contact}</span>
+        <span class="chip"><i class="ti ti-map-pin"></i>台北市</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderRecPage(){
+  const el=document.getElementById('admin-rec-list');
+  if(!el)return;
+  el.innerHTML='<div class="rec-list">'+RECYCLERS.map(r=>`
+    <div class="rec-row2">
+      <div class="rec-av">${r.init}</div>
+      <div class="rec-info2">
+        <div class="rec-name2">${r.name}</div>
+        <div class="rec-meta2">${r.city} · ${r.cats.slice(0,2).join('、')} · ★ ${r.score}</div>
+      </div>
+      <div class="online-dot ${r.active?'':'off'}"></div>
+      <span class="badge ${r.active?'b-conf':'b-done'}" style="margin-left:6px">${r.active?'接單中':'暫停'}</span>
+    </div>`).join('')+'</div>';
+}
+
+function openMatchModal(eqId){
+  currentMatchEqId=eqId;
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  document.getElementById('modal-eq-name').textContent='媒合：'+eq.name;
+  const matched=RECYCLERS.filter(r=>r.active&&r.cats.includes(eq.cat));
+  const others=RECYCLERS.filter(r=>r.active&&!r.cats.includes(eq.cat));
+  document.getElementById('auto-match-list').innerHTML=matched.map((r,i)=>{
+    const score=Math.round(88+(3-i)*3+Math.random()*2);
+    return `<div class="match-card" style="margin-bottom:8px">
+      <div class="mc-head">
+        <div><div class="mc-name">${r.name}</div><div class="mc-proj">${r.city} · ★ ${r.score}</div></div>
+        <div class="mc-score"><div class="mc-score-val">${score}</div><div class="mc-score-lbl">媒合分數</div></div>
+      </div>
+      <div class="mc-chips"><span class="chip"><i class="ti ti-map-pin"></i>${r.city}</span>${r.cats.slice(0,2).map(c=>`<span class="chip">${c}</span>`).join('')}</div>
+      <div class="mc-actions"><div class="abtn abtn-dark" onclick="doMatch('${eqId}','${r.id}','${r.name}')">選擇此設備商</div></div>
+    </div>`;}).join('')||'<div style="padding:12px;color:var(--ink3);font-size:13px">此類別無推薦設備商</div>';
+  document.getElementById('manual-rec-list').innerHTML=RECYCLERS.filter(r=>r.active).map(r=>`
+    <div class="rec-row2" style="cursor:pointer;padding:10px 4px" onclick="doMatch('${eqId}','${r.id}','${r.name}')">
+      <div class="rec-av">${r.init}</div>
+      <div class="rec-info2"><div class="rec-name2">${r.name}</div><div class="rec-meta2">★ ${r.score}</div></div>
+      <div class="abtn">指定</div>
+    </div>`).join('');
+  document.getElementById('modal-match').style.display='flex';
+}
+function closeModal(){document.getElementById('modal-match').style.display='none';}
+
+function doMatch(eqId,rId,rName){
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  if(eq){eq.status='matched';}
+  closeModal();
+  updateAdminCounts();
+  showToast('已媒合給 '+rName+'，通知已送出');
+  renderAdmin();
+  renderRecycler();
+}
+function autoMatchEq(eqId){
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  const r=RECYCLERS.find(rc=>rc.active&&rc.cats.includes(eq.cat))||RECYCLERS.find(rc=>rc.active);
+  if(r){eq.status='matched';showToast('自動媒合成功：'+r.name);}
+  else{showToast('找不到符合設備商，請手動媒合');}
+  updateAdminCounts();renderMatchPage();renderAdmin();renderRecycler();
+}
+function completeMatch(eqId){
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  if(eq)eq.status='completed';
+  showToast('已標記完成回收');renderMatchPage();updateAdminCounts();
+}
+function updateAdminCounts(){
+  const n=EQUIPMENTS.filter(e=>e.status==='pending').length;
+  const el=document.getElementById('admin-pending-count');
+  const b=document.getElementById('badge-pending');
+  if(el)el.textContent=n;
+  if(b)b.textContent=n;
+}
+function switchEqTab(el,tid){
+  document.querySelectorAll('#ap-equipment .atab').forEach(t=>t.classList.remove('act'));
+  el.classList.add('act');
+  ['eqt-all','eqt-pending','eqt-matched','eqt-done'].forEach(id=>{
+    document.getElementById(id).style.display=id===tid?'block':'none';
+  });
+}
+function switchMatchTab(el,tid){
+  document.querySelectorAll('#ap-match .atab').forEach(t=>t.classList.remove('act'));
+  el.classList.add('act');
+  ['mt-pending','mt-inprog'].forEach(id=>{document.getElementById(id).style.display=id===tid?'block':'none';});
+}
+
+// ── RECYCLER ──
+function showRScreen(id){
+  document.querySelectorAll('.rscreen').forEach(s=>s.classList.remove('act'));
+  document.getElementById(id).classList.add('act');
+}
+function renderRecycler(){
+  const matched=EQUIPMENTS.filter(e=>e.status==='matched');
+  document.getElementById('notif-list').innerHTML=matched.map((e,i)=>`
+    <div class="notif-item ${i===0?'unread':''}" onclick="showDetail('${e.id}')">
+      <div class="notif-ico" style="background:${PHOTOS[e.photoIdx].bg}">${PHOTOS[e.photoIdx].emoji}</div>
+      <div class="notif-info">
+        <div class="notif-title">${e.name}</div>
+        <div class="notif-desc">${e.proj} · ${condLabel[e.cond]}</div>
+        <div class="notif-time">剛剛 · 點擊查看詳情</div>
+      </div>
+    </div>`).join('')||
+    `<div style="padding:40px;text-align:center;color:var(--ink3)">
+      <i class="ti ti-inbox" style="font-size:40px;display:block;margin-bottom:10px;color:var(--ink4)"></i>
+      目前沒有新的媒合通知
+    </div>`;
+}
+function showDetail(eqId){
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  const p=PHOTOS[eq.photoIdx];
+  document.getElementById('r-detail-content').innerHTML=`
+    <div class="rcard-header">
+      <div class="rcard-title">${eq.name}</div>
+      <div class="rcard-sub">${eq.proj}</div>
+    </div>
+    <div class="eq-photos">
+      <div class="eq-photo" style="background:${p.bg}">${p.emoji}</div>
+      <div class="eq-photo" style="background:${PHOTOS[(eq.photoIdx+1)%3].bg}">${PHOTOS[(eq.photoIdx+1)%3].emoji}</div>
+    </div>
+    <div class="eq-detail-grid">
+      <div class="eq-detail-item"><div class="eq-detail-lbl">設備類型</div><div class="eq-detail-val">${eq.cat}</div></div>
+      <div class="eq-detail-item"><div class="eq-detail-lbl">狀況</div><div class="eq-detail-val">等級 ${eq.cond.toUpperCase()} · ${condLabel[eq.cond]}</div></div>
+      <div class="eq-detail-item"><div class="eq-detail-lbl">尺寸</div><div class="eq-detail-val">${eq.w}×${eq.h}×${eq.d} cm</div></div>
+      <div class="eq-detail-item"><div class="eq-detail-lbl">品牌</div><div class="eq-detail-val">${eq.brand||'未填寫'}</div></div>
+    </div>
+    <div class="addr-blur">
+      <i class="ti ti-map-pin"></i>
+      <span>案場地址於接受後揭露</span>
+    </div>
+    <div style="font-size:12px;color:var(--ink3);margin-bottom:6px">備註：${eq.note||'無'}</div>
+  `;
+  document.getElementById('r-actions').innerHTML=`
+    <button class="rbtn rbtn-accept" onclick="acceptMatch('${eqId}')"><i class="ti ti-circle-check"></i>接受媒合</button>
+    <button class="rbtn rbtn-reject" onclick="rejectMatch('${eqId}')"><i class="ti ti-x"></i>婉拒</button>
+  `;
+  showRScreen('rs-detail');
+}
+function acceptMatch(eqId){
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  if(eq)eq.status='confirmed';
+  showRScreen('rs-accepted');
+  updateAdminCounts();
+  renderAdmin();
+  showToast('確認接受，代理人已收到通知');
+}
+function rejectMatch(eqId){
+  const eq=EQUIPMENTS.find(e=>e.id===eqId);
+  if(eq)eq.status='pending';
+  showToast('已婉拒，系統通知代理人重新媒合');
+  renderRecycler();
+  showRScreen('rs-notif');
+  renderAdmin();
+  updateAdminCounts();
+}
+
+// ── LINE 互動模擬 ──
+function simulateLineAccept(){
+  const notif = document.getElementById('line-new-notif');
+  const resp  = document.getElementById('line-response-msg');
+  const text  = document.getElementById('line-response-text');
+  const confirmMsg = document.getElementById('line-confirm-msg');
+  if(!notif||!resp) return;
+  // 把新通知的按鈕換成已回應狀態
+  notif.querySelectorAll('div[onclick]').forEach(b=>{
+    b.style.opacity='0.4';b.style.pointerEvents='none';
+  });
+  text.textContent = '✓ 接受媒合';
+  confirmMsg.innerHTML = `
+    <div style="font-size:10px;font-weight:600;color:#06C755;margin-bottom:4px">已確認 ✅</div>
+    <div style="font-size:11px;color:#1A1A18;line-height:1.5">感謝您接受媒合！</div>
+    <div style="font-size:10px;color:#7A7A72;margin-top:4px">案場地址：台北市信義區信義路五段 7 號</div>
+    <div style="font-size:10px;color:#7A7A72">聯絡人：王先生 · 0912-345-678</div>
+  `;
+  resp.style.display='block';
+  // 同步更新設備狀態
+  const eq = EQUIPMENTS.find(e=>e.id==='e1');
+  if(eq) eq.status='confirmed';
+  updateAdminCounts();renderAdmin();
+  showToast('LINE 回應：已接受，地址已揭露');
+}
+
+function simulateLineReject(){
+  const notif = document.getElementById('line-new-notif');
+  const resp  = document.getElementById('line-response-msg');
+  const text  = document.getElementById('line-response-text');
+  const confirmMsg = document.getElementById('line-confirm-msg');
+  if(!notif||!resp) return;
+  notif.querySelectorAll('div[onclick]').forEach(b=>{
+    b.style.opacity='0.4';b.style.pointerEvents='none';
+  });
+  text.textContent = '✗ 婉拒';
+  confirmMsg.innerHTML = `
+    <div style="font-size:10px;font-weight:600;color:#E24B4A;margin-bottom:4px">已婉拒</div>
+    <div style="font-size:11px;color:#1A1A18;line-height:1.5">感謝您的回覆。</div>
+  `;
+  resp.style.display='block';
+  showToast('LINE 回應：已婉拒');
+}
+
+function simulateEmailAccept(){
+  const eq = EQUIPMENTS.find(e=>e.id==='e1');
+  if(eq) eq.status='confirmed';
+  updateAdminCounts();renderAdmin();
+  showRScreen('rs-accepted');
+  showToast('Email 回應：已接受媒合');
+}
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ── INIT ──
+renderAdmin();
+</script>
+</body>
+</html>
