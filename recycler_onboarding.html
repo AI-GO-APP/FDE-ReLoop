@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReLoop — 回收商註冊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{
+  --ink:#1A1A18;--ink2:#3D3D38;--ink3:#7A7A72;--ink4:#AEADA6;
+  --paper:#F7F6F2;--paper2:#EFEDE8;--paper3:#E4E2DB;--white:#fff;
+  --green:#1A7A5E;--green-l:#E2F4EE;--green-m:#5DCAA5;
+  --blue:#1A4F8A;--blue-l:#E2EBF8;--blue-m:#85B7EB;
+  --amber:#8A5A1A;--amber-l:#F8EEE2;--amber-m:#EF9F27;
+  --red:#8A1A1A;--red-l:#F8E2E2;--red-m:#E08F8F;
+  --r:10px;--r-lg:16px;--r-xl:24px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+input,select,button{font-family:'DM Sans',sans-serif}
+
+/* ── 全頁佈局 ── */
+.screen{display:none;min-height:100vh}
+.screen.act{display:flex}
+
+/* ── 左側品牌欄（桌機） ── */
+.brand-col{width:380px;flex-shrink:0;background:var(--ink);padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between}
+@media(max-width:768px){.brand-col{display:none}}
+.brand-logo{font-size:24px;font-weight:700;color:#fff;letter-spacing:-.5px;margin-bottom:48px}
+.brand-logo span{color:#9FD9C6}
+.brand-headline{font-size:28px;font-weight:700;color:#fff;line-height:1.35;letter-spacing:-.5px;margin-bottom:16px}
+.brand-sub{font-size:14px;color:rgba(255,255,255,.5);line-height:1.7}
+.brand-nav{margin-top:32px;display:flex;flex-direction:column;gap:8px}
+.brand-nav-item{width:100%;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.55);padding:12px 14px;border-radius:var(--r);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;text-align:left;cursor:pointer;transition:all .15s}
+.brand-nav-item i{font-size:18px;flex-shrink:0}
+.brand-nav-item:hover{border-color:rgba(255,255,255,.28);color:#fff}
+.brand-nav-item.act{background:#fff;border-color:#fff;color:var(--ink)}
+.brand-footer{font-size:11px;color:rgba(255,255,255,.25)}
+
+/* ── 右側表單欄 ── */
+.form-col{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:48px 32px}
+@media(max-width:768px){.form-col{padding:32px 20px}}
+.form-wrap{width:100%;max-width:440px}
+
+/* ── 表單頭 ── */
+.form-header{margin-bottom:32px}
+.form-step-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--green-l);border-radius:999px;font-size:11px;font-weight:600;color:var(--green);margin-bottom:12px}
+.form-title{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.5px;margin-bottom:6px}
+.form-sub{font-size:13px;color:var(--ink3);line-height:1.6}
+
+/* ── 欄位 ── */
+.field{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px}
+.field-input{width:100%;padding:11px 14px;font-size:14px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--white);color:var(--ink);outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--ink)}
+.field-input.error{border-color:var(--red-m)}
+.field-hint{font-size:11px;color:var(--ink4);margin-top:4px}
+.field-error{font-size:11px;color:var(--red);margin-top:4px;display:none}
+.field-error.show{display:block}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px}
+.pw-toggle:hover{color:var(--ink)}
+
+/* ── 按鈕 ── */
+.btn-main{width:100%;padding:13px;border-radius:var(--r);border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-dark:hover{background:var(--ink2)}
+.btn-ghost{background:var(--paper);color:var(--ink);border:1px solid var(--paper3)}
+.btn-ghost:hover{background:var(--paper2)}
+
+/* ── 邀請 badge ── */
+.invite-badge{background:var(--green-l);border:1px solid var(--green-m);border-radius:var(--r);padding:12px 14px;margin-bottom:24px;display:flex;align-items:flex-start;gap:10px}
+.invite-badge i{font-size:18px;color:var(--green);flex-shrink:0;margin-top:1px}
+.invite-badge-title{font-size:12px;font-weight:600;color:var(--green)}
+.invite-badge-sub{font-size:11px;color:var(--green-m);margin-top:2px}
+
+/* ── 無效連結 ── */
+.invalid-wrap{text-align:center;padding:48px 20px}
+.invalid-icon{font-size:56px;color:var(--red-m);display:block;margin-bottom:16px}
+.invalid-title{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.invalid-sub{font-size:13px;color:var(--ink3);line-height:1.6;margin-bottom:24px}
+
+/* ── 偏好設定 ── */
+.pref-section{margin-bottom:24px}
+.pref-section-title{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.pref-section-title i{font-size:14px}
+
+.city-grid{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 14px;border-radius:999px;font-size:12px;font-weight:500;border:1.5px solid var(--paper3);background:var(--white);color:var(--ink3);cursor:pointer;transition:all .15s;user-select:none}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cat-card{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);border:1.5px solid var(--paper3);background:var(--white);cursor:pointer;transition:all .15s;user-select:none}
+.cat-card:hover{border-color:var(--ink)}
+.cat-card.sel{border-color:var(--green-m);background:var(--green-l)}
+.cat-card.sel .cat-name{color:var(--green);font-weight:600}
+.cat-emoji{font-size:22px;flex-shrink:0}
+.cat-name{font-size:13px;color:var(--ink)}
+
+.cond-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cond-card{border-radius:var(--r);border:1.5px solid var(--paper3);background:var(--white);padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+.cond-card:hover{border-color:var(--ink)}
+.cond-grade{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;margin-bottom:2px}
+.cond-lbl{font-size:11px;color:var(--ink3)}
+.cond-card.sel-a{border-color:var(--green-m);background:var(--green-l)}
+.cond-card.sel-a .cond-grade,.cond-card.sel-a .cond-lbl{color:var(--green)}
+.cond-card.sel-b{border-color:var(--blue-m);background:var(--blue-l)}
+.cond-card.sel-b .cond-grade,.cond-card.sel-b .cond-lbl{color:var(--blue)}
+.cond-card.sel-c{border-color:var(--amber-m);background:var(--amber-l)}
+.cond-card.sel-c .cond-grade,.cond-card.sel-c .cond-lbl{color:var(--amber)}
+.cond-card.sel-d{border-color:var(--red-m);background:var(--red-l)}
+.cond-card.sel-d .cond-grade,.cond-card.sel-d .cond-lbl{color:var(--red)}
+
+.notify-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r);border:1.5px solid var(--paper3);background:var(--white);margin-bottom:8px}
+.notify-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notify-info{flex:1}
+.notify-name{font-size:13px;font-weight:500;color:var(--ink)}
+.notify-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.notify-toggle{width:40px;height:22px;border-radius:999px;background:var(--paper3);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.notify-toggle.on{background:var(--green)}
+.notify-toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.notify-toggle.on::after{transform:translateX(18px)}
+.notify-badge{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:600;margin-left:6px}
+.nb-later{background:var(--paper2);color:var(--ink4)}
+
+/* ── 完成畫面 ── */
+.done-wrap{text-align:center;padding:48px 20px}
+.done-icon{width:80px;height:80px;border-radius:24px;background:var(--green-l);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.done-icon i{font-size:40px;color:var(--green)}
+.done-title{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.5px;margin-bottom:8px}
+.done-sub{font-size:13px;color:var(--ink3);line-height:1.7;margin-bottom:28px}
+.done-summary{background:var(--paper);border-radius:var(--r-lg);padding:16px;text-align:left;margin-bottom:24px}
+.done-summary-title{font-size:10px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.done-row{display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;margin-bottom:6px;gap:8px}
+.done-row:last-child{margin-bottom:0}
+.done-key{color:var(--ink3);flex-shrink:0}
+.done-val{color:var(--ink);font-weight:500;text-align:right}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast i{font-size:15px;color:#9FD9C6}
+
+/* ── 收貨偏好 CSS ──*/
+
+:root{
+  --ink:#1A1A18;--ink2:#3D3D38;--ink3:#7A7A72;--ink4:#AEADA6;
+  --paper:#F7F6F2;--paper2:#EFEDE8;--paper3:#E4E2DB;--white:#fff;
+  --green:#1A7A5E;--green-l:#E2F4EE;--green-m:#5DCAA5;
+  --blue:#1A4F8A;--blue-l:#E2EBF8;--blue-m:#85B7EB;
+  --amber:#8A5A1A;--amber-l:#F8EEE2;--amber-m:#EF9F27;
+  --red:#8A1A1A;--red-l:#F8E2E2;--red-m:#E08F8F;
+  --r:10px;--r-lg:16px;--r-xl:24px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+input,select,button,textarea{font-family:'DM Sans',sans-serif}
+
+
+
+
+
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px}
+.page-title{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px}
+.page-sub{font-size:12px;color:var(--ink3);margin-top:3px}
+.btn-add-top{display:flex;align-items:center;gap:5px;padding:8px 16px;border-radius:var(--r);border:1.5px solid var(--ink);background:var(--white);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.btn-add-top:hover{background:var(--ink);color:#fff}
+.empty-state{text-align:center;padding:48px 24px;background:var(--white);border:1px solid var(--paper3);border-radius:var(--r-xl)}
+.empty-icon{font-size:48px;display:block;margin-bottom:16px;color:var(--paper3)}
+.empty-title{font-size:16px;font-weight:600;color:var(--ink3);margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--ink4);line-height:1.6;margin-bottom:20px}
+.btn-empty-add{display:inline-flex;align-items:center;gap:6px;padding:11px 24px;border-radius:var(--r);border:none;background:var(--ink);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-empty-add:hover{background:var(--ink2)}
+.pref-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.pref-card{background:var(--white);border:1px solid var(--paper3);border-radius:var(--r-lg);overflow:hidden;transition:box-shadow .15s}
+.pref-card:hover{box-shadow:var(--shadow)}
+.pref-card-hd{display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--paper);border-bottom:1px solid var(--paper2)}
+.pref-num{font-size:11px;font-weight:700;color:var(--ink4);font-family:'DM Mono',monospace}
+.pref-label{flex:1}
+.pref-edit-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;border:1px solid var(--paper3);background:var(--white);font-size:11px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .12s;margin-right:4px}
+.pref-edit-btn:hover{border-color:var(--ink);color:var(--ink)}
+.pref-del-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--paper3);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink4);font-size:14px;transition:all .12s}
+.pref-del-btn:hover{border-color:var(--red-m);color:var(--red);background:var(--red-l)}
+.pref-card-body{padding:13px 16px}
+.pref-path{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3);margin-bottom:8px;flex-wrap:wrap}
+.pref-path-emoji{font-size:15px}
+.pref-path-sep{color:var(--ink4);font-size:11px}
+.pref-path-item{font-weight:600;color:var(--ink2)}
+.pref-path-device{font-weight:700;color:var(--ink);background:var(--paper2);padding:2px 8px;border-radius:999px;font-size:11px}
+.pref-tags{display:flex;flex-wrap:wrap;gap:5px}
+.ptag{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:500}
+.ptag-brand{background:var(--blue-l);color:var(--blue)}
+.ptag-year{background:var(--amber-l);color:var(--amber)}
+.ptag-size{background:var(--paper2);color:var(--ink3)}
+.ptag-cond-a{background:var(--green-l);color:var(--green)}
+.ptag-cond-b{background:var(--blue-l);color:var(--blue)}
+.ptag-cond-c{background:var(--amber-l);color:var(--amber)}
+.ptag-cond-d{background:var(--red-l);color:var(--red)}
+.ptag-note{background:var(--paper2);color:var(--ink3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-add-bottom{width:100%;padding:14px;border-radius:var(--r-lg);border:1.5px dashed var(--paper3);background:var(--white);color:var(--ink3);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;margin-bottom:24px}
+.btn-add-bottom:hover{border-color:var(--ink);color:var(--ink);background:var(--paper)}
+.btn-add-bottom i{font-size:16px}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:641px){.modal-overlay{align-items:center}}
+.modal{background:var(--white);width:100%;max-width:600px;border-radius:var(--r-xl) var(--r-xl) 0 0;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
+@media(min-width:641px){.modal{border-radius:var(--r-xl);max-height:85vh}}
+.modal-hd{padding:16px 20px;border-bottom:1px solid var(--paper2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;background:var(--white);z-index:10}
+.modal-title{font-size:16px;font-weight:700;color:var(--ink)}
+.modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--paper);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:18px}
+.modal-close:hover{background:var(--paper2)}
+.modal-body{padding:20px;flex:1;overflow-y:auto}
+.modal-ft{padding:14px 20px;border-top:1px solid var(--paper2);flex-shrink:0;display:flex;gap:10px;position:sticky;bottom:0;background:var(--white)}
+.btn-modal-save{flex:1;padding:13px;border-radius:var(--r);border:none;background:var(--ink);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-modal-save:hover{background:var(--ink2)}
+.btn-modal-cancel{padding:13px 18px;border-radius:var(--r);border:1px solid var(--paper3);background:var(--paper);color:var(--ink3);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn-modal-cancel:hover{background:var(--paper2)}
+.form-section{margin-bottom:20px}
+.form-section:last-child{margin-bottom:0}
+.form-section-title{font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.form-section-title i{font-size:14px}
+/* 三層選擇 */
+.select-chain{display:flex;flex-direction:column;gap:8px}
+.chain-step{display:flex;align-items:center;gap:8px}
+.chain-label{font-size:11px;color:var(--ink4);width:48px;flex-shrink:0;text-align:right}
+.chain-select{flex:1;padding:10px 28px 10px 12px;font-size:13px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper);color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23AEADA6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer;transition:border-color .15s}
+.chain-select:focus{border-color:var(--ink);background-color:var(--white)}
+.chain-select:disabled{opacity:.4;cursor:not-allowed}
+.chain-add-row{display:flex;gap:6px;padding-left:56px}
+.chain-add-input{flex:1;padding:8px 10px;font-size:12px;border:1px solid var(--paper3);border-radius:6px;background:var(--paper);color:var(--ink);outline:none}
+.chain-add-input:focus{border-color:var(--ink)}
+.chain-add-btn{padding:8px 12px;font-size:11px;font-weight:600;border:none;border-radius:6px;background:var(--ink);color:#fff;cursor:pointer;white-space:nowrap}
+/* 欄位 */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.fl{font-size:11px;color:var(--ink3);display:flex;justify-content:space-between}
+.fl-opt{font-size:10px;color:var(--ink4)}
+.form-unit{display:flex}
+.form-unit input{flex:1;border-radius:var(--r) 0 0 var(--r)}
+.unit-lbl{padding:9px 10px;background:var(--paper2);border:1px solid var(--paper3);border-left:none;border-radius:0 var(--r) var(--r) 0;font-size:11px;color:var(--ink3);white-space:nowrap}
+.fi{width:100%;padding:9px 12px;font-size:13px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper);color:var(--ink);outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--ink);background:var(--white)}
+.chip-group{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;border:1.5px solid var(--paper3);background:var(--white);color:var(--ink3);cursor:pointer;transition:all .12s;user-select:none}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+.brand-add-row{display:flex;gap:6px;margin-top:7px}
+.brand-add-row input{flex:1;padding:7px 10px;font-size:12px;border:1px solid var(--paper3);border-radius:6px;background:var(--paper);color:var(--ink);outline:none}
+.brand-add-row button{padding:7px 12px;font-size:11px;font-weight:600;border:1px solid var(--paper3);border-radius:6px;background:var(--paper2);color:var(--ink);cursor:pointer}
+.cond-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.cc{border:1.5px solid var(--paper3);border-radius:var(--r);padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;background:var(--paper);user-select:none}
+.cc:hover{border-color:var(--ink)}
+.cc-g{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:var(--ink4)}
+.cc-l{font-size:10px;font-weight:600;color:var(--ink4);margin-top:2px}
+.cc-d{font-size:9px;color:var(--ink4);margin-top:1px}
+.cc.sel-a{border-color:var(--green-m);background:var(--green-l)}.cc.sel-a .cc-g,.cc.sel-a .cc-l{color:var(--green)}
+.cc.sel-b{border-color:var(--blue-m);background:var(--blue-l)}.cc.sel-b .cc-g,.cc.sel-b .cc-l{color:var(--blue)}
+.cc.sel-c{border-color:var(--amber-m);background:var(--amber-l)}.cc.sel-c .cc-g,.cc.sel-c .cc-l{color:var(--amber)}
+.cc.sel-d{border-color:var(--red-m);background:var(--red-l)}.cc.sel-d .cc-g,.cc.sel-d .cc-l{color:var(--red)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast i{font-size:15px;color:#9FD9C6}
+@media(max-width:640px){}
+
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<!-- ══════════════════════════════════════════
+     Step 0：token 驗證中
+══════════════════════════════════════════ -->
+<div class="screen act" id="screen-verify" style="align-items:center;justify-content:center;min-height:100vh">
+  <div style="text-align:center;padding:40px;max-width:400px">
+    <svg style="width:40px;height:40px;color:var(--green-m);display:block;margin:0 auto 16px;animation:spin 1s linear infinite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+    </svg>
+    <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px">驗證邀請連結中...</div>
+    <div style="font-size:13px;color:var(--ink3);margin-bottom:20px">請稍候，正在確認您的邀請是否有效</div>
+    <div style="font-size:12px;color:var(--ink4);padding:10px 16px;background:var(--paper);border-radius:var(--r);display:inline-block">
+      POC Demo：1.2 秒後自動跳到建立帳號
+    </div>
+  </div>
+</div>
+<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+
+<!-- ══════════════════════════════════════════
+     Step 0b：無效連結
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-invalid" style="align-items:center;justify-content:center">
+  <div class="invalid-wrap">
+    <svg style="font-size:56px;color:var(--red-m);display:block;margin:0 auto 16px;width:56px;height:56px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+    <div class="invalid-title">此邀請連結已失效</div>
+    <div class="invalid-sub">
+      此連結可能已過期、已被使用，或已被撤銷。<br>
+      請聯絡邀請您的盤商，請他重新發送一個新的邀請連結。
+    </div>
+    <button class="btn-main btn-ghost" style="max-width:240px;margin:0 auto" onclick="showToast('請聯絡盤商重新邀請')">
+      <i class="ti ti-mail"></i>聯絡盤商
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Step 1：建立帳號
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-register">
+  <div class="brand-col" id="brand-1">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-headline">加入台灣最大<br>設備回收交易平台</div>
+      <div class="brand-sub">設備商直接在平台上瀏覽案子、出價，<br>不需要等電話，隨時掌握商機。</div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="form-col">
+    <div class="form-wrap">
+      <div class="form-header">
+        <div class="form-step-badge"><i class="ti ti-user-plus" style="font-size:12px"></i>註冊帳號</div>
+        <div class="form-title">建立您的帳號</div>
+        <div class="form-sub">受邀加入 ReLoop 回收商平台，填寫基本資料完成註冊。</div>
+      </div>
+
+      <!-- 邀請來源 badge -->
+      <div class="invite-badge">
+        <i class="ti ti-mail-check"></i>
+        <div>
+          <div class="invite-badge-title">您已被邀請加入</div>
+          <div class="invite-badge-sub">邀請人：盤商管理員　　連結有效</div>
+        </div>
+      </div>
+
+      <!-- 公司資料 -->
+      <div class="field">
+        <label class="field-label">公司名稱</label>
+        <input class="field-input" type="text" id="signup-company" placeholder="例：環保家電回收行" value="環保家電回收行">
+        <div class="field-error" id="err-signup-company">請填寫公司名稱</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">聯絡人姓名</label>
+          <input class="field-input" type="text" id="signup-name" placeholder="王大明" value="王大明">
+          <div class="field-error" id="err-signup-name">請填寫姓名</div>
+        </div>
+        <div class="field">
+          <label class="field-label">聯絡電話</label>
+          <input class="field-input" type="tel" id="signup-phone" placeholder="0912-345-678" value="0912-345-678">
+          <div class="field-error" id="err-signup-phone">請填寫電話</div>
+        </div>
+      </div>
+
+      <!-- LINE ID -->
+      <div class="field">
+        <label class="field-label">LINE ID <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，用於 LINE 推播通知</span></label>
+        <div style="position:relative">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#06C755">L</span>
+          <input class="field-input" type="text" id="signup-line-id" placeholder="您的 LINE ID（例：@reloop_user）" style="padding-left:28px">
+        </div>
+        <div style="font-size:10px;color:var(--ink4);margin-top:4px">填入後盤商可透過 LINE 直接推播媒合通知，比 Email 更即時</div>
+      </div>
+
+      <!-- 帳號資料 -->
+      <div class="field">
+        <label class="field-label">Email（登入帳號）</label>
+        <input class="field-input" type="email" id="signup-email" placeholder="your@email.com" value="recycler@company.tw">
+        <div class="field-hint">這將是您的登入帳號</div>
+        <div class="field-error" id="err-signup-email">請填寫有效的 Email</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">設定密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="signup-password" placeholder="至少 8 個字元" value="demo1234">
+          <span class="pw-toggle" onclick="togglePw('signup-password',this)">
+            <i class="ti ti-eye-off"></i>
+          </span>
+        </div>
+        <div class="field-hint">至少 8 個字元</div>
+        <div class="field-error" id="err-signup-password">密碼至少需要 8 個字元</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">確認密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="signup-password2" placeholder="再輸入一次密碼" value="demo1234">
+          <span class="pw-toggle" onclick="togglePw('signup-password2',this)">
+            <i class="ti ti-eye-off"></i>
+          </span>
+        </div>
+        <div class="field-error" id="err-signup-password2">兩次密碼不一致</div>
+      </div>
+
+      <button class="btn-main btn-dark" onclick="submitRegister()">
+        完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     功能設定：基本資料
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-profile">
+  <div class="brand-col" id="brand-profile">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-headline">管理您的<br>基本資料</div>
+      <div class="brand-sub">公司與聯絡資料可隨時更新，密碼也能在這裡變更。</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="form-col">
+    <div class="form-wrap">
+      <div class="form-header">
+        <div class="form-title">基本資料</div>
+        <div class="form-sub">更新公司資料、聯絡方式與登入資訊。</div>
+      </div>
+
+      <!-- 邀請來源 badge -->
+      <div class="invite-badge">
+        <i class="ti ti-mail-check"></i>
+        <div>
+          <div class="invite-badge-title">您已被邀請加入</div>
+          <div class="invite-badge-sub">邀請人：盤商管理員　　連結有效</div>
+        </div>
+      </div>
+
+      <!-- 公司資料 -->
+      <div class="field">
+        <label class="field-label">公司名稱</label>
+        <input class="field-input" type="text" id="reg-company" placeholder="例：環保家電回收行" value="環保家電回收行">
+        <div class="field-error" id="err-company">請填寫公司名稱</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">聯絡人姓名</label>
+          <input class="field-input" type="text" id="reg-name" placeholder="王大明" value="王大明">
+          <div class="field-error" id="err-name">請填寫姓名</div>
+        </div>
+        <div class="field">
+          <label class="field-label">聯絡電話</label>
+          <input class="field-input" type="tel" id="reg-phone" placeholder="0912-345-678" value="0912-345-678">
+          <div class="field-error" id="err-phone">請填寫電話</div>
+        </div>
+      </div>
+
+      <!-- LINE ID -->
+      <div class="field">
+        <label class="field-label">LINE ID <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，用於 LINE 推播通知</span></label>
+        <div style="position:relative">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#06C755">L</span>
+          <input class="field-input" type="text" id="reg-line-id" placeholder="您的 LINE ID（例：@reloop_user）" style="padding-left:28px">
+        </div>
+        <div style="font-size:10px;color:var(--ink4);margin-top:4px">填入後盤商可透過 LINE 直接推播媒合通知，比 Email 更即時</div>
+      </div>
+
+      <!-- 帳號資料 -->
+      <div class="field">
+        <label class="field-label">Email（登入帳號）</label>
+        <input class="field-input" type="email" id="reg-email" placeholder="your@email.com" value="recycler@company.tw">
+        <div class="field-hint">這將是您的登入帳號</div>
+        <div class="field-error" id="err-email">請填寫有效的 Email</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">目前密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="profile-current-password" placeholder="輸入目前密碼">
+          <span class="pw-toggle" onclick="togglePw('profile-current-password',this)">
+            <i class="ti ti-eye-off"></i>
+          </span>
+        </div>
+        <div class="field-hint">若要變更密碼，請先輸入目前密碼</div>
+        <div class="field-error" id="err-current-password">請輸入目前密碼</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">新密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="reg-password" placeholder="至少 8 個字元">
+          <span class="pw-toggle" onclick="togglePw('reg-password',this)">
+            <i class="ti ti-eye-off"></i>
+          </span>
+        </div>
+        <div class="field-hint">至少 8 個字元</div>
+        <div class="field-error" id="err-password">密碼至少需要 8 個字元</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">確認新密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="reg-password2" placeholder="再輸入一次新密碼">
+          <span class="pw-toggle" onclick="togglePw('reg-password2',this)">
+            <i class="ti ti-eye-off"></i>
+          </span>
+        </div>
+        <div class="field-error" id="err-password2">兩次密碼不一致</div>
+      </div>
+
+      <button class="btn-main btn-dark" onclick="saveProfile()">
+        <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存基本資料
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Step 2：收貨偏好設定
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-prefs">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-headline">設定您的<br>收貨偏好</div>
+      <div class="brand-sub">告訴我們您想收什麼設備，<br>盤商有符合條件的設備時<br>會優先通知您。<br><br>之後可以在帳號設定中隨時修改。</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
+        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="form-col" style="padding:32px 24px;align-items:flex-start">
+    <div style="width:100%;max-width:580px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px">
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">我的收貨偏好</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:3px">設定您願意收的設備條件，可新增多條</div>
+        </div>
+        <button class="btn-add-top" onclick="openModal()">+ 新增</button>
+      </div>
+      <div class="empty-state" id="empty-state">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;color:var(--paper3);display:block;margin:0 auto 16px"><path d="M4 4h16v10H4z"/><path d="M4 14H2v6h20v-6h-2"/><path d="M9 14h6"/></svg>
+        <div class="empty-title">還沒有收貨偏好</div>
+        <div class="empty-sub">新增偏好後，盤商有符合條件的設備<br>會優先通知您，不漏接任何商機。</div>
+        <button class="btn-empty-add" onclick="openModal()">+ 新增第一條收貨偏好</button>
+      </div>
+      <div class="pref-list" id="pref-list" style="display:none"></div>
+      <button class="btn-add-bottom" id="btn-add-bottom" style="display:none" onclick="openModal()">+ 新增一條收貨偏好</button>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     Step 3：完成
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-done" style="align-items:center;justify-content:center">
+  <div class="form-wrap">
+    <div class="done-wrap">
+      <div class="done-icon"><i class="ti ti-circle-check"></i></div>
+      <div class="done-title">歡迎加入 ReLoop！</div>
+      <div class="done-sub">
+        您的帳號已建立完成，偏好設定已儲存。<br>
+        現在可以開始瀏覽設備案子並出價了。
+      </div>
+      <div class="done-summary">
+        <div class="done-summary-title">帳號摘要</div>
+        <div class="done-row">
+          <span class="done-key">公司名稱</span>
+          <span class="done-val" id="summary-company">—</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">Email</span>
+          <span class="done-val" id="summary-email">—</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">LINE ID</span>
+          <span class="done-val" id="summary-line-id" style="color:var(--ink4)">未填寫</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">LINE ID</span>
+          <span class="done-val" id="summary-line-id" style="color:var(--ink4)">未填寫</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">服務地區</span>
+          <span class="done-val" id="summary-cities">—</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">設備類型</span>
+          <span class="done-val" id="summary-cats">—</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">接受狀況</span>
+          <span class="done-val" id="summary-conds">—</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">Email 通知</span>
+          <span class="done-val" id="summary-notify">已開啟</span>
+        </div>
+        <div class="done-row">
+          <span class="done-key">LINE 通知</span>
+          <span class="done-val" style="color:var(--ink4)">登入後設定</span>
+        </div>
+      </div>
+      <button class="btn-main btn-dark" onclick="goToPlatform()">
+        <i class="ti ti-layout-grid" style="font-size:15px"></i>進入平台瀏覽案子
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+const condSelected = { a:true, b:true, c:true, d:false };
+let notifyEmail = true;
+
+function makeId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+let currentRecyclerId = localStorage.getItem('reloop_recycler_id') || makeId();
+localStorage.setItem('reloop_recycler_id', currentRecyclerId);
+
+const supabaseReady =
+  !SUPABASE_URL.startsWith('YOUR_') &&
+  !SUPABASE_ANON_KEY.startsWith('YOUR_') &&
+  window.supabase;
+const supabaseDb = supabaseReady
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+function requireSupabase() {
+  if (supabaseDb) return supabaseDb;
+  showToast('請先設定 Supabase URL 與 anon key');
+  return null;
+}
+
+function toIntOrNull(value) {
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function toNumOrNull(value) {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function createAccountRecord({ company, name, phone, lineId, email }) {
+  const db = requireSupabase();
+  if (!db) return false;
+
+  const { error } = await db.from('recycler_onboarding_accounts').upsert({
+    id: currentRecyclerId,
+    company_name: company,
+    contact_name: name,
+    phone,
+    email,
+    line_id: lineId || null,
+    password_set: true,
+    password_updated_at: new Date().toISOString()
+  });
+
+  if (error) {
+    showToast('Supabase 寫入失敗：' + error.message);
+    return false;
+  }
+  return true;
+}
+
+async function updateAccountRecord({ passwordChanged = false } = {}) {
+  const db = requireSupabase();
+  if (!db) return false;
+
+  const payload = {
+    company_name: document.getElementById('reg-company').value.trim(),
+    contact_name: document.getElementById('reg-name').value.trim(),
+    phone: document.getElementById('reg-phone').value.trim(),
+    email: document.getElementById('reg-email').value.trim(),
+    line_id: document.getElementById('reg-line-id')?.value.trim() || null
+  };
+  if (passwordChanged) {
+    payload.password_set = true;
+    payload.password_updated_at = new Date().toISOString();
+  }
+
+  const { error } = await db
+    .from('recycler_onboarding_accounts')
+    .update(payload)
+    .eq('id', currentRecyclerId);
+
+  if (error) {
+    showToast('Supabase 更新失敗：' + error.message);
+    return false;
+  }
+  return true;
+}
+
+function preferencePayload(pref, index) {
+  return {
+    id: pref.id,
+    recycler_id: currentRecyclerId,
+    pref_index: index,
+    category_id: pref.l1id,
+    category_name: pref.l1name,
+    subcategory_id: pref.l2id,
+    subcategory_name: pref.l2name,
+    device_name: pref.device,
+    brands: pref.brands || [],
+    year_min: toIntOrNull(pref.yearMin),
+    year_within: toIntOrNull(pref.yearWithin),
+    max_width_cm: toNumOrNull(pref.maxW),
+    max_height_cm: toNumOrNull(pref.maxH),
+    max_depth_cm: toNumOrNull(pref.maxD),
+    max_weight_kg: toNumOrNull(pref.maxWeight),
+    accepted_conditions: pref.conds || {},
+    note: pref.note || null,
+    raw_data: pref
+  };
+}
+
+async function upsertPreferenceRecord(pref, index) {
+  const db = requireSupabase();
+  if (!db) return false;
+
+  const { error } = await db
+    .from('recycler_onboarding_preferences')
+    .upsert(preferencePayload(pref, index));
+
+  if (error) {
+    showToast('Supabase 偏好寫入失敗：' + error.message);
+    return false;
+  }
+  return true;
+}
+
+async function deletePreferenceRecord(pref) {
+  const db = requireSupabase();
+  if (!db || !pref?.id) return false;
+
+  const { error } = await db
+    .from('recycler_onboarding_preferences')
+    .delete()
+    .eq('id', pref.id)
+    .eq('recycler_id', currentRecyclerId);
+
+  if (error) {
+    showToast('Supabase 偏好刪除失敗：' + error.message);
+    return false;
+  }
+  return true;
+}
+
+// ── 畫面切換 ──
+function goScreen(id) {
+  const all = document.querySelectorAll('.screen');
+  all.forEach(s => s.classList.remove('act'));
+  const el = document.getElementById(id);
+  if(el) { el.classList.add('act'); }
+  window.scrollTo(0, 0);
+}
+
+// ── 模擬 token 驗證 ──
+goScreen('screen-register');
+
+// ── 密碼顯示切換 ──
+function togglePw(inputId, iconEl) {
+  const input = document.getElementById(inputId);
+  const isText = input.type === 'text';
+  input.type = isText ? 'password' : 'text';
+  iconEl.innerHTML = isText
+    ? '<i class="ti ti-eye-off"></i>'
+    : '<i class="ti ti-eye"></i>';
+}
+
+// ── 表單驗證 ──
+function showError(id, msg) {
+  const el = document.getElementById('err-' + id);
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+  const input = document.getElementById('reg-' + id);
+  if (input) input.classList.add('error');
+}
+function showSignupError(id, msg) {
+  const el = document.getElementById('err-signup-' + id);
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+  const input = document.getElementById('signup-' + id);
+  if (input) input.classList.add('error');
+}
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(e => e.classList.remove('show'));
+  document.querySelectorAll('.field-input').forEach(i => i.classList.remove('error'));
+}
+
+async function submitRegister() {
+  clearErrors();
+  const company  = document.getElementById('signup-company').value.trim();
+  const name     = document.getElementById('signup-name').value.trim();
+  const phone    = document.getElementById('signup-phone').value.trim();
+  const lineId   = document.getElementById('signup-line-id').value.trim();
+  const email    = document.getElementById('signup-email').value.trim();
+  const pw       = document.getElementById('signup-password').value;
+  const pw2      = document.getElementById('signup-password2').value;
+  let ok = true;
+
+  if (!company) { showSignupError('company','請填寫公司名稱'); ok=false; }
+  if (!name)    { showSignupError('name','請填寫聯絡人姓名'); ok=false; }
+  if (!phone)   { showSignupError('phone','請填寫聯絡電話'); ok=false; }
+  if (!email || !email.includes('@')) { showSignupError('email','請填寫有效的 Email'); ok=false; }
+  if (pw.length < 8) { showSignupError('password','密碼至少需要 8 個字元'); ok=false; }
+  if (pw !== pw2) { showSignupError('password2','兩次密碼不一致'); ok=false; }
+
+  if (!ok) return;
+
+  const saved = await createAccountRecord({ company, name, phone, lineId, email });
+  if (!saved) return;
+
+  document.getElementById('reg-company').value = company;
+  document.getElementById('reg-name').value = name;
+  document.getElementById('reg-phone').value = phone;
+  document.getElementById('reg-line-id').value = lineId;
+  document.getElementById('reg-email').value = email;
+
+  goScreen('screen-prefs');
+}
+
+async function saveProfile() {
+  clearErrors();
+  const company = document.getElementById('reg-company').value.trim();
+  const name    = document.getElementById('reg-name').value.trim();
+  const phone   = document.getElementById('reg-phone').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const currentPw = document.getElementById('profile-current-password').value;
+  const pw      = document.getElementById('reg-password').value;
+  const pw2     = document.getElementById('reg-password2').value;
+  let ok = true;
+
+  if (!company) { showError('company','請填寫公司名稱'); ok=false; }
+  if (!name)    { showError('name','請填寫聯絡人姓名'); ok=false; }
+  if (!phone)   { showError('phone','請填寫聯絡電話'); ok=false; }
+  if (!email || !email.includes('@')) { showError('email','請填寫有效的 Email'); ok=false; }
+  if ((pw || pw2) && !currentPw) {
+    document.getElementById('err-current-password').classList.add('show');
+    document.getElementById('profile-current-password').classList.add('error');
+    ok=false;
+  }
+  if ((pw || pw2) && pw.length < 8) { showError('password','新密碼至少需要 8 個字元'); ok=false; }
+  if (pw !== pw2) { showError('password2','兩次新密碼不一致'); ok=false; }
+
+  if (!ok) return;
+
+  const saved = await updateAccountRecord({ passwordChanged: Boolean(pw || pw2) });
+  if (!saved) return;
+
+  document.getElementById('profile-current-password').value = '';
+  document.getElementById('reg-password').value = '';
+  document.getElementById('reg-password2').value = '';
+  showToast('基本資料已儲存');
+}
+
+// ── 偏好設定 ──
+function toggleCond(c) {
+  condSelected[c] = !condSelected[c];
+  const el = document.getElementById('cc-' + c);
+  if (condSelected[c]) el.className = 'cond-card sel-' + c;
+  else {
+    el.className = 'cond-card';
+    el.querySelector('.cond-grade').style.color = 'var(--ink4)';
+  }
+}
+
+function toggleNotify(type) {
+  if (type === 'email') {
+    notifyEmail = !notifyEmail;
+    document.getElementById('toggle-email').classList.toggle('on', notifyEmail);
+  }
+}
+
+function submitPrefs() {
+  const cities = [...document.querySelectorAll('#city-chips .chip.sel')].map(c => c.textContent);
+  const cats   = [...document.querySelectorAll('#cat-cards .cat-card.sel')].map(c => c.querySelector('.cat-name').textContent);
+  const conds  = Object.entries(condSelected).filter(([,v])=>v).map(([k])=>k.toUpperCase());
+
+  document.getElementById('summary-company').textContent = document.getElementById('reg-company').value || '—';
+  document.getElementById('summary-email').textContent   = document.getElementById('reg-email').value || '—';
+  const lineIdVal = document.getElementById('reg-line-id')?.value.trim() || '';
+  const lineElSum = document.getElementById('summary-line-id');
+  if(lineElSum){ lineElSum.textContent = lineIdVal || '未填寫'; lineElSum.style.color = lineIdVal ? 'var(--ink)' : 'var(--ink4)'; }
+
+  document.getElementById('summary-cities').textContent  = cities.length ? cities.join('、') : '未設定';
+  document.getElementById('summary-cats').textContent    = cats.length   ? cats.join('、')   : '未設定';
+  document.getElementById('summary-conds').textContent   = conds.length  ? conds.join('、')  : '未設定';
+  document.getElementById('summary-notify').textContent  = notifyEmail ? '已開啟' : '已關閉';
+
+  goScreen('screen-done');
+}
+
+function completeRegister(){
+  submitPrefs();
+  goScreen('screen-done');
+}
+
+function goToPlatform() {
+  showToast('正在進入平台，歡迎加入 ReLoop！');
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ════════════════════════════
+// 收貨偏好系統
+// ════════════════════════════
+
+const CATS = {
+  elec: { name:'家電類', emoji:'🔌', isElec:true, subs: {
+    ec:  { name:'冷藏冷凍設備', devices:['營業用冰箱','展示冰箱（玻璃門）','工作台冰箱','臥式冷凍櫃','冷藏展示櫃','製冰機','蛋糕冷藏櫃'], brands:['台灣三洋','Panasonic','大同','東元','HOSHIZAKI','Haier'] },
+    ek:  { name:'烹調加熱設備', devices:['快炒爐','電磁爐','炒台','煎台','油炸爐','旋風烤箱','蒸烤箱','蒸箱','煮麵機','高湯爐'], brands:['林內','豪山','Unox','Rational','喜特麗'] },
+    ed:  { name:'飲料吧設備',   devices:['半自動咖啡機','全自動咖啡機','萃茶機','封杯機','果糖機','吧台製冰機','開水機'], brands:['La Marzocco','JURA','Franke','Nuova Simonelli'] },
+    ef:  { name:'食材處理設備', devices:['攪拌機','切肉機','切菜機','絞肉機','壓麵機','豆漿機','真空包裝機'], brands:['Hobart','KitchenAid','Robot Coupe','Kenwood'] },
+    ecl: { name:'清潔衛生設備', devices:['輸送帶洗碗機','掀蓋式洗碗機','抽屜式洗碗機','消毒櫃','烘碗機'], brands:['Hobart','MEIKO','Winterhalter'] },
+    eo:  { name:'辦公店務設備', devices:['POS收銀主機','收銀機','液晶顯示螢幕','商用電視','分離式冷氣','窗型冷氣'], brands:['Panasonic','大金','日立','三菱'] },
+    ew:  { name:'洗衣家電',     devices:['直立式洗衣機','滾筒洗衣機','商用洗衣機','烘衣機','乾衣機'], brands:['Panasonic','三洋','東元','大同','LG','Samsung'] },
+  }},
+  furn: { name:'家具類', emoji:'🪑', isElec:false, subs: {
+    ft: { name:'桌椅類',     devices:['餐桌','餐椅','吧台椅','折疊桌','折疊椅','辦公桌','辦公椅','會議桌','沙發','茶几'], brands:['不限品牌'] },
+    fs: { name:'收納櫃類',   devices:['層架','置物架','展示架','更衣櫃','儲物櫃','鞋櫃','酒櫃'], brands:['不限品牌'] },
+    fb: { name:'吧台工作台', devices:['吧台','不鏽鋼工作台','調理台','備料台','水槽工作台'], brands:['不限品牌'] },
+    fd: { name:'床寢類',     devices:['單人床架','雙人床架','加大床架','床墊','彈簧床','乳膠床墊','衣櫃'], brands:['不限品牌'] },
+  }},
+  misc: { name:'雜項', emoji:'🍜', isElec:false, subs: {
+    mc: { name:'廚房用具', devices:['炒鍋（中式）','湯鍋','蒸籠','不鏽鋼鍋','鑄鐵鍋','油煙罩','抽油煙機'], brands:['不限品牌'] },
+    md: { name:'餐具容器', devices:['瓷碗盤組','玻璃杯組','不鏽鋼托盤','餐盒','砧板','刀具組'], brands:['不限品牌'] },
+    mp: { name:'包裝封口', devices:['封口機','熱縮膜機','真空包裝機','標籤機'], brands:['不限品牌'] },
+    mr: { name:'攤車推車', devices:['攤車','餐車','備餐推車','手推車','貨梯推車'], brands:['不限品牌'] },
+  }},
+  build: { name:'建材類', emoji:'🧱', isElec:false, subs: {
+    bb: { name:'衛浴設備', devices:['馬桶','洗手台','浴缸','淋浴拉門','電熱水器','瓦斯熱水器'], brands:['和成','TOTO','凱撒','American Standard'] },
+    bw: { name:'門窗隔間', devices:['鋁門','鋁窗','玻璃隔間','辦公室隔間','鐵捲門'], brands:['不限品牌'] },
+    bf: { name:'地板牆面', devices:['瓷磚','木地板','PVC塑膠地板','壁板','矽酸鈣板'], brands:['不限品牌'] },
+    be: { name:'水電配管', devices:['LED燈具','吸頂燈','崁燈','配電箱','漏電斷路器'], brands:['Panasonic','士林','不限品牌'] },
+  }},
+};
+
+let prefs = [];
+let editingIdx = -1;
+const condSel = { a:true, b:true, c:true, d:false };
+
+function openModal(editIdx) {
+  editingIdx = (editIdx !== undefined) ? editIdx : -1;
+  document.getElementById('modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  if (editingIdx >= 0) {
+    document.getElementById('modal-title').textContent = '編輯收貨偏好';
+    loadPrefToForm(prefs[editingIdx]);
+  } else {
+    document.getElementById('modal-title').textContent = '新增收貨偏好';
+    resetForm();
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function resetForm() {
+  document.getElementById('sel-l1').value = '';
+  document.getElementById('sel-l2').innerHTML = '<option value="">請先選擇大分類</option>';
+  document.getElementById('sel-l2').disabled = true;
+  document.getElementById('sel-dev').innerHTML = '<option value="">請先選擇細項分類</option>';
+  document.getElementById('sel-dev').disabled = true;
+  document.getElementById('dev-add-row').style.display = 'none';
+  ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('voltage-field').style.display = 'none';
+  ['f-year-min','f-year-within','f-max-w','f-max-h','f-max-d','f-max-weight','f-note','brand-add-input'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  condSel.a = true; condSel.b = true; condSel.c = true; condSel.d = false;
+  renderCondBtns();
+}
+
+function loadPrefToForm(pref) {
+  resetForm();
+  document.getElementById('sel-l1').value = pref.l1id;
+  onL1Change();
+  setTimeout(() => {
+    document.getElementById('sel-l2').value = pref.l2id;
+    onL2Change();
+    setTimeout(() => {
+      document.getElementById('sel-dev').value = pref.device;
+      onDevChange();
+      setTimeout(() => {
+        document.querySelectorAll('#brand-chips .chip').forEach(c => {
+          c.classList.toggle('sel', (pref.brands||[]).includes(c.textContent));
+        });
+        document.getElementById('f-year-min').value    = pref.yearMin    || '';
+        document.getElementById('f-year-within').value = pref.yearWithin || '';
+        document.getElementById('f-max-w').value        = pref.maxW       || '';
+        document.getElementById('f-max-h').value        = pref.maxH       || '';
+        document.getElementById('f-max-d').value        = pref.maxD       || '';
+        document.getElementById('f-max-weight').value   = pref.maxWeight  || '';
+        document.getElementById('f-note').value         = pref.note       || '';
+        condSel.a = pref.conds?.a ?? true;
+        condSel.b = pref.conds?.b ?? true;
+        condSel.c = pref.conds?.c ?? true;
+        condSel.d = pref.conds?.d ?? false;
+        renderCondBtns();
+      }, 50);
+    }, 50);
+  }, 50);
+}
+
+function onL1Change() {
+  const l1id = document.getElementById('sel-l1').value;
+  const l2sel = document.getElementById('sel-l2');
+  const devsel = document.getElementById('sel-dev');
+  l2sel.innerHTML = '<option value="">請選擇細項分類...</option>';
+  devsel.innerHTML = '<option value="">請先選擇細項分類</option>';
+  l2sel.disabled = !l1id;
+  devsel.disabled = true;
+  document.getElementById('dev-add-row').style.display = 'none';
+  ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  if (!l1id) return;
+  Object.entries(CATS[l1id].subs).forEach(([id, sub]) => {
+    l2sel.innerHTML += '<option value="' + id + '">' + sub.name + '</option>';
+  });
+}
+
+function onL2Change() {
+  const l1id = document.getElementById('sel-l1').value;
+  const l2id = document.getElementById('sel-l2').value;
+  const devsel = document.getElementById('sel-dev');
+  devsel.innerHTML = '<option value="">請選擇設備...</option>';
+  devsel.disabled = !l2id;
+  document.getElementById('dev-add-row').style.display = 'none';
+  ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  if (!l2id) return;
+  const sub = CATS[l1id].subs[l2id];
+  sub.devices.forEach(dev => {
+    devsel.innerHTML += '<option value="' + dev + '">' + dev + '</option>';
+  });
+  document.getElementById('dev-add-row').style.display = 'flex';
+}
+
+function onDevChange() {
+  const l1id = document.getElementById('sel-l1').value;
+  const l2id = document.getElementById('sel-l2').value;
+  const dev  = document.getElementById('sel-dev').value;
+  if (!dev || dev === '__custom__') return;
+  ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
+    document.getElementById(id).style.display = 'block';
+  });
+  const isElec = CATS[l1id].isElec;
+  document.getElementById('voltage-field').style.display = isElec ? 'block' : 'none';
+  buildBrandChips(CATS[l1id].subs[l2id].brands, []);
+}
+
+function onDevAddInput(input) {
+  const btn = document.getElementById('dev-add-btn');
+  const hasVal = input.value.trim().length > 0;
+  btn.disabled = !hasVal;
+  btn.style.opacity = hasVal ? '1' : '.35';
+  btn.style.cursor  = hasVal ? 'pointer' : 'not-allowed';
+}
+
+function addCustomDev() {
+  const input = document.getElementById('dev-add-input');
+  const name  = input.value.trim();
+  if (!name) return;
+  const l1id = document.getElementById('sel-l1').value;
+  const l2id = document.getElementById('sel-l2').value;
+  if (!l1id || !l2id) return;
+  CATS[l1id].subs[l2id].devices.push(name);
+  const devsel = document.getElementById('sel-dev');
+  const opt = document.createElement('option');
+  opt.value = name; opt.textContent = name;
+  devsel.appendChild(opt);
+  devsel.value = name;
+  onDevChange();
+  input.value = '';
+  onDevAddInput(input);
+  // 顯示「已新增設備」提示
+  const hint = document.getElementById('dev-added-hint');
+  const hintText = document.getElementById('dev-added-text');
+  if(hint && hintText){
+    hintText.textContent = '已新增：' + name;
+    hint.style.display = 'flex';
+    setTimeout(() => { hint.style.display = 'none'; }, 3000);
+  }
+}
+
+function buildBrandChips(brands, selected) {
+  const all = [...new Set([...brands, ...selected])];
+  const group = document.getElementById('brand-chips');
+  group.innerHTML = '';
+  // 加上「不限品牌」快速選項
+  const anyChip = document.createElement('div');
+  anyChip.className = 'chip chip-any' + (!selected.length ? ' sel' : '');
+  anyChip.textContent = '不限品牌';
+  anyChip.dataset.any = '1';
+  anyChip.onclick = function(){
+    // 選「不限品牌」時取消其他品牌
+    this.classList.add('sel');
+    group.querySelectorAll('.chip:not([data-any])').forEach(c => c.classList.remove('sel'));
+  };
+  group.appendChild(anyChip);
+  // 品牌清單（建議，預設不選）
+  all.filter(b => b !== '不限品牌').forEach(b => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (selected.includes(b) ? ' sel' : '');
+    c.textContent = b;
+    c.onclick = function(){
+      this.classList.toggle('sel');
+      // 選了特定品牌時取消「不限品牌」
+      if(this.classList.contains('sel')){
+        group.querySelector('[data-any]')?.classList.remove('sel');
+      }
+    };
+    group.appendChild(c);
+  });
+}
+
+function addCustomBrand() {
+  const input = document.getElementById('brand-add-input');
+  const name  = input.value.trim();
+  if (!name) return;
+  const group = document.getElementById('brand-chips');
+  const chip  = document.createElement('div');
+  chip.className = 'chip sel';
+  chip.textContent = name;
+  chip.onclick = function() { this.classList.toggle('sel'); };
+  group.appendChild(chip);
+  input.value = '';
+}
+
+function toggleCC(k) {
+  condSel[k] = !condSel[k];
+  renderCondBtns();
+}
+
+function renderCondBtns() {
+  ['a','b','c','d'].forEach(k => {
+    const el = document.getElementById('cc-' + k);
+    if (!el) return;
+    if (condSel[k]) {
+      el.className = 'cc sel-' + k;
+      el.querySelector('.cc-g').style.color = '';
+      el.querySelector('.cc-l').style.color = '';
+    } else {
+      el.className = 'cc';
+      el.querySelector('.cc-g').style.color = 'var(--ink4)';
+      el.querySelector('.cc-l').style.color = 'var(--ink4)';
+    }
+  });
+}
+
+async function savePref() {
+  const l1id = document.getElementById('sel-l1').value;
+  const l2id = document.getElementById('sel-l2').value;
+  const dev  = document.getElementById('sel-dev').value;
+  if (!l1id) { showToast('請選擇大分類'); return; }
+  if (!l2id) { showToast('請選擇細項分類'); return; }
+  if (!dev || dev === '__custom__') { showToast('請選擇具體設備'); return; }
+  const brands = [...document.querySelectorAll('#brand-chips .chip.sel')].map(c => c.textContent);
+  const pref = {
+    id: editingIdx >= 0 ? prefs[editingIdx].id : makeId(),
+    l1id, l2id, device: dev,
+    l1name:  CATS[l1id].name,
+    l1emoji: CATS[l1id].emoji,
+    l2name:  CATS[l1id].subs[l2id].name,
+    brands,
+    yearMin:    document.getElementById('f-year-min').value    || '',
+    yearWithin: document.getElementById('f-year-within').value || '',
+    maxW:       document.getElementById('f-max-w').value        || '',
+    maxH:       document.getElementById('f-max-h').value        || '',
+    maxD:       document.getElementById('f-max-d').value        || '',
+    maxWeight:  document.getElementById('f-max-weight').value   || '',
+    note:       document.getElementById('f-note').value         || '',
+    conds:      { ...condSel },
+  };
+
+  const saved = await upsertPreferenceRecord(pref, editingIdx >= 0 ? editingIdx : prefs.length);
+  if (!saved) return;
+
+  if (editingIdx >= 0) {
+    prefs[editingIdx] = pref;
+    showToast('偏好已更新');
+  } else {
+    prefs.push(pref);
+    showToast('偏好已新增');
+  }
+  closeModal();
+  renderPrefList();
+}
+
+function renderPrefList() {
+  const list   = document.getElementById('pref-list');
+  const empty  = document.getElementById('empty-state');
+  const addBtn = document.getElementById('btn-add-bottom');
+  if (prefs.length === 0) {
+    empty.style.display  = 'block';
+    list.style.display   = 'none';
+    addBtn.style.display = 'none';
+    return;
+  }
+  empty.style.display  = 'none';
+  list.style.display   = 'flex';
+  addBtn.style.display = 'block';
+
+  list.innerHTML = prefs.map((p, i) => {
+    const condTags = Object.entries(p.conds).filter(([,v]) => v).map(([k]) =>
+      '<span class="ptag ptag-cond-' + k + '">狀況 ' + k.toUpperCase() + '</span>'
+    ).join('');
+    const brandStr = (p.brands.length && !p.brands.includes('不限品牌'))
+      ? p.brands.join('、')
+      : '不限品牌';
+    const brandTag = '<span class="ptag ptag-brand">' + brandStr + '</span>';
+    const yearTag  = p.yearMin ? '<span class="ptag ptag-year">' + p.yearMin + ' 年以後</span>' : '';
+    const sizeArr  = [p.maxW?'寬≤'+p.maxW+'cm':'', p.maxH?'高≤'+p.maxH+'cm':'', p.maxD?'深≤'+p.maxD+'cm':''].filter(Boolean);
+    const sizeTag  = sizeArr.length ? '<span class="ptag ptag-size">' + sizeArr.join(' ') + '</span>' : '';
+    const noteTag  = p.note ? '<span class="ptag ptag-note" title="' + p.note + '">備註：' + p.note + '</span>' : '';
+    return '<div class="pref-card">' +
+      '<div class="pref-card-hd">' +
+        '<div class="pref-num">偏好 ' + (i+1) + '</div>' +
+        '<div class="pref-label"></div>' +
+        '<button class="pref-edit-btn" onclick="openModal(' + i + ')">✏️ 編輯</button>' +
+        '<button class="pref-del-btn" onclick="deletePref(' + i + ')">🗑</button>' +
+      '</div>' +
+      '<div class="pref-card-body">' +
+        '<div class="pref-path">' +
+          '<span class="pref-path-emoji">' + p.l1emoji + '</span>' +
+          '<span class="pref-path-item">' + p.l1name + '</span>' +
+          '<span class="pref-path-sep">›</span>' +
+          '<span class="pref-path-item">' + p.l2name + '</span>' +
+          '<span class="pref-path-sep">›</span>' +
+          '<span class="pref-path-device">' + p.device + '</span>' +
+        '</div>' +
+        '<div class="pref-tags">' + brandTag + yearTag + sizeTag + condTags + noteTag + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function deletePref(idx) {
+  const deleted = await deletePreferenceRecord(prefs[idx]);
+  if (!deleted) return;
+  prefs.splice(idx, 1);
+  renderPrefList();
+  showToast('已刪除偏好');
+}
+
+
+
+
+renderPrefList();
+</script>
+
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+<div class="modal">
+  <div class="modal-hd">
+    <div class="modal-title" id="modal-title">新增收貨偏好</div>
+    <button class="modal-close" onclick="closeModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div class="form-section">
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>選擇設備</div>
+      <div class="select-chain">
+        <div class="chain-step">
+          <span class="chain-label">大分類</span>
+          <select class="chain-select" id="sel-l1" onchange="onL1Change()">
+            <option value="">請選擇大分類...</option>
+            <option value="elec">🔌 家電類（有通電）</option>
+            <option value="furn">🪑 家具類</option>
+            <option value="misc">🍜 雜項（鍋碗瓢盆）</option>
+            <option value="build">🧱 建材類</option>
+          </select>
+        </div>
+        <div class="chain-step">
+          <span class="chain-label">細項</span>
+          <select class="chain-select" id="sel-l2" onchange="onL2Change()" disabled>
+            <option value="">請先選擇大分類</option>
+          </select>
+        </div>
+        <div class="chain-step">
+          <span class="chain-label">設備</span>
+          <select class="chain-select" id="sel-dev" onchange="onDevChange()" disabled>
+            <option value="">請先選擇細項分類</option>
+          </select>
+        </div>
+        <div id="dev-added-hint" style="display:none;padding:5px 0 0 56px;font-size:11px;color:var(--green);display:none;align-items:center;gap:4px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="13"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+          <span id="dev-added-text"></span>
+        </div>
+        <div class="chain-add-row" id="dev-add-row" style="display:none">
+          <input class="chain-add-input" type="text" id="dev-add-input"
+            placeholder="找不到？輸入自訂設備名稱..."
+            oninput="onDevAddInput(this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomDev()}">
+          <button class="chain-add-btn" id="dev-add-btn" onclick="addCustomDev()"
+            disabled style="opacity:.35;cursor:not-allowed">＋ 新增</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-section" id="section-brands" style="display:none">
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="15" cy="15" r="5"/><path d="M15 10V3H3v14h7"/><path d="M12 18l2 2 4-4"/></svg>品牌偏好 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">點選想收的品牌（可多選）</span></div>
+      <div class="chip-group" id="brand-chips"></div>
+      <div class="brand-add-row">
+        <input type="text" id="brand-add-input" placeholder="輸入其他品牌...">
+        <button onclick="addCustomBrand()">＋</button>
+      </div>
+      <div style="font-size:10px;color:var(--ink4);margin-top:6px">以下為建議品牌清單，點選您想收的品牌；選「不限品牌」代表接受任何品牌</div>
+    </div>
+    <div class="form-section" id="section-year" style="display:none">
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>出廠年份</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="fl">最早接受 <span class="fl-opt">不填＝不限</span></div>
+          <div class="form-unit"><input class="fi" type="number" id="f-year-min" placeholder="例：2010" min="1980" max="2026"><div class="unit-lbl">年以後</div></div>
+        </div>
+        <div class="field">
+          <div class="fl">幾年內為佳 <span class="fl-opt">不填＝不限</span></div>
+          <div class="form-unit"><input class="fi" type="number" id="f-year-within" placeholder="例：10" min="1" max="30"><div class="unit-lbl">年內</div></div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--ink4);margin-top:6px;display:flex;align-items:center;gap:4px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="12"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        兩個欄位可填其中一個、都填、或都不填（都不填代表年份不限）
+      </div>
+    </div>
+    <div class="form-section" id="section-size" style="display:none">
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l18-18M6.5 17.5l1-1M10 14l1-1M13.5 10.5l1-1M17 7l1-1"/><path d="M3 21L3 17l14-14 4 4-14 14Z"/></svg>最大可接受尺寸 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">不填＝不限</span></div>
+      <div class="field-row-3" style="margin-bottom:8px">
+        <div class="field"><div class="fl">最大寬</div><div class="form-unit"><input class="fi" type="number" id="f-max-w" placeholder="不限"><div class="unit-lbl">cm</div></div></div>
+        <div class="field"><div class="fl">最大高</div><div class="form-unit"><input class="fi" type="number" id="f-max-h" placeholder="不限"><div class="unit-lbl">cm</div></div></div>
+        <div class="field"><div class="fl">最大深</div><div class="form-unit"><input class="fi" type="number" id="f-max-d" placeholder="不限"><div class="unit-lbl">cm</div></div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><div class="fl">最大重量</div><div class="form-unit"><input class="fi" type="number" id="f-max-weight" placeholder="不限"><div class="unit-lbl">kg</div></div></div>
+        <div class="field" id="voltage-field" style="display:none">
+          <div class="fl">可接受電壓</div>
+          <div class="chip-group" id="voltage-chips">
+            <div class="chip sel" onclick="this.classList.toggle('sel')">不限</div>
+            <div class="chip" onclick="this.classList.toggle('sel')">110V</div>
+            <div class="chip" onclick="this.classList.toggle('sel')">220V</div>
+            <div class="chip" onclick="this.classList.toggle('sel')">三相電</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-section" id="section-cond" style="display:none">
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 12h2l2-4 2 8 2-4h2"/></svg>接受的設備狀況</div>
+      <div class="cond-grid">
+        <div class="cc sel-a" id="cc-a" onclick="toggleCC('a')"><div class="cc-g">A</div><div class="cc-l">良好</div><div class="cc-d">可正常使用</div></div>
+        <div class="cc sel-b" id="cc-b" onclick="toggleCC('b')"><div class="cc-g">B</div><div class="cc-l">普通</div><div class="cc-d">輕微磨損</div></div>
+        <div class="cc sel-c" id="cc-c" onclick="toggleCC('c')"><div class="cc-g">C</div><div class="cc-l">堪用</div><div class="cc-d">明顯損傷</div></div>
+        <div class="cc" id="cc-d" onclick="toggleCC('d')"><div class="cc-g">D</div><div class="cc-l">待修</div><div class="cc-d">無法運作</div></div>
+      </div>
+      <div style="font-size:10px;color:var(--ink4);margin-top:7px">可多選</div>
+    </div>
+    <div class="form-section" id="section-note" style="display:none">
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>備註 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填</span></div>
+      <textarea class="fi" id="f-note" rows="2" style="resize:none;min-height:60px" placeholder="例：只收單門、不超過 200 公升..."></textarea>
+    </div>
+  </div>
+  <div class="modal-ft">
+    <button class="btn-modal-cancel" onclick="closeModal()">取消</button>
+    <button class="btn-modal-save" onclick="savePref()">儲存偏好</button>
+  </div>
+</div>
+</div>
+</body>
+</html>

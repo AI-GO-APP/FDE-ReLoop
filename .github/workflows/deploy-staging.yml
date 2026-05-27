@@ -20,10 +20,12 @@ jobs:
       uses: appleboy/ssh-action@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       with:
         host: ${{ secrets.STAGING_HOST }}
         username: deploy
         password: ${{ secrets.STAGING_SSH_PASSWORD }}
         command_timeout: 20m
-        envs: GITHUB_TOKEN
+        envs: GITHUB_TOKEN,SUPABASE_URL,SUPABASE_ANON_KEY
         script: /opt/deploy-config/deploy.sh "AI-GO-APP" "FDE-ReLoop" "auto"
