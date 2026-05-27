@@ -637,8 +637,8 @@ let currentRecyclerId = localStorage.getItem('reloop_recycler_id') || makeId();
 localStorage.setItem('reloop_recycler_id', currentRecyclerId);
 
 const supabaseReady =
-  !SUPABASE_URL.startsWith('YOUR_') &&
-  !SUPABASE_ANON_KEY.startsWith('YOUR_') &&
+  SUPABASE_URL.startsWith('https://') &&
+  SUPABASE_ANON_KEY.length > 20 &&
   window.supabase;
 const supabaseDb = supabaseReady
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
