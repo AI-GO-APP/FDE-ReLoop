@@ -645,9 +645,7 @@ const supabaseDb = supabaseReady
   : null;
 
 function requireSupabase() {
-  if (supabaseDb) return supabaseDb;
-  showToast('請先設定 Supabase URL 與 anon key');
-  return null;
+  return supabaseDb;
 }
 
 function toIntOrNull(value) {
