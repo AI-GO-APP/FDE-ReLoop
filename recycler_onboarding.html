@@ -1179,7 +1179,7 @@ async function initApp() {
   if (session) {
     currentRecyclerId = session.user.id;
     subscribeMatches();
-    goScreen('screen-profile');
+    goScreen('screen-matches');
   } else {
     goScreen('screen-register');
   }
@@ -1299,7 +1299,7 @@ async function submitLogin() {
 
   currentRecyclerId = data.user.id;
   subscribeMatches();
-  goScreen('screen-profile');
+  goScreen('screen-matches');
 }
 
 async function saveProfile() {
