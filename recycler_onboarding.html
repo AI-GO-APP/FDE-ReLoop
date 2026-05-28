@@ -1034,19 +1034,22 @@ async function submitRegister() {
   const db = requireSupabase();
   if (!db) return;
 
-  const { data: signUpData, error: signUpError } = await db.auth.signUp({ email, password: pw });
-  if (signUpError) { showSignupError('email', authErrMsg(signUpError.message)); return; }
+  const btn = document.querySelector('#screen-register .btn-main');
+  btn.disabled = true;
+  btn.textContent = '處理中…';
 
-  let currentUserId;
-  if (signUpData.session) {
-    currentUserId = signUpData.user.id;
-  } else {
-    const { data: signInData, error: signInError } = await db.auth.signInWithPassword({ email, password: pw });
-    if (signInError) { showSignupError('email', '帳號建立成功，但登入失敗，請至登入頁登入'); return; }
-    currentUserId = signInData.user.id;
+  const { data: signUpData, error: signUpError } = await db.auth.signUp({ email, password: pw });
+  if (signUpError) {
+    btn.disabled = false; btn.textContent = '完成註冊 →';
+    showSignupError('email', authErrMsg(signUpError.message)); return;
   }
 
-  currentRecyclerId = currentUserId;
+  if (!signUpData.session) {
+    btn.disabled = false; btn.textContent = '完成註冊 →';
+    showSignupError('email', '此 Email 已被註冊，請直接登入'); return;
+  }
+
+  currentRecyclerId = signUpData.user.id;
 
   const saved = await createAccountRecord({ company, name, phone, lineId, email });
   if (!saved) return;
