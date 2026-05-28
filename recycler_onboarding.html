@@ -564,6 +564,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn-main btn-dark" onclick="saveProfile()">
         <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存基本資料
       </button>
+
+      <div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--paper3)">
+        <button class="btn-main btn-outline" onclick="signOut()" style="color:var(--ink3)">
+          <i class="ti ti-logout" style="font-size:15px"></i>登出
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -1157,6 +1163,15 @@ function subscribeMatches() {
 }
 
 // ── 初始化：檢查是否已登入 ──
+async function signOut() {
+  const db = requireSupabase();
+  if (db) await db.auth.signOut();
+  currentRecyclerId = null;
+  allMatchesCache = [];
+  prefs = [];
+  goScreen('screen-login');
+}
+
 async function initApp() {
   const db = requireSupabase();
   if (!db) { goScreen('screen-register'); return; }
