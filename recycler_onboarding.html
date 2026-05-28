@@ -1022,8 +1022,11 @@ async function submitRegister() {
   const db = requireSupabase();
   if (!db) return;
 
-  const { data, error } = await db.auth.signUp({ email, password: pw });
-  if (error) { showSignupError('email', error.message); return; }
+  const { error: signUpError } = await db.auth.signUp({ email, password: pw });
+  if (signUpError) { showSignupError('email', signUpError.message); return; }
+
+  const { data, error: signInError } = await db.auth.signInWithPassword({ email, password: pw });
+  if (signInError) { showSignupError('email', '帳號建立成功，但登入失敗，請至登入頁登入'); return; }
 
   currentRecyclerId = data.user.id;
 
