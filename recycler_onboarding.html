@@ -890,6 +890,30 @@ function preferencePayload(pref, index) {
   };
 }
 
+async function loadPrefsFromDb() {
+  const db = requireSupabase();
+  if (!db || !currentRecyclerId) return;
+  const { data, error } = await db
+    .from('recycler_onboarding_preferences')
+    .select('*')
+    .eq('recycler_id', currentRecyclerId)
+    .order('pref_index', { ascending: true });
+  if (error) return;
+  prefs = (data || []).map(row => ({
+    id: row.id,
+    l1id: row.category_id,   l1name: row.category_name,
+    l2id: row.subcategory_id, l2name: row.subcategory_name,
+    device: row.device_name,
+    brands: row.brands || [],
+    yearMin: row.year_min,    yearWithin: row.year_within,
+    maxW: row.max_width_cm,   maxH: row.max_height_cm,
+    maxD: row.max_depth_cm,   maxWeight: row.max_weight_kg,
+    conds: row.accepted_conditions || {},
+    note: row.note || '',
+  }));
+  renderPrefList();
+}
+
 async function upsertPreferenceRecord(pref, index) {
   const db = requireSupabase();
   if (!db) return false;
@@ -930,6 +954,7 @@ function goScreen(id) {
   if(el) { el.classList.add('act'); }
   window.scrollTo(0, 0);
   if (id === 'screen-matches') loadMatches();
+  if (id === 'screen-prefs') loadPrefsFromDb();
 }
 
 // ── 媒合列表 ──
