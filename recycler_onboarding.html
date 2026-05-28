@@ -747,6 +747,18 @@ function requireSupabase() {
   return supabaseDb;
 }
 
+function authErrMsg(msg) {
+  const map = {
+    'email rate limit exceeded':        '註冊次數過多，請稍後再試',
+    'User already registered':          '此 Email 已被註冊',
+    'Invalid login credentials':        'Email 或密碼錯誤',
+    'Email not confirmed':              'Email 尚未驗證',
+    'Password should be at least 6 characters': '密碼至少需要 6 個字元',
+    'signup requires a valid password': '請填寫有效的密碼',
+  };
+  return map[msg] || msg;
+}
+
 function toIntOrNull(value) {
   const n = parseInt(value, 10);
   return Number.isFinite(n) ? n : null;
@@ -1023,7 +1035,7 @@ async function submitRegister() {
   if (!db) return;
 
   const { error: signUpError } = await db.auth.signUp({ email, password: pw });
-  if (signUpError) { showSignupError('email', signUpError.message); return; }
+  if (signUpError) { showSignupError('email', authErrMsg(signUpError.message)); return; }
 
   const { data, error: signInError } = await db.auth.signInWithPassword({ email, password: pw });
   if (signInError) { showSignupError('email', '帳號建立成功，但登入失敗，請至登入頁登入'); return; }
