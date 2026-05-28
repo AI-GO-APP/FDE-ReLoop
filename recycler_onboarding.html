@@ -404,6 +404,53 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn-main btn-dark" onclick="submitRegister()">
         完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>
       </button>
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
+        已有帳號？<a href="#" style="color:var(--green);text-decoration:none;font-weight:500" onclick="event.preventDefault();goScreen('screen-login')">直接登入</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     登入
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-login">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-headline">歡迎回來</div>
+      <div class="brand-sub">登入您的 ReLoop 回收商帳號，<br>查看最新媒合通知與設定。</div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="form-col">
+    <div class="form-wrap">
+      <div class="form-header">
+        <div class="form-step-badge"><i class="ti ti-login" style="font-size:12px"></i>登入</div>
+        <div class="form-title">登入帳號</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" id="login-email" placeholder="your@email.com">
+        <div class="field-error" id="err-login-email"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">密碼</label>
+        <div class="pw-wrap">
+          <input class="field-input" type="password" id="login-password" placeholder="輸入密碼"
+            onkeydown="if(event.key==='Enter')submitLogin()">
+          <span class="pw-toggle" onclick="togglePw('login-password',this)">
+            <i class="ti ti-eye-off"></i>
+          </span>
+        </div>
+        <div class="field-error" id="err-login-password"></div>
+      </div>
+      <button class="btn-main btn-dark" onclick="submitLogin()">
+        登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>
+      </button>
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
+        還沒有帳號？<a href="#" style="color:var(--green);text-decoration:none;font-weight:500" onclick="event.preventDefault();goScreen('screen-register')">立即註冊</a>
+      </div>
     </div>
   </div>
 </div>
@@ -686,8 +733,7 @@ function makeId() {
   });
 }
 
-let currentRecyclerId = localStorage.getItem('reloop_recycler_id') || makeId();
-localStorage.setItem('reloop_recycler_id', currentRecyclerId);
+let currentRecyclerId = null;
 
 const supabaseReady =
   SUPABASE_URL.startsWith('https://') &&
@@ -910,9 +956,21 @@ function subscribeMatches() {
     .subscribe();
 }
 
-// ── 模擬 token 驗證 ──
-goScreen('screen-register');
-subscribeMatches();
+// ── 初始化：檢查是否已登入 ──
+async function initApp() {
+  const db = requireSupabase();
+  if (!db) { goScreen('screen-register'); return; }
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    currentRecyclerId = session.user.id;
+    subscribeMatches();
+    goScreen('screen-profile');
+  } else {
+    goScreen('screen-register');
+  }
+}
+
+initApp();
 
 // ── 密碼顯示切換 ──
 function togglePw(inputId, iconEl) {
@@ -944,13 +1002,13 @@ function clearErrors() {
 
 async function submitRegister() {
   clearErrors();
-  const company  = document.getElementById('signup-company').value.trim();
-  const name     = document.getElementById('signup-name').value.trim();
-  const phone    = document.getElementById('signup-phone').value.trim();
-  const lineId   = document.getElementById('signup-line-id').value.trim();
-  const email    = document.getElementById('signup-email').value.trim();
-  const pw       = document.getElementById('signup-password').value;
-  const pw2      = document.getElementById('signup-password2').value;
+  const company = document.getElementById('signup-company').value.trim();
+  const name    = document.getElementById('signup-name').value.trim();
+  const phone   = document.getElementById('signup-phone').value.trim();
+  const lineId  = document.getElementById('signup-line-id').value.trim();
+  const email   = document.getElementById('signup-email').value.trim();
+  const pw      = document.getElementById('signup-password').value;
+  const pw2     = document.getElementById('signup-password2').value;
   let ok = true;
 
   if (!company) { showSignupError('company','請填寫公司名稱'); ok=false; }
@@ -959,8 +1017,15 @@ async function submitRegister() {
   if (!email || !email.includes('@')) { showSignupError('email','請填寫有效的 Email'); ok=false; }
   if (pw.length < 8) { showSignupError('password','密碼至少需要 8 個字元'); ok=false; }
   if (pw !== pw2) { showSignupError('password2','兩次密碼不一致'); ok=false; }
-
   if (!ok) return;
+
+  const db = requireSupabase();
+  if (!db) return;
+
+  const { data, error } = await db.auth.signUp({ email, password: pw });
+  if (error) { showSignupError('email', error.message); return; }
+
+  currentRecyclerId = data.user.id;
 
   const saved = await createAccountRecord({ company, name, phone, lineId, email });
   if (!saved) return;
@@ -971,7 +1036,43 @@ async function submitRegister() {
   document.getElementById('reg-line-id').value = lineId;
   document.getElementById('reg-email').value = email;
 
+  subscribeMatches();
   goScreen('screen-prefs');
+}
+
+async function submitLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-password').value;
+  let ok = true;
+
+  document.getElementById('err-login-email').textContent = '';
+  document.getElementById('err-login-password').textContent = '';
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('err-login-email').textContent = '請填寫有效的 Email';
+    document.getElementById('err-login-email').classList.add('show');
+    ok = false;
+  }
+  if (!pw) {
+    document.getElementById('err-login-password').textContent = '請填寫密碼';
+    document.getElementById('err-login-password').classList.add('show');
+    ok = false;
+  }
+  if (!ok) return;
+
+  const db = requireSupabase();
+  if (!db) return;
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
+  if (error) {
+    document.getElementById('err-login-password').textContent = 'Email 或密碼錯誤';
+    document.getElementById('err-login-password').classList.add('show');
+    return;
+  }
+
+  currentRecyclerId = data.user.id;
+  subscribeMatches();
+  goScreen('screen-profile');
 }
 
 async function saveProfile() {
