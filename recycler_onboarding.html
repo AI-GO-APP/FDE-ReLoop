@@ -561,6 +561,51 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div class="field-error" id="err-password2">兩次密碼不一致</div>
       </div>
 
+      <!-- 收貨範圍 -->
+      <div style="margin-top:4px;margin-bottom:20px">
+        <div class="pref-section-title" style="margin-bottom:10px">
+          <i class="ti ti-map-pin"></i>收貨範圍
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label class="field-label">收貨縣市 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">可多選</span></label>
+          <div id="service-area-chips" class="city-grid" style="margin-top:4px">
+            <div class="chip" onclick="toggleServiceArea(this)">台北市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">新北市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">桃園市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">台中市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">台南市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">高雄市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">基隆市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">新竹市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">新竹縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">苗栗縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">彰化縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">南投縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">雲林縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">嘉義市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">嘉義縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">屏東縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">宜蘭縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">花蓮縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">台東縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">澎湖縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">金門縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">連江縣</div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label class="field-label">排除條件 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，可多選</span></label>
+          <div id="service-exclusion-chips" class="city-grid" style="margin-top:4px">
+            <div class="chip" onclick="toggleServiceArea(this)">山區除外</div>
+            <div class="chip" onclick="toggleServiceArea(this)">偏遠地區除外</div>
+            <div class="chip" onclick="toggleServiceArea(this)">離島除外</div>
+            <div class="chip" onclick="toggleServiceArea(this)">需自行卸貨</div>
+            <div class="chip" onclick="toggleServiceArea(this)">無電梯需另議</div>
+            <div class="chip" onclick="toggleServiceArea(this)">四樓以上需另議</div>
+          </div>
+        </div>
+      </div>
+
       <button class="btn-main btn-dark" onclick="saveProfile()">
         <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存基本資料
       </button>
@@ -849,12 +894,15 @@ async function updateAccountRecord({ passwordChanged = false } = {}) {
   const db = requireSupabase();
   if (!db) return false;
 
+  const serviceAreas = [...document.querySelectorAll('#service-area-chips .chip.sel')].map(c => c.textContent);
   const payload = {
     company_name: document.getElementById('reg-company').value.trim(),
     contact_name: document.getElementById('reg-name').value.trim(),
     phone: document.getElementById('reg-phone').value.trim(),
     email: document.getElementById('reg-email').value.trim(),
-    line_id: document.getElementById('reg-line-id')?.value.trim() || null
+    line_id: document.getElementById('reg-line-id')?.value.trim() || null,
+    service_areas: serviceAreas,
+    service_exclusions: [...document.querySelectorAll('#service-exclusion-chips .chip.sel')].map(c => c.textContent)
   };
   if (passwordChanged) {
     payload.password_set = true;
@@ -962,6 +1010,7 @@ function goScreen(id) {
   window.scrollTo(0, 0);
   if (id === 'screen-matches') loadMatches();
   if (id === 'screen-prefs') loadPrefsFromDb();
+  if (id === 'screen-profile') loadProfileFromDb();
 }
 
 // ── 媒合列表 ──
@@ -1301,6 +1350,35 @@ async function submitLogin() {
   currentRecyclerId = data.user.id;
   subscribeMatches();
   goScreen('screen-matches');
+}
+
+function toggleServiceArea(el) {
+  el.classList.toggle('sel');
+}
+
+async function loadProfileFromDb() {
+  const db = requireSupabase();
+  if (!db || !currentRecyclerId) return;
+  const { data, error } = await db
+    .from('recycler_onboarding_accounts')
+    .select('*')
+    .eq('id', currentRecyclerId)
+    .single();
+  if (error || !data) return;
+  document.getElementById('reg-company').value  = data.company_name || '';
+  document.getElementById('reg-name').value     = data.contact_name || '';
+  document.getElementById('reg-phone').value    = data.phone || '';
+  document.getElementById('reg-email').value    = data.email || '';
+  const lineEl = document.getElementById('reg-line-id');
+  if (lineEl) lineEl.value = data.line_id || '';
+  const areas = data.service_areas || [];
+  document.querySelectorAll('#service-area-chips .chip').forEach(chip => {
+    chip.classList.toggle('sel', areas.includes(chip.textContent));
+  });
+  const exclusions = data.service_exclusions || [];
+  document.querySelectorAll('#service-exclusion-chips .chip').forEach(chip => {
+    chip.classList.toggle('sel', exclusions.includes(chip.textContent));
+  });
 }
 
 async function saveProfile() {
