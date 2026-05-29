@@ -908,6 +908,7 @@ async function loadPrefsFromDb() {
   prefs = (data || []).map(row => ({
     id: row.id,
     l1id: row.category_id,   l1name: row.category_name,
+    l1emoji: row.raw_data?.l1emoji || '',
     l2id: row.subcategory_id, l2name: row.subcategory_name,
     device: row.device_name,
     brands: row.brands || [],
