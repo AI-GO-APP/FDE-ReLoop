@@ -1802,7 +1802,7 @@ renderPrefList();
       <div style="font-size:10px;color:var(--ink4);margin-top:6px">以下為建議品牌清單，點選您想收的品牌；選「不限品牌」代表接受任何品牌</div>
     </div>
     <div class="form-section" id="section-year" style="display:none">
-      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>出廠年份</div>
+      <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>出廠年份<span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0;margin-left:6px">：兩個欄位可填其中一個、都填、或都不填（都不填代表年份不限）</span></div>
       <div class="field-row">
         <div class="field">
           <div class="fl">最早接受 <span class="fl-opt">不填＝不限</span></div>
@@ -1812,10 +1812,6 @@ renderPrefList();
           <div class="fl">幾年內為佳 <span class="fl-opt">不填＝不限</span></div>
           <div class="form-unit"><input class="fi" type="number" id="f-year-within" placeholder="例：10" min="1" max="30"><div class="unit-lbl">年內</div></div>
         </div>
-      </div>
-      <div style="font-size:10px;color:var(--ink4);margin-top:6px;display:flex;align-items:center;gap:4px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="12"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        兩個欄位可填其中一個、都填、或都不填（都不填代表年份不限）
       </div>
     </div>
     <div class="form-section" id="section-size" style="display:none">
