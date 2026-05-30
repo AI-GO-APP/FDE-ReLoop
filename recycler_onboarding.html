@@ -1338,12 +1338,22 @@ async function submitLogin() {
   if (!ok) return;
 
   const db = requireSupabase();
-  if (!db) return;
+  if (!db) { showToast('連線未就緒，請使用正式網址開啟'); return; }
+
+  const btn = document.querySelector('#screen-login .btn-main');
+  btn.disabled = true;
+  btn.textContent = '登入中...';
 
   const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
+
+  btn.disabled = false;
+  btn.innerHTML = '登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
+
   if (error) {
-    document.getElementById('err-login-password').textContent = 'Email 或密碼錯誤';
-    document.getElementById('err-login-password').classList.add('show');
+    const errEl = document.getElementById('err-login-password');
+    errEl.textContent = 'Email 或密碼錯誤，請確認後再試';
+    errEl.classList.add('show');
+    errEl.style.display = 'block';
     return;
   }
 
