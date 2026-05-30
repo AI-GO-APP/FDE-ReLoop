@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReLoop — 代理人後台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --ink:#1A1A18;--ink2:#3D3D38;--ink3:#7A7A72;--ink4:#AEADA6;
+  --paper:#F7F6F2;--paper2:#EFEDE8;--paper3:#E4E2DB;--white:#FFFFFF;
+  --green:#1A7A5E;--green-l:#E2F4EE;--green-m:#9FD9C6;
+  --blue:#1A4F8A;--blue-l:#E2EBF8;--blue-m:#8FB4E0;
+  --amber:#8A5A1A;--amber-l:#F8EEE2;--amber-m:#E0BB8F;
+  --red:#8A1A1A;--red-l:#F8E2E2;--red-m:#E08F8F;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+input,select,textarea,button{font-family:'DM Sans',sans-serif}
+
+/* ── Layout ── */
+.topnav{background:var(--ink);height:52px;display:flex;align-items:center;padding:0 20px;flex-shrink:0}
+.brand{font-size:16px;font-weight:600;color:#fff;letter-spacing:-.3px;margin-right:8px}
+.brand span{color:var(--green-m)}
+.brand-sub{font-size:11px;color:rgba(255,255,255,.35)}
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{width:200px;flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;padding:16px 0}
+.ani{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:12px;color:rgba(255,255,255,.45);cursor:pointer;border-left:2px solid transparent;transition:all .12s}
+.ani:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.ani.act{color:#fff;background:rgba(255,255,255,.08);border-left-color:var(--green-m)}
+.ani i{font-size:16px;flex-shrink:0}
+.ani .badge-num{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--white);border-bottom:1px solid var(--paper3);flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:600;color:var(--ink)}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ── Pages ── */
+.apage{display:none}.apage.act{display:block}
+
+/* ── Buttons ── */
+.abtn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;border-radius:var(--radius);border:1px solid var(--paper3);background:var(--white);color:var(--ink);cursor:pointer;font-weight:500;transition:background .12s;white-space:nowrap}
+.abtn:hover{background:var(--paper)}
+.abtn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.abtn-dark:hover{background:var(--ink2)}
+.abtn-green{background:var(--green);color:#fff;border-color:var(--green)}
+.abtn-green:hover{background:#135f49}
+
+/* ── Tabs ── */
+.tabs{display:flex;border-bottom:1px solid var(--paper3);margin-bottom:16px}
+.atab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s}
+.atab:hover{color:var(--ink)}
+.atab.act{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* ── Cards ── */
+.card{background:var(--white);border:1px solid var(--paper3);border-radius:var(--radius-lg);overflow:hidden}
+
+/* ── Equipment rows ── */
+.eq-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--paper2);transition:background .1s}
+.eq-row:last-child{border-bottom:none}
+.eq-ico{width:38px;height:38px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.eq-info{flex:1;min-width:0}
+.eq-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eq-sub{font-size:11px;color:var(--ink3);margin-top:2px}
+.eq-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* ── Match expand panel ── */
+.match-panel{display:none;background:var(--paper);border-bottom:1px solid var(--paper2);padding:10px 16px 12px 66px}
+.match-panel.open{display:block}
+.match-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--paper3)}
+.match-row:last-child{border-bottom:none}
+.match-av{width:26px;height:26px;border-radius:50%;background:var(--ink2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0}
+.match-name{flex:1;font-size:12px;color:var(--ink2)}
+.match-time{font-size:10px;color:var(--ink4)}
+
+/* ── Recycler rows ── */
+.rec-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--paper2)}
+.rec-row:last-child{border-bottom:none}
+.rec-av{width:36px;height:36px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.rec-info{flex:1;min-width:0}
+.rec-name{font-size:13px;font-weight:600;color:var(--ink)}
+.rec-meta{font-size:11px;color:var(--ink3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap}
+.b-pend{background:var(--amber-l);color:var(--amber)}
+.b-match{background:var(--blue-l);color:var(--blue)}
+.b-conf{background:var(--green-l);color:var(--green)}
+.b-done{background:var(--paper2);color:var(--ink3)}
+.b-red{background:var(--red-l);color:var(--red)}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-start;justify-content:center;z-index:300;padding:60px 16px;overflow-y:auto}
+.modal{background:var(--white);border-radius:var(--radius-lg);width:480px;max-width:95%;padding:20px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:16px;font-weight:600;color:var(--ink)}
+.modal-close{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink3);background:var(--paper);border:none;font-size:18px}
+.modal-close:hover{background:var(--paper2)}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--paper3)}
+
+/* ── Form fields ── */
+.field{margin-bottom:12px}
+.field label{font-size:11px;font-weight:600;color:var(--ink3);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;font-size:13px;border:1px solid var(--paper3);border-radius:var(--radius);background:var(--paper);color:var(--ink);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ink);background:#fff}
+.field textarea{resize:vertical;min-height:70px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── Condition picker ── */
+.cond-grid{display:flex;gap:6px}
+.cond-btn{flex:1;padding:8px;border-radius:var(--radius);border:1.5px solid var(--paper3);background:var(--paper);font-size:12px;cursor:pointer;text-align:center;transition:all .15s;color:var(--ink3)}
+.cond-btn .grade{font-size:18px;font-weight:700;font-family:'DM Mono',monospace}
+.cond-btn.sel-a{background:var(--green-l);border-color:var(--green-m);color:var(--green)}
+.cond-btn.sel-b{background:var(--blue-l);border-color:var(--blue-m);color:var(--blue)}
+.cond-btn.sel-c{background:var(--amber-l);border-color:var(--amber-m);color:var(--amber)}
+
+/* ── States ── */
+.empty{text-align:center;padding:48px 20px;color:var(--ink4);font-size:13px}
+.loading{text-align:center;padding:40px;color:var(--ink3);font-size:13px}
+.error-msg{background:var(--red-l);color:var(--red);border-radius:var(--radius);padding:10px 14px;font-size:12px;margin-bottom:14px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+.toast i{font-size:15px;color:var(--green-m)}
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<nav class="topnav">
+  <div class="brand">Re<span>Loop</span></div>
+  <div class="brand-sub">代理人後台</div>
+</nav>
+
+<div class="layout">
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="ani act" id="ani-equipment" onclick="switchPage('equipment')">
+    <i class="ti ti-device-tv"></i>設備清單
+    <span class="badge-num" id="badge-pending" style="display:none">0</span>
+  </div>
+  <div class="ani" id="ani-recyclers" onclick="switchPage('recyclers')">
+    <i class="ti ti-users"></i>設備商管理
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">設備清單</div>
+    <div style="display:flex;gap:8px">
+      <div class="abtn" onclick="refreshData()"><i class="ti ti-refresh"></i> 重新整理</div>
+      <div class="abtn abtn-dark" id="btn-add-eq" onclick="openAddModal()"><i class="ti ti-plus"></i> 新增設備</div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- 設備清單 -->
+    <div class="apage act" id="ap-equipment">
+      <div class="tabs">
+        <div class="atab act" onclick="filterEq(this,'all')">全部</div>
+        <div class="atab" onclick="filterEq(this,'active')">待媒合</div>
+        <div class="atab" onclick="filterEq(this,'matched')">媒合中</div>
+        <div class="atab" onclick="filterEq(this,'completed')">已完成</div>
+      </div>
+      <div class="card" id="eq-list"><div class="loading"><i class="ti ti-loader" style="font-size:20px;display:block;margin:0 auto 8px"></i>載入中…</div></div>
+    </div>
+
+    <!-- 設備商管理 -->
+    <div class="apage" id="ap-recyclers">
+      <div class="card" id="recycler-list"><div class="loading"><i class="ti ti-loader" style="font-size:20px;display:block;margin:0 auto 8px"></i>載入中…</div></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- Modal：新增設備 -->
+<div class="overlay" id="modal-add" style="display:none" onclick="if(event.target===this)closeModal()">
+<div class="modal">
+  <div class="modal-head">
+    <div class="modal-title">新增設備</div>
+    <button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button>
+  </div>
+
+  <div id="modal-error" class="error-msg" style="display:none"></div>
+
+  <div class="form-row">
+    <div class="field">
+      <label>所在縣市 *</label>
+      <select id="f-region">
+        <option value="">請選擇…</option>
+        <option>台北市</option><option>新北市</option><option>基隆市</option>
+        <option>桃園市</option><option>新竹市</option><option>新竹縣</option>
+        <option>苗栗縣</option><option>台中市</option><option>彰化縣</option>
+        <option>南投縣</option><option>雲林縣</option><option>嘉義市</option>
+        <option>嘉義縣</option><option>台南市</option><option>高雄市</option>
+        <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+        <option>台東縣</option><option>澎湖縣</option><option>金門縣</option><option>連江縣</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>設備分類 *</label>
+      <select id="f-category">
+        <option value="">請選擇…</option>
+        <optgroup label="家電類">
+          <option>冷藏冷凍設備</option><option>烹調加熱設備</option><option>飲料吧設備</option>
+          <option>食材處理設備</option><option>清潔衛生設備</option><option>辦公店務設備</option><option>洗衣家電</option>
+        </optgroup>
+        <optgroup label="家具類">
+          <option>桌椅類</option><option>收納櫃類</option><option>吧台工作台</option><option>床寢類</option>
+        </optgroup>
+        <optgroup label="雜項">
+          <option>廚房用具</option><option>餐具容器</option><option>包裝封口</option><option>攤車推車</option>
+        </optgroup>
+        <optgroup label="建材類">
+          <option>衛浴設備</option><option>門窗隔間</option><option>地板牆面</option><option>水電配管</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>設備名稱 *</label>
+    <input type="text" id="f-device" placeholder="例：展示冰箱（玻璃門）">
+  </div>
+
+  <div class="field">
+    <label>詳細地址 *</label>
+    <input type="text" id="f-address" placeholder="例：台北市大安區復興南路一段100號">
+  </div>
+
+  <div class="field">
+    <label>設備狀況</label>
+    <div class="cond-grid">
+      <div class="cond-btn" id="cb-A" onclick="selCond('A')"><div class="grade">A</div><div style="font-size:10px;margin-top:2px">良好</div></div>
+      <div class="cond-btn" id="cb-B" onclick="selCond('B')"><div class="grade">B</div><div style="font-size:10px;margin-top:2px">普通</div></div>
+      <div class="cond-btn" id="cb-C" onclick="selCond('C')"><div class="grade">C</div><div style="font-size:10px;margin-top:2px">堪用</div></div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>備註</label>
+    <textarea id="f-note" placeholder="設備現況、搬出條件、附件說明…"></textarea>
+  </div>
+
+  <div class="modal-foot">
+    <div class="abtn" onclick="closeModal()">取消</div>
+    <div class="abtn abtn-dark" onclick="submitEquipment()" id="btn-submit">新增並送出媒合</div>
+  </div>
+</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<script>
+// ── Supabase ──
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_KEY = '__SUPABASE_ANON_KEY__';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── State ──
+let allEquipment = [];
+let allMatches   = [];
+let allRecyclers = [];
+let currentFilter = 'all';
+let currentCond = null;
+
+// ── Category emoji map ──
+const CAT_EMOJI = {
+  '冷藏冷凍設備':'🧊','烹調加熱設備':'🔥','飲料吧設備':'☕','食材處理設備':'🔪',
+  '清潔衛生設備':'🧹','辦公店務設備':'💼','洗衣家電':'🫧','桌椅類':'🪑',
+  '收納櫃類':'🗄️','吧台工作台':'🔧','床寢類':'🛏️','廚房用具':'🍳',
+  '餐具容器':'🍽️','包裝封口':'📦','攤車推車':'🛒','衛浴設備':'🚿',
+  '門窗隔間':'🚪','地板牆面':'🧱','水電配管':'⚡',
+};
+
+const STATUS_LABEL = { active:'待媒合', matched:'媒合中', completed:'已完成', cancelled:'已取消' };
+const STATUS_BADGE = { active:'b-pend', matched:'b-match', completed:'b-conf', cancelled:'b-done' };
+const MATCH_LABEL  = { pending:'待回應', accepted:'已接受', rejected:'已婉拒', received:'已收到' };
+const MATCH_BADGE  = { pending:'b-pend', accepted:'b-conf', rejected:'b-red', received:'b-match' };
+
+// ── Load data ──
+async function loadAll() {
+  const [eqRes, matchRes, recRes] = await Promise.all([
+    db.from('equipment_listings').select('*').order('created_at', { ascending: false }),
+    db.from('recycler_matches').select('id, recycler_id, equipment_listing_id, status, created_at, accepted_at').order('created_at', { ascending: false }),
+    db.from('recycler_onboarding_accounts').select('id, company_name, contact_name, service_areas').order('created_at', { ascending: false }),
+  ]);
+
+  allEquipment = eqRes.data  || [];
+  allMatches   = matchRes.data || [];
+  allRecyclers = recRes.data  || [];
+
+  const pending = allEquipment.filter(e => e.status === 'active').length;
+  const badge   = document.getElementById('badge-pending');
+  badge.textContent = pending;
+  badge.style.display = pending > 0 ? '' : 'none';
+
+  renderEquipmentList();
+  renderRecyclerList();
+}
+
+async function refreshData() {
+  document.getElementById('eq-list').innerHTML      = '<div class="loading">載入中…</div>';
+  document.getElementById('recycler-list').innerHTML = '<div class="loading">載入中…</div>';
+  await loadAll();
+  showToast('已重新整理');
+}
+
+// ── Equipment ──
+function filterEq(tab, filter) {
+  document.querySelectorAll('.atab').forEach(t => t.classList.remove('act'));
+  tab.classList.add('act');
+  currentFilter = filter;
+  renderEquipmentList();
+}
+
+function renderEquipmentList() {
+  let list = allEquipment;
+  if (currentFilter !== 'all') list = list.filter(e => e.status === currentFilter);
+
+  const el = document.getElementById('eq-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty">此狀態無設備</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(eq => {
+    const matches     = allMatches.filter(m => m.equipment_listing_id === eq.id);
+    const matchCount  = matches.length;
+    const pendingCount = matches.filter(m => m.status === 'pending').length;
+    const condBg = { A:'var(--green-l)', B:'var(--blue-l)', C:'var(--amber-l)' }[eq.condition] || 'var(--paper2)';
+
+    return `
+      <div class="eq-row">
+        <div class="eq-ico" style="background:${condBg}">${CAT_EMOJI[eq.category_name] || '📦'}</div>
+        <div class="eq-info">
+          <div class="eq-name">${eq.device_name}</div>
+          <div class="eq-sub">${eq.category_name} · ${eq.region} · 狀況 ${eq.condition || '—'}</div>
+        </div>
+        <div class="eq-actions">
+          <span class="badge ${STATUS_BADGE[eq.status] || 'b-done'}">${STATUS_LABEL[eq.status] || eq.status}</span>
+          ${matchCount > 0
+            ? `<div class="abtn" onclick="toggleMatches('${eq.id}')">
+                 <i class="ti ti-users" style="font-size:12px"></i> ${matchCount} 家
+                 ${pendingCount > 0 ? `<span style="background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:999px;margin-left:2px">${pendingCount}</span>` : ''}
+               </div>`
+            : `<span style="font-size:11px;color:var(--ink4)">無媒合</span>`
+          }
+        </div>
+      </div>
+      <div class="match-panel" id="mp-${eq.id}">
+        ${renderMatchRows(eq.id)}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMatchRows(eqId) {
+  const matches = allMatches.filter(m => m.equipment_listing_id === eqId);
+  if (!matches.length) return '<div style="font-size:12px;color:var(--ink4)">無媒合記錄</div>';
+
+  return matches.map(m => {
+    const rec  = allRecyclers.find(r => r.id === m.recycler_id);
+    const name = rec?.company_name || `UUID: ${m.recycler_id.slice(0,8)}…`;
+    const init = name.slice(0, 1);
+    const time = m.accepted_at
+      ? '接受：' + new Date(m.accepted_at).toLocaleDateString('zh-TW')
+      : '通知：' + new Date(m.created_at).toLocaleDateString('zh-TW');
+    return `
+      <div class="match-row">
+        <div class="match-av">${init}</div>
+        <div class="match-name">${name}</div>
+        <div class="match-time">${time}</div>
+        <span class="badge ${MATCH_BADGE[m.status] || 'b-done'}">${MATCH_LABEL[m.status] || m.status}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleMatches(eqId) {
+  const panel = document.getElementById(`mp-${eqId}`);
+  panel.classList.toggle('open');
+}
+
+// ── Recyclers ──
+function renderRecyclerList() {
+  const el = document.getElementById('recycler-list');
+  if (!allRecyclers.length) {
+    el.innerHTML = '<div class="empty">尚無設備商資料<br><span style="font-size:11px;margin-top:6px;display:block">確認 recycler_onboarding_accounts 有資料，且 anon 有 SELECT 權限</span></div>';
+    return;
+  }
+
+  el.innerHTML = allRecyclers.map(r => {
+    const pending  = allMatches.filter(m => m.recycler_id === r.id && m.status === 'pending').length;
+    const accepted = allMatches.filter(m => m.recycler_id === r.id && m.status === 'accepted').length;
+    const areas    = (r.service_areas || []).slice(0, 4).join('、');
+    const more     = (r.service_areas || []).length > 4 ? ` 等 ${r.service_areas.length} 個地區` : '';
+    return `
+      <div class="rec-row">
+        <div class="rec-av">${(r.company_name || '?').slice(0,1)}</div>
+        <div class="rec-info">
+          <div class="rec-name">${r.company_name || '未填寫'}</div>
+          <div class="rec-meta"><i class="ti ti-map-pin" style="font-size:11px"></i> ${areas}${more || '（未設定地區）'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          ${pending  > 0 ? `<span class="badge b-pend">${pending} 待回應</span>`  : ''}
+          ${accepted > 0 ? `<span class="badge b-conf">${accepted} 已接受</span>` : ''}
+          ${pending === 0 && accepted === 0 ? `<span style="font-size:11px;color:var(--ink4)">無媒合</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Page switch ──
+function switchPage(page) {
+  document.querySelectorAll('.apage').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.ani').forEach(n => n.classList.remove('act'));
+  document.getElementById('ap-' + page).classList.add('act');
+  document.getElementById('ani-' + page).classList.add('act');
+  const titles = { equipment: '設備清單', recyclers: '設備商管理' };
+  document.getElementById('topbar-title').textContent = titles[page];
+  document.getElementById('btn-add-eq').style.display = page === 'equipment' ? '' : 'none';
+}
+
+// ── Add equipment modal ──
+function openAddModal() {
+  currentCond = null;
+  ['A','B','C'].forEach(c => document.getElementById('cb-'+c).className = 'cond-btn');
+  ['f-region','f-category','f-device','f-address','f-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('modal-error').style.display = 'none';
+  document.getElementById('modal-add').style.display   = 'flex';
+}
+function closeModal() { document.getElementById('modal-add').style.display = 'none'; }
+
+function selCond(c) {
+  currentCond = c;
+  ['A','B','C'].forEach(x => {
+    document.getElementById('cb-'+x).className = 'cond-btn' + (x === c ? ' sel-'+x.toLowerCase() : '');
+  });
+}
+
+async function submitEquipment() {
+  const region   = document.getElementById('f-region').value;
+  const category = document.getElementById('f-category').value;
+  const device   = document.getElementById('f-device').value.trim();
+  const address  = document.getElementById('f-address').value.trim();
+  const note     = document.getElementById('f-note').value.trim();
+  const errEl    = document.getElementById('modal-error');
+
+  if (!region || !category || !device || !address) {
+    errEl.textContent = '請填寫縣市、分類、設備名稱和地址';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const btn = document.getElementById('btn-submit');
+  btn.textContent = '送出中…';
+  btn.style.pointerEvents = 'none';
+
+  const { error } = await db.from('equipment_listings').insert({
+    region,
+    pickup_address: address,
+    device_name:    device,
+    category_name:  category,
+    condition:      currentCond || null,
+    note:           note || null,
+    status:         'active',
+  });
+
+  btn.textContent = '新增並送出媒合';
+  btn.style.pointerEvents = '';
+
+  if (error) {
+    errEl.textContent = '寫入失敗：' + error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  closeModal();
+  showToast('設備已新增，觸發器自動媒合中…');
+  setTimeout(refreshData, 1200);
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Init ──
+loadAll();
+</script>
+</body>
+</html>
