@@ -1216,6 +1216,8 @@ function subscribeMatches() {
 async function signOut() {
   const db = requireSupabase();
   if (db) await db.auth.signOut();
+  // 清除 Supabase 在 localStorage 的所有 session 資料
+  Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-')) localStorage.removeItem(k); });
   currentRecyclerId = null;
   allMatchesCache = [];
   prefs = [];
@@ -1224,14 +1226,14 @@ async function signOut() {
 
 async function initApp() {
   const db = requireSupabase();
-  if (!db) { goScreen('screen-register'); return; }
+  if (!db) { goScreen('screen-login'); return; }
   const { data: { session } } = await db.auth.getSession();
   if (session) {
     currentRecyclerId = session.user.id;
     subscribeMatches();
     goScreen('screen-matches');
   } else {
-    goScreen('screen-register');
+    goScreen('screen-login');
   }
 }
 
