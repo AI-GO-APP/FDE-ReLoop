@@ -1242,12 +1242,13 @@ function initRegSignaturePad() {
   canvas.width  = canvas.offsetWidth  * ratio;
   canvas.height = canvas.offsetHeight * ratio;
   canvas.getContext('2d').scale(ratio, ratio);
-  if (regSigPad) regSigPad.clear();
-  else regSigPad = new SignaturePad(canvas, {
+  regSigPad = new SignaturePad(canvas, {
     backgroundColor: 'rgb(255,255,255)',
-    penColor: '#1A1A18',
-    onEnd: () => {
-      const btn = document.getElementById('btn-submit-register');
+    penColor: '#1A1A18'
+  });
+  regSigPad.addEventListener('endStroke', () => {
+    const btn = document.getElementById('btn-submit-register');
+    if (btn && !regSigPad.isEmpty()) {
       btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
     }
   });
@@ -1285,8 +1286,7 @@ function initSignaturePad() {
   canvas.width  = canvas.offsetWidth  * ratio;
   canvas.height = canvas.offsetHeight * ratio;
   canvas.getContext('2d').scale(ratio, ratio);
-  if (sigPad) sigPad.clear();
-  else sigPad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)', penColor: '#1A1A18' });
+  sigPad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)', penColor: '#1A1A18' });
 }
 
 function clearSignature() {
