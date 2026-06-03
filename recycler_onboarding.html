@@ -421,7 +421,71 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div class="field-error" id="err-signup-password2">兩次密碼不一致</div>
       </div>
 
-      <button class="btn-main btn-dark" onclick="submitRegister()">
+      <!-- 合作協議書（inline） -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--paper3)">
+        <div style="font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+          <i class="ti ti-file-text" style="font-size:13px"></i>合作協議書
+        </div>
+        <div class="contract-scroll" id="reg-contract-scroll" onscroll="onRegContractScroll()">
+          <h3>回收設備商合作協議書</h3>
+          <p>立協議書人：ReLoop 設備回收交易平台（以下簡稱「平台」）及加盟回收設備商（以下簡稱「甲方」），雙方基於平等互利原則，就設備媒合業務合作事項，訂立本合作協議書，條款如下：</p>
+          <h4>第一條　合作目的</h4>
+          <p>平台提供設備媒合服務，協助退場商家與甲方媒合設備回收交易。甲方透過平台接收媒合通知、參與競價，並執行設備收貨作業。</p>
+          <h4>第二條　甲方義務</h4>
+          <ol>
+            <li>甲方應誠實填寫基本資料及回收偏好，確保資訊正確有效。</li>
+            <li>甲方收到媒合通知後，應於平台規定時間內回覆意願。</li>
+            <li>甲方一旦出價並得標，即負有依約付款及收貨之義務。</li>
+            <li>甲方應妥善保管帳號及密碼，不得轉讓或出借。</li>
+            <li>甲方應遵守相關法律法規，不得從事任何違法行為。</li>
+            <li>甲方不得以任何方式繞過平台私下與退場商家交易。</li>
+          </ol>
+          <h4>第三條　平台義務</h4>
+          <ol>
+            <li>平台應提供穩定之媒合服務，並確保甲方資料之保密性。</li>
+            <li>平台應於設備媒合成功後，依流程提供相關交易資訊。</li>
+            <li>平台有權因系統維護或不可抗力因素暫停服務，並應提前通知。</li>
+          </ol>
+          <h4>第四條　費用與付款</h4>
+          <ol>
+            <li>第一版合作期間，平台不收取會員費用。</li>
+            <li>甲方得標後應依平台指定方式完成付款，付款確認後方可安排收貨。</li>
+            <li>如有爭議，雙方應本誠信原則協商解決。</li>
+          </ol>
+          <h4>第五條　保密義務</h4>
+          <p>雙方對於業務往來中取得之商業資訊，負有保密義務，未經對方同意，不得揭露予第三方。</p>
+          <h4>第六條　協議終止</h4>
+          <ol>
+            <li>任一方得於 30 日前以書面通知對方終止本協議。</li>
+            <li>甲方違反本協議任一條款，平台得立即暫停或終止甲方之帳號及服務。</li>
+          </ol>
+          <h4>第七條　其他約定</h4>
+          <ol>
+            <li>本協議之解釋及效力，依中華民國法律為準。</li>
+            <li>因本協議所生之爭議，雙方合意以台灣台北地方法院為第一審管轄法院。</li>
+            <li>本協議自甲方完成線上簽署時生效。</li>
+          </ol>
+          <p style="margin-top:20px;font-size:11px;color:var(--ink4)">※ 本合約為示範版本，正式版本以平台公告為準。</p>
+        </div>
+        <div class="contract-read-tip" id="reg-contract-read-tip">
+          <i class="ti ti-arrow-down" style="font-size:13px"></i>請向下滑動閱讀完整合約，閱讀完畢後即可勾選同意
+        </div>
+        <div id="reg-agree-section" style="display:none">
+          <div class="agree-row" onclick="toggleRegAgree()">
+            <div class="agree-checkbox" id="reg-agree-checkbox"></div>
+            <div class="agree-label">我已詳細閱讀以上合作協議書，並同意所有條款內容。</div>
+          </div>
+          <div id="reg-sig-section" style="display:none">
+            <div class="sig-hint">請在下方框內完成手寫簽名</div>
+            <div class="sig-box">
+              <canvas id="reg-sig-canvas" class="sig-canvas"></canvas>
+              <button class="sig-clear-btn" type="button" onclick="clearRegSignature()">清除重簽</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-main btn-dark" id="btn-submit-register" onclick="submitRegister()" disabled style="opacity:.4;cursor:not-allowed;margin-top:8px">
         完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>
       </button>
       <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
@@ -950,6 +1014,8 @@ let allMatchesCache = [];
 let currentMatchTab = 'notify';
 let sigPad = null;
 let contractAgreed = false;
+let regSigPad = null;
+let regContractAgreed = false;
 
 const supabaseReady =
   SUPABASE_URL.startsWith('https://') &&
@@ -1145,6 +1211,52 @@ function initContractScreen() {
   const scrollEl = document.getElementById('contract-scroll');
   if (scrollEl) scrollEl.scrollTop = 0;
   if (sigPad) sigPad.clear();
+}
+
+function onRegContractScroll() {
+  const el = document.getElementById('reg-contract-scroll');
+  if (!el) return;
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 20) {
+    document.getElementById('reg-contract-read-tip').style.display = 'none';
+    document.getElementById('reg-agree-section').style.display = 'block';
+  }
+}
+
+function toggleRegAgree() {
+  regContractAgreed = !regContractAgreed;
+  const cb = document.getElementById('reg-agree-checkbox');
+  cb.classList.toggle('checked', regContractAgreed);
+  const sigSection = document.getElementById('reg-sig-section');
+  sigSection.style.display = regContractAgreed ? 'block' : 'none';
+  if (regContractAgreed) setTimeout(initRegSignaturePad, 100);
+  else {
+    const btn = document.getElementById('btn-submit-register');
+    btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+  }
+}
+
+function initRegSignaturePad() {
+  const canvas = document.getElementById('reg-sig-canvas');
+  if (!canvas || !window.SignaturePad) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width  = canvas.offsetWidth  * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  canvas.getContext('2d').scale(ratio, ratio);
+  if (regSigPad) regSigPad.clear();
+  else regSigPad = new SignaturePad(canvas, {
+    backgroundColor: 'rgb(255,255,255)',
+    penColor: '#1A1A18',
+    onEnd: () => {
+      const btn = document.getElementById('btn-submit-register');
+      btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+    }
+  });
+}
+
+function clearRegSignature() {
+  if (regSigPad) regSigPad.clear();
+  const btn = document.getElementById('btn-submit-register');
+  btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
 }
 
 function onContractScroll() {
@@ -1485,6 +1597,7 @@ async function submitRegister() {
   if (!email || !email.includes('@')) { showSignupError('email','請填寫有效的 Email'); ok=false; }
   if (pw.length < 8) { showSignupError('password','密碼至少需要 8 個字元'); ok=false; }
   if (pw !== pw2) { showSignupError('password2','兩次密碼不一致'); ok=false; }
+  if (!regSigPad || regSigPad.isEmpty()) { showToast('請先完成合作協議書簽署'); ok=false; }
   if (!ok) return;
 
   const db = requireSupabase();
@@ -1510,6 +1623,11 @@ async function submitRegister() {
   const saved = await createAccountRecord({ company, name, phone, lineId, email });
   if (!saved) return;
 
+  await db.from('recycler_onboarding_accounts').update({
+    contract_signed_at: new Date().toISOString(),
+    contract_signature: regSigPad.toDataURL('image/png')
+  }).eq('id', currentRecyclerId);
+
   document.getElementById('reg-company').value = company;
   document.getElementById('reg-name').value = name;
   document.getElementById('reg-phone').value = phone;
@@ -1517,7 +1635,7 @@ async function submitRegister() {
   document.getElementById('reg-email').value = email;
 
   subscribeMatches();
-  goScreen('screen-contract');
+  goScreen('screen-prefs');
 }
 
 async function submitLogin() {
