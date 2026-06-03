@@ -1213,6 +1213,41 @@ function initContractScreen() {
   if (sigPad) sigPad.clear();
 }
 
+async function saveContractSignature(signatureData) {
+  const db = requireSupabase();
+  if (!db) return false;
+  const { data: tmpl, error: tErr } = await db
+    .from('contract_templates')
+    .select('id, content')
+    .eq('contract_type', 'cooperation_agreement')
+    .eq('is_active', true)
+    .single();
+  if (tErr || !tmpl) { showToast('無法載入合約範本'); return false; }
+  const { error } = await db.from('contracts').insert({
+    template_id: tmpl.id,
+    signer_type: 'recycler',
+    signer_id: currentRecyclerId,
+    signed_at: new Date().toISOString(),
+    signature: signatureData,
+    content_snapshot: tmpl.content
+  });
+  if (error) { showToast('合約儲存失敗：' + error.message); return false; }
+  return true;
+}
+
+async function hasSignedContract() {
+  const db = requireSupabase();
+  if (!db || !currentRecyclerId) return false;
+  const { data } = await db
+    .from('contracts')
+    .select('id')
+    .eq('signer_type', 'recycler')
+    .eq('signer_id', currentRecyclerId)
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
+
 function onRegContractScroll() {
   const el = document.getElementById('reg-contract-scroll');
   if (!el) return;
@@ -1302,16 +1337,8 @@ async function submitContract() {
   btn.disabled = true;
   btn.textContent = '儲存中...';
 
-  const { error } = await db
-    .from('recycler_onboarding_accounts')
-    .update({
-      contract_signed_at: new Date().toISOString(),
-      contract_signature: sigPad.toDataURL('image/png')
-    })
-    .eq('id', currentRecyclerId);
-
-  if (error) {
-    showToast('簽署失敗，請再試一次');
+  const saved = await saveContractSignature(sigPad.toDataURL('image/png'));
+  if (!saved) {
     btn.disabled = false;
     btn.innerHTML = '<i class="ti ti-signature" style="font-size:15px"></i>確認簽署，進入下一步';
     return;
@@ -1539,8 +1566,8 @@ async function initApp() {
   if (session) {
     currentRecyclerId = session.user.id;
     subscribeMatches();
-    const { data: acctInit } = await db.from('recycler_onboarding_accounts').select('contract_signed_at').eq('id', currentRecyclerId).single();
-    if (!acctInit?.contract_signed_at) {
+    const signed = await hasSignedContract();
+    if (!signed) {
       goScreen('screen-contract');
     } else {
       goScreen('screen-matches');
@@ -1623,10 +1650,7 @@ async function submitRegister() {
   const saved = await createAccountRecord({ company, name, phone, lineId, email });
   if (!saved) return;
 
-  await db.from('recycler_onboarding_accounts').update({
-    contract_signed_at: new Date().toISOString(),
-    contract_signature: regSigPad.toDataURL('image/png')
-  }).eq('id', currentRecyclerId);
+  await saveContractSignature(regSigPad.toDataURL('image/png'));
 
   document.getElementById('reg-company').value = company;
   document.getElementById('reg-name').value = name;
@@ -1680,8 +1704,8 @@ async function submitLogin() {
 
   currentRecyclerId = data.user.id;
   subscribeMatches();
-  const { data: acctLogin } = await db.from('recycler_onboarding_accounts').select('contract_signed_at').eq('id', currentRecyclerId).single();
-  if (!acctLogin?.contract_signed_at) {
+  const signed = await hasSignedContract();
+  if (!signed) {
     goScreen('screen-contract');
   } else {
     goScreen('screen-matches');
