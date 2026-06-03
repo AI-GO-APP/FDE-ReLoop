@@ -496,101 +496,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- ══════════════════════════════════════════
-     合作協議書簽署
-══════════════════════════════════════════ -->
-<div class="screen" id="screen-contract">
-  <div class="brand-col">
-    <div>
-      <div class="brand-logo">Re<span>Loop</span></div>
-      <div class="brand-headline">合作協議書<br>簽署</div>
-      <div class="brand-sub">請仔細閱讀合作協議書內容，<br>滑到底部後即可勾選同意<br>並完成手寫簽名。</div>
-    </div>
-    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-  </div>
-  <div class="form-col">
-    <div class="form-wrap">
-      <div class="form-header">
-        <div class="form-step-badge"><i class="ti ti-file-text" style="font-size:12px"></i>合作協議書</div>
-        <div class="form-title">請閱讀並簽署合作協議書</div>
-        <div class="form-sub">成為 ReLoop 合作回收設備商前，請詳閱以下協議書內容。</div>
-      </div>
-
-      <div class="contract-scroll" id="contract-scroll" onscroll="onContractScroll()">
-        <h3>回收設備商合作協議書</h3>
-        <p>立協議書人：ReLoop 設備回收交易平台（以下簡稱「平台」）及加盟回收設備商（以下簡稱「甲方」），雙方基於平等互利原則，就設備媒合業務合作事項，訂立本合作協議書，條款如下：</p>
-
-        <h4>第一條　合作目的</h4>
-        <p>平台提供設備媒合服務，協助退場商家與甲方媒合設備回收交易。甲方透過平台接收媒合通知、參與競價，並執行設備收貨作業。</p>
-
-        <h4>第二條　甲方義務</h4>
-        <ol>
-          <li>甲方應誠實填寫基本資料及回收偏好，確保資訊正確有效。</li>
-          <li>甲方收到媒合通知後，應於平台規定時間內回覆意願。</li>
-          <li>甲方一旦出價並得標，即負有依約付款及收貨之義務。</li>
-          <li>甲方應妥善保管帳號及密碼，不得轉讓或出借。</li>
-          <li>甲方應遵守相關法律法規，不得從事任何違法行為。</li>
-          <li>甲方不得以任何方式繞過平台私下與退場商家交易。</li>
-        </ol>
-
-        <h4>第三條　平台義務</h4>
-        <ol>
-          <li>平台應提供穩定之媒合服務，並確保甲方資料之保密性。</li>
-          <li>平台應於設備媒合成功後，依流程提供相關交易資訊。</li>
-          <li>平台有權因系統維護或不可抗力因素暫停服務，並應提前通知。</li>
-        </ol>
-
-        <h4>第四條　費用與付款</h4>
-        <ol>
-          <li>第一版合作期間，平台不收取會員費用。</li>
-          <li>甲方得標後應依平台指定方式完成付款，付款確認後方可安排收貨。</li>
-          <li>如有爭議，雙方應本誠信原則協商解決。</li>
-        </ol>
-
-        <h4>第五條　保密義務</h4>
-        <p>雙方對於業務往來中取得之商業資訊，負有保密義務，未經對方同意，不得揭露予第三方。</p>
-
-        <h4>第六條　協議終止</h4>
-        <ol>
-          <li>任一方得於 30 日前以書面通知對方終止本協議。</li>
-          <li>甲方違反本協議任一條款，平台得立即暫停或終止甲方之帳號及服務。</li>
-        </ol>
-
-        <h4>第七條　其他約定</h4>
-        <ol>
-          <li>本協議之解釋及效力，依中華民國法律為準。</li>
-          <li>因本協議所生之爭議，雙方合意以台灣台北地方法院為第一審管轄法院。</li>
-          <li>本協議自甲方完成線上簽署時生效。</li>
-        </ol>
-
-        <p style="margin-top:20px;font-size:12px;color:var(--ink4)">※ 本合約為示範版本，正式版本以平台公告為準。</p>
-      </div>
-
-      <div class="contract-read-tip" id="contract-read-tip">
-        <i class="ti ti-arrow-down" style="font-size:13px"></i>請向下滑動閱讀完整合約內容，閱讀完畢後即可簽署
-      </div>
-
-      <div id="contract-agree-section" style="display:none">
-        <div class="agree-row" onclick="toggleAgree()">
-          <div class="agree-checkbox" id="agree-checkbox"></div>
-          <div class="agree-label">我已詳細閱讀以上合作協議書，並同意所有條款內容。</div>
-        </div>
-
-        <div id="sig-section" style="display:none">
-          <div class="sig-hint">請在下方框內以滑鼠或手指完成手寫簽名</div>
-          <div class="sig-box">
-            <canvas id="sig-canvas" class="sig-canvas"></canvas>
-            <button class="sig-clear-btn" onclick="clearSignature()">清除重簽</button>
-          </div>
-          <button class="btn-main btn-dark" id="btn-submit-contract" onclick="submitContract()">
-            <i class="ti ti-signature" style="font-size:15px"></i>確認簽署，進入下一步
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
      登入
 ══════════════════════════════════════════ -->
 <div class="screen" id="screen-login">
@@ -1012,8 +917,6 @@ function makeId() {
 let currentRecyclerId = null;
 let allMatchesCache = [];
 let currentMatchTab = 'notify';
-let sigPad = null;
-let contractAgreed = false;
 let regSigPad = null;
 let regContractAgreed = false;
 
@@ -1195,22 +1098,6 @@ function goScreen(id) {
   if (id === 'screen-matches') loadMatches();
   if (id === 'screen-prefs') loadPrefsFromDb();
   if (id === 'screen-profile') loadProfileFromDb();
-  if (id === 'screen-contract') initContractScreen();
-}
-
-function initContractScreen() {
-  contractAgreed = false;
-  const cb = document.getElementById('agree-checkbox');
-  if (cb) cb.classList.remove('checked');
-  const agreeSection = document.getElementById('contract-agree-section');
-  if (agreeSection) agreeSection.style.display = 'none';
-  const sigSection = document.getElementById('sig-section');
-  if (sigSection) sigSection.style.display = 'none';
-  const tip = document.getElementById('contract-read-tip');
-  if (tip) tip.style.display = 'flex';
-  const scrollEl = document.getElementById('contract-scroll');
-  if (scrollEl) scrollEl.scrollTop = 0;
-  if (sigPad) sigPad.clear();
 }
 
 async function saveContractSignature(signatureData) {
@@ -1293,59 +1180,6 @@ function clearRegSignature() {
   if (regSigPad) regSigPad.clear();
   const btn = document.getElementById('btn-submit-register');
   btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
-}
-
-function onContractScroll() {
-  const el = document.getElementById('contract-scroll');
-  if (!el) return;
-  const isBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
-  if (isBottom) {
-    document.getElementById('contract-read-tip').style.display = 'none';
-    document.getElementById('contract-agree-section').style.display = 'block';
-  }
-}
-
-function toggleAgree() {
-  contractAgreed = !contractAgreed;
-  const cb = document.getElementById('agree-checkbox');
-  cb.classList.toggle('checked', contractAgreed);
-  const sigSection = document.getElementById('sig-section');
-  sigSection.style.display = contractAgreed ? 'block' : 'none';
-  if (contractAgreed) setTimeout(initSignaturePad, 100);
-}
-
-function initSignaturePad() {
-  const canvas = document.getElementById('sig-canvas');
-  if (!canvas || !window.SignaturePad) return;
-  const ratio = window.devicePixelRatio || 1;
-  canvas.width  = canvas.offsetWidth  * ratio;
-  canvas.height = canvas.offsetHeight * ratio;
-  canvas.getContext('2d').scale(ratio, ratio);
-  sigPad = new SignaturePad(canvas, { backgroundColor: 'rgb(255,255,255)', penColor: '#1A1A18' });
-}
-
-function clearSignature() {
-  if (sigPad) sigPad.clear();
-}
-
-async function submitContract() {
-  if (!sigPad || sigPad.isEmpty()) { showToast('請先完成手寫簽名'); return; }
-  const db = requireSupabase();
-  if (!db) return;
-
-  const btn = document.getElementById('btn-submit-contract');
-  btn.disabled = true;
-  btn.textContent = '儲存中...';
-
-  const saved = await saveContractSignature(sigPad.toDataURL('image/png'));
-  if (!saved) {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-signature" style="font-size:15px"></i>確認簽署，進入下一步';
-    return;
-  }
-
-  showToast('合作協議書簽署完成！');
-  goScreen('screen-prefs');
 }
 
 // ── 媒合列表 ──
@@ -1566,12 +1400,7 @@ async function initApp() {
   if (session) {
     currentRecyclerId = session.user.id;
     subscribeMatches();
-    const signed = await hasSignedContract();
-    if (!signed) {
-      goScreen('screen-contract');
-    } else {
-      goScreen('screen-matches');
-    }
+    goScreen('screen-matches');
   } else {
     goScreen('screen-login');
   }
@@ -1704,12 +1533,7 @@ async function submitLogin() {
 
   currentRecyclerId = data.user.id;
   subscribeMatches();
-  const signed = await hasSignedContract();
-  if (!signed) {
-    goScreen('screen-contract');
-  } else {
-    goScreen('screen-matches');
-  }
+  goScreen('screen-matches');
 }
 
 function toggleServiceArea(el) {
