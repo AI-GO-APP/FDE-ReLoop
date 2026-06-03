@@ -645,51 +645,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div class="field-error" id="err-password2">兩次密碼不一致</div>
       </div>
 
-      <!-- 收貨範圍 -->
-      <div style="margin-top:4px;margin-bottom:20px">
-        <div class="pref-section-title" style="margin-bottom:10px">
-          <i class="ti ti-map-pin"></i>收貨範圍
-        </div>
-        <div class="field" style="margin-bottom:12px">
-          <label class="field-label">收貨縣市 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">可多選</span></label>
-          <div id="service-area-chips" class="city-grid" style="margin-top:4px">
-            <div class="chip" onclick="toggleServiceArea(this)">台北市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">新北市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">桃園市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">台中市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">台南市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">高雄市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">基隆市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">新竹市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">新竹縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">苗栗縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">彰化縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">南投縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">雲林縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">嘉義市</div>
-            <div class="chip" onclick="toggleServiceArea(this)">嘉義縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">屏東縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">宜蘭縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">花蓮縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">台東縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">澎湖縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">金門縣</div>
-            <div class="chip" onclick="toggleServiceArea(this)">連江縣</div>
-          </div>
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label class="field-label">排除條件 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，可多選</span></label>
-          <div id="service-exclusion-chips" class="city-grid" style="margin-top:4px">
-            <div class="chip" onclick="toggleServiceArea(this)">山區除外</div>
-            <div class="chip" onclick="toggleServiceArea(this)">偏遠地區除外</div>
-            <div class="chip" onclick="toggleServiceArea(this)">離島除外</div>
-            <div class="chip" onclick="toggleServiceArea(this)">需自行卸貨</div>
-            <div class="chip" onclick="toggleServiceArea(this)">無電梯需另議</div>
-            <div class="chip" onclick="toggleServiceArea(this)">四樓以上需另議</div>
-          </div>
-        </div>
-      </div>
-
       <button class="btn-main btn-dark" onclick="saveProfile()">
         <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存基本資料
       </button>
@@ -722,6 +677,53 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   </div>
   <div class="form-col" style="padding:32px 24px;align-items:flex-start">
     <div style="width:100%;max-width:580px">
+      <!-- 收貨範圍 -->
+      <div style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--paper3)">
+        <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px">收貨範圍</div>
+        <div style="font-size:12px;color:var(--ink3);margin-bottom:16px">設定您可以服務的縣市與排除條件</div>
+        <div class="field" style="margin-bottom:12px">
+          <label class="field-label">收貨縣市 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">可多選</span></label>
+          <div id="service-area-chips" class="city-grid" style="margin-top:4px">
+            <div class="chip" onclick="toggleServiceArea(this)">台北市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">新北市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">桃園市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">台中市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">台南市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">高雄市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">基隆市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">新竹市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">新竹縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">苗栗縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">彰化縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">南投縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">雲林縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">嘉義市</div>
+            <div class="chip" onclick="toggleServiceArea(this)">嘉義縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">屏東縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">宜蘭縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">花蓮縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">台東縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">澎湖縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">金門縣</div>
+            <div class="chip" onclick="toggleServiceArea(this)">連江縣</div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:14px">
+          <label class="field-label">排除條件 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，可多選</span></label>
+          <div id="service-exclusion-chips" class="city-grid" style="margin-top:4px">
+            <div class="chip" onclick="toggleServiceArea(this)">山區除外</div>
+            <div class="chip" onclick="toggleServiceArea(this)">偏遠地區除外</div>
+            <div class="chip" onclick="toggleServiceArea(this)">離島除外</div>
+            <div class="chip" onclick="toggleServiceArea(this)">需自行卸貨</div>
+            <div class="chip" onclick="toggleServiceArea(this)">無電梯需另議</div>
+            <div class="chip" onclick="toggleServiceArea(this)">四樓以上需另議</div>
+          </div>
+        </div>
+        <button class="btn-main btn-dark" style="margin-top:0" onclick="saveServiceAreas()">
+          <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存收貨範圍
+        </button>
+      </div>
+
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px">
         <div>
           <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">我的收貨偏好</div>
@@ -1096,7 +1098,7 @@ function goScreen(id) {
   if(el) { el.classList.add('act'); }
   window.scrollTo(0, 0);
   if (id === 'screen-matches') loadMatches();
-  if (id === 'screen-prefs') loadPrefsFromDb();
+  if (id === 'screen-prefs') { loadPrefsFromDb(); loadServiceAreasFromDb(); }
   if (id === 'screen-profile') loadProfileFromDb();
 }
 
@@ -1538,6 +1540,36 @@ async function submitLogin() {
 
 function toggleServiceArea(el) {
   el.classList.toggle('sel');
+}
+
+async function loadServiceAreasFromDb() {
+  const db = requireSupabase();
+  if (!db || !currentRecyclerId) return;
+  const { data } = await db
+    .from('recycler_onboarding_accounts')
+    .select('service_areas, service_exclusions')
+    .eq('id', currentRecyclerId)
+    .single();
+  if (!data) return;
+  const areas = data.service_areas || [];
+  const excl  = data.service_exclusions || [];
+  document.querySelectorAll('#service-area-chips .chip').forEach(c =>
+    c.classList.toggle('sel', areas.includes(c.textContent)));
+  document.querySelectorAll('#service-exclusion-chips .chip').forEach(c =>
+    c.classList.toggle('sel', excl.includes(c.textContent)));
+}
+
+async function saveServiceAreas() {
+  const db = requireSupabase();
+  if (!db) return;
+  const areas = [...document.querySelectorAll('#service-area-chips .chip.sel')].map(c => c.textContent);
+  const excl  = [...document.querySelectorAll('#service-exclusion-chips .chip.sel')].map(c => c.textContent);
+  const { error } = await db
+    .from('recycler_onboarding_accounts')
+    .update({ service_areas: areas, service_exclusions: excl })
+    .eq('id', currentRecyclerId);
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  showToast('收貨範圍已儲存');
 }
 
 async function loadProfileFromDb() {
