@@ -1363,7 +1363,9 @@ function renderMatchDetail(m) {
   const s = m.status || 'pending';
   const showFull = ['payment_confirmed', 'received'].includes(s);
 
-  const deadline = new Date(new Date(m.created_at).getTime() + 24 * 60 * 60 * 1000);
+  const deadline = m.bid_deadline
+    ? new Date(m.bid_deadline)
+    : new Date(new Date(m.created_at).getTime() + 24 * 60 * 60 * 1000);
   const isExpired = Date.now() > deadline.getTime();
   const deadlineStr = deadline.toLocaleString('zh-TW');
 
