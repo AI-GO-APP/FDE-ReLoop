@@ -1515,9 +1515,10 @@ async function submitRegister() {
     const { data: existing } = await db.from('recycler_onboarding_accounts')
       .select('id').eq('id', signInData.user.id).single();
     if (existing) {
-      btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
-      showToast('此帳號已完成註冊，請直接登入');
-      await db.auth.signOut();
+      // 已完成註冊，直接帶進平台
+      currentRecyclerId = signInData.user.id;
+      subscribeMatches();
+      goScreen('screen-matches');
       return;
     }
     userId = signInData.user.id;
