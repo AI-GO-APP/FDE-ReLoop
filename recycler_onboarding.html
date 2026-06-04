@@ -855,8 +855,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
       <div class="match-tabs-bar">
         <button class="match-tab-btn act" id="tab-btn-notify" onclick="switchMainTab('notify')">媒合通知<span id="tab-badge-notify" class="tab-count" style="display:none"></span></button>
-        <button class="match-tab-btn" id="tab-btn-matches" onclick="switchMainTab('matches')">我的媒合</button>
-        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMainTab('orders')">我的訂單</button>
+        <button class="match-tab-btn" id="tab-btn-matches" onclick="switchMainTab('matches')">我的媒合<span id="tab-count-matches" class="tab-count" style="display:none"></span></button>
+        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMainTab('orders')">我的訂單<span id="tab-count-orders" class="tab-count" style="display:none"></span></button>
       </div>
       <div id="match-subtabs" style="display:none"></div>
       <div id="match-empty" style="text-align:center;padding:60px 0;display:none">
@@ -916,6 +916,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-subtabs-bar{display:flex;gap:0;margin:12px 0 16px;border-bottom:1px solid var(--paper3)}
 .match-subtab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--ink4);cursor:pointer;transition:all .15s}
 .match-subtab-btn.act{color:var(--ink2);border-bottom-color:var(--ink3);font-weight:600}
+.subtab-count{display:inline-flex;align-items:center;justify-content:center;background:var(--paper3);color:var(--ink3);font-size:10px;font-weight:700;min-width:15px;height:15px;border-radius:8px;padding:0 4px;margin-left:3px}
+.match-subtab-btn.act .subtab-count{background:var(--ink3);color:var(--white)}
 .tab-count{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px}
 .match-status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:6px}
 .status-accepted{background:#e6f7ee;color:#276749}
@@ -955,6 +957,7 @@ let allMatchesCache = [];
 let currentMainTab = 'notify';
 let currentNotifySubTab = 'active';
 let currentMatchesSubTab = 'interested';
+let currentOrdersSubTab = 'pending_payment';
 let bidCountdownTimer = null;
 let regSigPad = null;
 let regContractAgreed = false;
@@ -1320,16 +1323,35 @@ async function loadMatches() {
   if (error) { showToast('載入媒合列表失敗'); return; }
 
   allMatchesCache = data || [];
-  const unreadPending = allMatchesCache.filter(m => {
-    if (m.is_read || (m.status || 'pending') !== 'pending') return false;
-    const dl = m.bid_deadline ? new Date(m.bid_deadline) : new Date(new Date(m.created_at).getTime() + 24*60*60*1000);
-    return Date.now() <= dl.getTime();
-  }).length;
-  updateMatchBadge(unreadPending);
-  const nb = document.getElementById('tab-badge-notify');
-  if (nb) { nb.textContent = unreadPending; nb.style.display = unreadPending > 0 ? 'inline-flex' : 'none'; }
+  updateMatchBadge(allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length);
+  updateAllTabCounts();
 
   renderMatchList();
+}
+
+function getTabCounts() {
+  return {
+    notify_active:      allMatchesCache.filter(m => (m.status||'pending')==='pending' && !matchIsExpired(m)).length,
+    notify_expired:     allMatchesCache.filter(m => (m.status||'pending')==='pending' && matchIsExpired(m)).length,
+    matches_interested: allMatchesCache.filter(m => m.status==='bidding').length,
+    matches_rejected:   allMatchesCache.filter(m => m.status==='rejected').length,
+    orders_pending:     allMatchesCache.filter(m => m.status==='accepted').length,
+    orders_confirmed:   allMatchesCache.filter(m => m.status==='payment_confirmed').length,
+    orders_received:    allMatchesCache.filter(m => m.status==='received').length,
+  };
+}
+
+function updateAllTabCounts() {
+  const c = getTabCounts();
+  const nb = document.getElementById('tab-badge-notify');
+  const unread = allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length;
+  if (nb) { nb.textContent = unread; nb.style.display = unread > 0 ? 'inline-flex' : 'none'; }
+  const matchesTotal = c.matches_interested + c.matches_rejected;
+  const el_m = document.getElementById('tab-count-matches');
+  if (el_m) { el_m.textContent = matchesTotal; el_m.style.display = matchesTotal > 0 ? 'inline-flex' : 'none'; }
+  const ordersTotal = c.orders_pending + c.orders_confirmed + c.orders_received;
+  const el_o = document.getElementById('tab-count-orders');
+  if (el_o) { el_o.textContent = ordersTotal; el_o.style.display = ordersTotal > 0 ? 'inline-flex' : 'none'; }
 }
 
 function matchIsExpired(m) {
@@ -1349,18 +1371,22 @@ function renderMatchList() {
       ? allMatchesCache.filter(m => m.status === 'bidding')
       : allMatchesCache.filter(m => m.status === 'rejected');
   } else {
-    filtered = allMatchesCache.filter(m => ['accepted','payment_confirmed','received'].includes(m.status));
+    const orderMap = { pending_payment:'accepted', payment_confirmed:'payment_confirmed', received:'received' };
+    filtered = allMatchesCache.filter(m => m.status === orderMap[currentOrdersSubTab]);
   }
 
   const emptyMessages = {
-    notify_active:  ['目前沒有媒合通知', '盤商配對到符合您偏好的設備時會在這裡通知您'],
-    notify_expired: ['沒有已截止的通知', '截止前未回覆的媒合通知會出現在這裡'],
-    matches_interested: ['尚無出價中的媒合', '對媒合通知點選「有興趣」後會出現在這裡'],
-    matches_rejected:   ['沒有拒絕的媒合', '點選「沒興趣」的媒合會出現在這裡'],
-    orders: ['尚無訂單', '得標後的媒合會出現在這裡'],
+    notify_active:            ['目前沒有媒合通知', '盤商配對到符合您偏好的設備時會在這裡通知您'],
+    notify_expired:           ['沒有已截止的通知', '截止前未回覆的媒合通知會出現在這裡'],
+    matches_interested:       ['尚無出價中的媒合', '對媒合通知點選「有興趣」後會出現在這裡'],
+    matches_rejected:         ['沒有拒絕的媒合', '點選「沒興趣」的媒合會出現在這裡'],
+    orders_pending_payment:   ['尚無待付款訂單', '得標後會出現在這裡'],
+    orders_payment_confirmed: ['尚無完成付款的訂單', '付款確認後會出現在這裡'],
+    orders_received:          ['尚無已收貨的訂單', '確認收貨後會出現在這裡'],
   };
   const emptyKey = currentMainTab === 'notify' ? `notify_${currentNotifySubTab}`
-    : currentMainTab === 'matches' ? `matches_${currentMatchesSubTab}` : 'orders';
+    : currentMainTab === 'matches' ? `matches_${currentMatchesSubTab}`
+    : `orders_${currentOrdersSubTab}`;
 
   const emptyTitle = document.getElementById('match-empty-title');
   const emptySub = document.getElementById('match-empty-sub');
@@ -1407,26 +1433,34 @@ function switchMainTab(tab) {
 function renderSubTabs() {
   const el = document.getElementById('match-subtabs');
   if (!el) return;
+  const c = getTabCounts();
+  const cnt = n => n > 0 ? `<span class="subtab-count">${n}</span>` : '';
   if (currentMainTab === 'notify') {
     el.style.display = 'block';
     el.innerHTML = `<div class="match-subtabs-bar">
-      <button class="match-subtab-btn${currentNotifySubTab==='active'?' act':''}" onclick="switchSubTab('active')">通知</button>
-      <button class="match-subtab-btn${currentNotifySubTab==='expired'?' act':''}" onclick="switchSubTab('expired')">已截止</button>
+      <button class="match-subtab-btn${currentNotifySubTab==='active'?' act':''}" onclick="switchSubTab('active')">通知${cnt(c.notify_active)}</button>
+      <button class="match-subtab-btn${currentNotifySubTab==='expired'?' act':''}" onclick="switchSubTab('expired')">已截止${cnt(c.notify_expired)}</button>
     </div>`;
   } else if (currentMainTab === 'matches') {
     el.style.display = 'block';
     el.innerHTML = `<div class="match-subtabs-bar">
-      <button class="match-subtab-btn${currentMatchesSubTab==='interested'?' act':''}" onclick="switchSubTab('interested')">有興趣</button>
-      <button class="match-subtab-btn${currentMatchesSubTab==='rejected'?' act':''}" onclick="switchSubTab('rejected')">沒興趣</button>
+      <button class="match-subtab-btn${currentMatchesSubTab==='interested'?' act':''}" onclick="switchSubTab('interested')">有興趣${cnt(c.matches_interested)}</button>
+      <button class="match-subtab-btn${currentMatchesSubTab==='rejected'?' act':''}" onclick="switchSubTab('rejected')">沒興趣${cnt(c.matches_rejected)}</button>
     </div>`;
   } else {
-    el.style.display = 'none';
+    el.style.display = 'block';
+    el.innerHTML = `<div class="match-subtabs-bar">
+      <button class="match-subtab-btn${currentOrdersSubTab==='pending_payment'?' act':''}" onclick="switchSubTab('pending_payment')">尚未付款${cnt(c.orders_pending)}</button>
+      <button class="match-subtab-btn${currentOrdersSubTab==='payment_confirmed'?' act':''}" onclick="switchSubTab('payment_confirmed')">完成付款${cnt(c.orders_confirmed)}</button>
+      <button class="match-subtab-btn${currentOrdersSubTab==='received'?' act':''}" onclick="switchSubTab('received')">已收貨${cnt(c.orders_received)}</button>
+    </div>`;
   }
 }
 
 function switchSubTab(sub) {
   if (currentMainTab === 'notify') currentNotifySubTab = sub;
   else if (currentMainTab === 'matches') currentMatchesSubTab = sub;
+  else if (currentMainTab === 'orders') currentOrdersSubTab = sub;
   renderSubTabs();
   renderMatchList();
 }
