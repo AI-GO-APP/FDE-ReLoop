@@ -916,7 +916,10 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-subtabs-bar{display:flex;gap:0;margin:12px 0 16px;border-bottom:1px solid var(--paper3)}
 .match-subtab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--ink4);cursor:pointer;transition:all .15s}
 .match-subtab-btn.act{color:var(--ink2);border-bottom-color:var(--ink3);font-weight:600}
+.subtab-cnt{font-size:11px;color:var(--ink4)}
+.match-subtab-btn.act .subtab-cnt{color:var(--ink2)}
 .tab-cnt-text{font-size:12px;color:var(--ink4);font-weight:400;margin-left:2px}
+.match-tab-btn.act .tab-cnt-text{color:var(--ink)}
 .tab-count{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px}
 .match-status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:6px}
 .status-accepted{background:#e6f7ee;color:#276749}
@@ -1433,7 +1436,7 @@ function renderSubTabs() {
   const el = document.getElementById('match-subtabs');
   if (!el) return;
   const c = getTabCounts();
-  const cnt = n => n > 0 ? ` <span style="font-size:11px;color:var(--ink4)">(${n})</span>` : '';
+  const cnt = n => n > 0 ? ` <span class="subtab-cnt">(${n})</span>` : '';
   if (currentMainTab === 'notify') {
     el.style.display = 'block';
     el.innerHTML = `<div class="match-subtabs-bar">
