@@ -1090,14 +1090,11 @@ async function upsertPreferenceRecord(pref, index) {
   if (!db) return false;
 
   const payload = preferencePayload(pref, index);
-  console.log('[pref] currentRecyclerId:', currentRecyclerId);
-  console.log('[pref] payload:', JSON.stringify(payload));
 
   const { error } = await db
     .from('recycler_onboarding_preferences')
     .upsert(payload);
 
-  console.log('[pref] upsert error:', error?.message, error?.code);
   if (error) {
     showToast('Supabase 偏好寫入失敗：' + error.message);
     return false;
@@ -1161,15 +1158,12 @@ function resetRegisterScreen() {
 async function saveContractSignature(signatureData) {
   const db = requireSupabase();
   if (!db) return false;
-  console.log('[contract] currentRecyclerId:', currentRecyclerId);
-  console.log('[contract] signatureData length:', signatureData?.length);
   const { data: tmpl, error: tErr } = await db
     .from('contract_templates')
     .select('id, content')
     .eq('contract_type', 'cooperation_agreement')
     .eq('is_active', true)
     .single();
-  console.log('[contract] template:', tmpl?.id, 'error:', tErr?.message);
   if (tErr || !tmpl) { showToast('無法載入合約範本：' + (tErr?.message || '查無範本')); return false; }
   const { error } = await db.from('contracts').insert({
     template_id: tmpl.id,
@@ -1179,9 +1173,7 @@ async function saveContractSignature(signatureData) {
     signature: signatureData,
     content_snapshot: tmpl.content
   });
-  console.log('[contract] insert error:', error?.message);
   if (error) { showToast('合約儲存失敗：' + error.message); return false; }
-  console.log('[contract] saved OK');
   return true;
 }
 
@@ -1727,16 +1719,10 @@ async function saveServiceAreas() {
   if (!db || !currentRecyclerId) return;
   const areas = [...document.querySelectorAll('#service-area-chips .chip.sel')].map(c => c.textContent);
   const excl  = [...document.querySelectorAll('.exclusion-chip.sel')].map(c => c.textContent);
-  const { data: { session } } = await db.auth.getSession();
-  console.log('[areas] session uid:', session?.user?.id);
-  console.log('[areas] currentRecyclerId:', currentRecyclerId);
-  console.log('[areas] match:', session?.user?.id === currentRecyclerId);
-  console.log('[areas] areas:', areas, 'excl:', excl);
   const { error } = await db
     .from('recycler_onboarding_accounts')
     .update({ service_areas: areas, service_exclusions: excl })
     .eq('id', currentRecyclerId);
-  console.log('[areas] update error:', error?.message, error?.code);
   if (error) { showToast('儲存失敗：' + error.message); return; }
   showToast('收貨範圍已儲存');
 }
