@@ -546,6 +546,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
             <i class="ti ti-eye-off"></i>
           </span>
         </div>
+        <div class="field-hint" id="login-pw-hint">請先輸入統一編號</div>
         <div class="field-error" id="err-login-password"></div>
       </div>
 
@@ -1534,6 +1535,7 @@ async function onLoginBusinessIdInput(val) {
     pwInput.style.background = 'var(--paper2)';
     pwInput.style.cursor = 'not-allowed';
     pwInput.value = '';
+    document.getElementById('login-pw-hint').textContent = '請先輸入統一編號';
     return;
   }
   const db = requireSupabase();
@@ -1569,6 +1571,7 @@ async function onLoginBusinessIdInput(val) {
       pwInput.style.background = '';
       pwInput.style.cursor = '';
       document.getElementById('err-login-password').classList.remove('show');
+      document.getElementById('login-pw-hint').textContent = '';
       pwInput.focus();
     };
     cards.appendChild(card);
@@ -1576,12 +1579,12 @@ async function onLoginBusinessIdInput(val) {
 
   // 帳號列表、密碼欄、登入鈕一起顯示；密碼欄預設 disabled
   if (data.length === 1) {
-    // 只有一筆時自動選取
-    cards.firstChild.click();
+    cards.firstChild.click(); // 自動選取，click 內會 enable 密碼欄
   } else {
     pwInput.disabled = true;
     pwInput.style.background = 'var(--paper2)';
     pwInput.style.cursor = 'not-allowed';
+    document.getElementById('login-pw-hint').textContent = '請選擇要登入的帳號';
   }
   section.style.display = '';
 }
