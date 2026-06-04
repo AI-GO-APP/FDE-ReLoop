@@ -534,8 +534,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div class="field-error" id="err-login-account"></div>
       </div>
 
-      <!-- 密碼（帳號列表出現後一起顯示，未選帳號時 disabled） -->
-      <div class="field" id="login-pw-section" style="display:none">
+      <!-- 密碼（預設顯示但 disabled，等帳號選取後 enable） -->
+      <div class="field" id="login-pw-section">
         <label class="field-label">密碼<span class="req">*</span></label>
         <div class="pw-wrap">
           <input class="field-input" type="password" id="login-password" placeholder="輸入密碼"
@@ -549,7 +549,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div class="field-error" id="err-login-password"></div>
       </div>
 
-      <button class="btn-main btn-dark" id="btn-login" onclick="submitLogin()" style="display:none">
+      <button class="btn-main btn-dark" id="btn-login" onclick="submitLogin()">
         登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>
       </button>
       <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
@@ -1528,9 +1528,12 @@ let loginSelectedPhone = null;
 async function onLoginBusinessIdInput(val) {
   if (val.length !== 8 || !/^\d{8}$/.test(val)) {
     document.getElementById('login-account-section').style.display = 'none';
-    document.getElementById('login-pw-section').style.display = 'none';
-    document.getElementById('btn-login').style.display = 'none';
     loginSelectedPhone = null;
+    const pwInput = document.getElementById('login-password');
+    pwInput.disabled = true;
+    pwInput.style.background = 'var(--paper2)';
+    pwInput.style.cursor = 'not-allowed';
+    pwInput.value = '';
     return;
   }
   const db = requireSupabase();
@@ -1543,8 +1546,6 @@ async function onLoginBusinessIdInput(val) {
   loginSelectedPhone = null;
   if (error || !data || data.length === 0) {
     section.style.display = 'none';
-    document.getElementById('login-pw-section').style.display = 'none';
-    document.getElementById('btn-login').style.display = 'none';
     const bidEl = document.getElementById('err-login-business-id');
     bidEl.textContent = '查無此統編的帳號，請先註冊';
     bidEl.classList.add('show');
@@ -1583,8 +1584,6 @@ async function onLoginBusinessIdInput(val) {
     pwInput.style.cursor = 'not-allowed';
   }
   section.style.display = '';
-  document.getElementById('login-pw-section').style.display = '';
-  document.getElementById('btn-login').style.display = '';
 }
 
 async function submitLogin() {
