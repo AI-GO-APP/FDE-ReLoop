@@ -476,7 +476,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
           <p style="margin-top:20px;font-size:11px;color:var(--ink4)">※ 本合約為示範版本，正式版本以平台公告為準。</p>
         </div>
         <div class="contract-read-tip" id="reg-contract-read-tip">
-          <i class="ti ti-arrow-down" style="font-size:13px"></i>請向下滑動閱讀完整合約，閱讀完畢後即可勾選同意
+          <i class="ti ti-arrow-down" style="font-size:13px"></i>請向下滑動閱讀完整合約，閱讀完畢後即可勾選同意並完成簽名
         </div>
         <div id="reg-agree-section" style="display:none">
           <div class="agree-row" onclick="toggleRegAgree()">
@@ -1122,6 +1122,30 @@ function goScreen(id) {
   if (id === 'screen-matches') loadMatches();
   if (id === 'screen-prefs') { loadPrefsFromDb(); loadServiceAreasFromDb(); }
   if (id === 'screen-profile') loadProfileFromDb();
+  if (id === 'screen-register') resetRegisterScreen();
+}
+
+function resetRegisterScreen() {
+  // 重置按鈕狀態
+  const btn = document.getElementById('btn-submit-register');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>'; }
+  // 清空表單欄位
+  ['signup-company','signup-name','signup-phone','signup-line-id','signup-business-id','signup-password','signup-password2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // 重置合約滑動狀態
+  const scroll = document.getElementById('reg-contract-scroll');
+  if (scroll) scroll.scrollTop = 0;
+  document.getElementById('reg-contract-read-tip').style.display = '';
+  document.getElementById('reg-agree-section').style.display = 'none';
+  document.getElementById('reg-sig-section').style.display = 'none';
+  const cb = document.getElementById('reg-agree-checkbox');
+  if (cb) cb.classList.remove('checked');
+  // 清除簽名板
+  if (regSigPad) regSigPad.clear();
+  // 清除錯誤訊息
+  clearErrors();
 }
 
 async function saveContractSignature(signatureData) {
