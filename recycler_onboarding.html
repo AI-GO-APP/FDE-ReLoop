@@ -382,8 +382,9 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
         <div class="field">
           <label class="field-label">聯絡電話<span class="req">*</span></label>
-          <input class="field-input" type="tel" id="signup-phone" placeholder="例：0912-345-678">
-          <div class="field-error" id="err-signup-phone">請填寫電話</div>
+          <input class="field-input" type="tel" id="signup-phone" placeholder="例：0912345678">
+          <div class="field-hint">請填寫數字，- 和空格會自動略過</div>
+          <div class="field-error" id="err-signup-phone">請填寫有效的電話號碼（8–10 碼數字）</div>
         </div>
       </div>
 
@@ -608,8 +609,9 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
         <div class="field">
           <label class="field-label">聯絡電話</label>
-          <input class="field-input" type="tel" id="reg-phone" placeholder="0912-345-678" value="0912-345-678">
-          <div class="field-error" id="err-phone">請填寫電話</div>
+          <input class="field-input" type="tel" id="reg-phone" placeholder="例：0912345678">
+          <div class="field-hint">請填寫數字，- 和空格會自動略過</div>
+          <div class="field-error" id="err-phone">請填寫有效的電話號碼（8–10 碼數字）</div>
         </div>
       </div>
 
@@ -1008,7 +1010,7 @@ async function updateAccountRecord({ passwordChanged = false } = {}) {
   const payload = {
     company_name: document.getElementById('reg-company').value.trim(),
     contact_name: document.getElementById('reg-name').value.trim(),
-    phone: document.getElementById('reg-phone').value.trim(),
+    phone: document.getElementById('reg-phone').value.replace(/\D/g, ''),
     line_id: document.getElementById('reg-line-id')?.value.trim() || null,
     service_areas: serviceAreas,
     service_exclusions: [...document.querySelectorAll('#service-exclusion-chips .chip.sel')].map(c => c.textContent)
@@ -1466,7 +1468,7 @@ async function submitRegister() {
   clearErrors();
   const company    = document.getElementById('signup-company').value.trim();
   const name       = document.getElementById('signup-name').value.trim();
-  const phone      = document.getElementById('signup-phone').value.trim();
+  const phone      = document.getElementById('signup-phone').value.replace(/\D/g, '');
   const lineId     = document.getElementById('signup-line-id').value.trim();
   const businessId = document.getElementById('signup-business-id').value.trim();
   const pw         = document.getElementById('signup-password').value;
@@ -1475,7 +1477,7 @@ async function submitRegister() {
 
   if (!company) { showSignupError('company','請填寫公司名稱'); ok=false; }
   if (!name)    { showSignupError('name','請填寫聯絡人姓名'); ok=false; }
-  if (!phone)   { showSignupError('phone','請填寫聯絡電話'); ok=false; }
+  if (!/^\d{8,10}$/.test(phone)) { showSignupError('phone','請填寫有效的電話號碼（8–10 碼數字）'); ok=false; }
   if (!/^\d{8}$/.test(businessId)) { showSignupError('business-id','請填寫正確的統一編號（8 碼數字）'); ok=false; }
   if (pw.length < 8) { showSignupError('password','密碼至少需要 8 個字元'); ok=false; }
   if (pw !== pw2) { showSignupError('password2','兩次密碼不一致'); ok=false; }
@@ -1698,7 +1700,7 @@ async function saveProfile() {
   clearErrors();
   const company = document.getElementById('reg-company').value.trim();
   const name    = document.getElementById('reg-name').value.trim();
-  const phone   = document.getElementById('reg-phone').value.trim();
+  const phone   = document.getElementById('reg-phone').value.replace(/\D/g, '');
   const currentPw = document.getElementById('profile-current-password').value;
   const pw      = document.getElementById('reg-password').value;
   const pw2     = document.getElementById('reg-password2').value;
@@ -1706,7 +1708,7 @@ async function saveProfile() {
 
   if (!company) { showError('company','請填寫公司名稱'); ok=false; }
   if (!name)    { showError('name','請填寫聯絡人姓名'); ok=false; }
-  if (!phone)   { showError('phone','請填寫聯絡電話'); ok=false; }
+  if (!/^\d{8,10}$/.test(phone)) { showError('phone','請填寫有效的電話號碼（8–10 碼數字）'); ok=false; }
   if ((pw || pw2) && !currentPw) {
     document.getElementById('err-current-password').classList.add('show');
     document.getElementById('profile-current-password').classList.add('error');
