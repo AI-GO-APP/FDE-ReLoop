@@ -1727,7 +1727,10 @@ async function saveServiceAreas() {
   if (!db || !currentRecyclerId) return;
   const areas = [...document.querySelectorAll('#service-area-chips .chip.sel')].map(c => c.textContent);
   const excl  = [...document.querySelectorAll('.exclusion-chip.sel')].map(c => c.textContent);
+  const { data: { session } } = await db.auth.getSession();
+  console.log('[areas] session uid:', session?.user?.id);
   console.log('[areas] currentRecyclerId:', currentRecyclerId);
+  console.log('[areas] match:', session?.user?.id === currentRecyclerId);
   console.log('[areas] areas:', areas, 'excl:', excl);
   const { error } = await db
     .from('recycler_onboarding_accounts')
