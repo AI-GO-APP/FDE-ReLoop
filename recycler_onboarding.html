@@ -1499,24 +1499,33 @@ async function submitRegister() {
   btn.textContent = '處理中…';
 
   const authEmail = buildAuthEmail(businessId, phone);
+  let userId = null;
+
   const { data: signUpData, error: signUpError } = await db.auth.signUp({ email: authEmail, password: pw });
-  if (signUpError) {
-    btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
-    if (signUpError.message.includes('already registered')) {
-      showSignupError('business-id','此統編 + 電話組合已被註冊，請直接登入');
-    } else {
-      showSignupError('business-id', signUpError.message);
+
+  if (signUpError || !signUpData.session) {
+    // Auth 帳號已存在（上次 DB 寫入失敗的孤立帳號），嘗試用相同密碼登入後補建 DB 記錄
+    const { data: signInData, error: signInError } = await db.auth.signInWithPassword({ email: authEmail, password: pw });
+    if (signInError || !signInData.session) {
+      btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
+      showToast('此統編 + 電話已有帳號，請直接登入；若為本人操作請使用相同密碼');
+      return;
     }
-    return;
+    // 登入成功，確認 DB 是否已有資料
+    const { data: existing } = await db.from('recycler_onboarding_accounts')
+      .select('id').eq('id', signInData.user.id).single();
+    if (existing) {
+      btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
+      showToast('此帳號已完成註冊，請直接登入');
+      await db.auth.signOut();
+      return;
+    }
+    userId = signInData.user.id;
+  } else {
+    userId = signUpData.user.id;
   }
 
-  if (!signUpData.session) {
-    btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
-    showSignupError('business-id', '此統編 + 電話組合已被註冊，請直接登入');
-    return;
-  }
-
-  currentRecyclerId = signUpData.user.id;
+  currentRecyclerId = userId;
 
   const saved = await createAccountRecord({ company, name, phone, lineId, businessId });
   if (!saved) {
