@@ -979,7 +979,7 @@ function toIntOrNull(value) {
 
 function toNumOrNull(value) {
   const n = parseFloat(value);
-  return Number.isFinite(n) ? n : null;
+  return (Number.isFinite(n) && n > 0) ? n : null;
 }
 
 async function createAccountRecord({ company, name, phone, lineId, businessId }) {
@@ -1931,10 +1931,10 @@ function loadPrefToForm(pref) {
         });
         document.getElementById('f-year-min').value    = pref.yearMin    || '';
         document.getElementById('f-year-within').value = pref.yearWithin || '';
-        document.getElementById('f-max-w').value        = pref.maxW       || '';
-        document.getElementById('f-max-h').value        = pref.maxH       || '';
-        document.getElementById('f-max-d').value        = pref.maxD       || '';
-        document.getElementById('f-max-weight').value   = pref.maxWeight  || '';
+        document.getElementById('f-max-w').value        = (pref.maxW      > 0 ? pref.maxW      : '');
+        document.getElementById('f-max-h').value        = (pref.maxH      > 0 ? pref.maxH      : '');
+        document.getElementById('f-max-d').value        = (pref.maxD      > 0 ? pref.maxD      : '');
+        document.getElementById('f-max-weight').value   = (pref.maxWeight > 0 ? pref.maxWeight : '');
         document.getElementById('f-note').value         = pref.note       || '';
         condSel.a = pref.conds?.a ?? true;
         condSel.b = pref.conds?.b ?? true;
@@ -2266,12 +2266,12 @@ renderPrefList();
     <div class="form-section" id="section-size" style="display:none">
       <div class="form-section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l18-18M6.5 17.5l1-1M10 14l1-1M13.5 10.5l1-1M17 7l1-1"/><path d="M3 21L3 17l14-14 4 4-14 14Z"/></svg>最大可接受尺寸 <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">不填＝不限</span></div>
       <div class="field-row-3" style="margin-bottom:8px">
-        <div class="field"><div class="fl">最大寬</div><div class="form-unit"><input class="fi" type="number" id="f-max-w" placeholder="不限"><div class="unit-lbl">cm</div></div></div>
-        <div class="field"><div class="fl">最大高</div><div class="form-unit"><input class="fi" type="number" id="f-max-h" placeholder="不限"><div class="unit-lbl">cm</div></div></div>
-        <div class="field"><div class="fl">最大深</div><div class="form-unit"><input class="fi" type="number" id="f-max-d" placeholder="不限"><div class="unit-lbl">cm</div></div></div>
+        <div class="field"><div class="fl">最大寬</div><div class="form-unit"><input class="fi" type="number" id="f-max-w" placeholder="不限" min="0"><div class="unit-lbl">cm</div></div></div>
+        <div class="field"><div class="fl">最大高</div><div class="form-unit"><input class="fi" type="number" id="f-max-h" placeholder="不限" min="0"><div class="unit-lbl">cm</div></div></div>
+        <div class="field"><div class="fl">最大深</div><div class="form-unit"><input class="fi" type="number" id="f-max-d" placeholder="不限" min="0"><div class="unit-lbl">cm</div></div></div>
       </div>
       <div class="field-row">
-        <div class="field"><div class="fl">最大重量</div><div class="form-unit"><input class="fi" type="number" id="f-max-weight" placeholder="不限"><div class="unit-lbl">kg</div></div></div>
+        <div class="field"><div class="fl">最大重量</div><div class="form-unit"><input class="fi" type="number" id="f-max-weight" placeholder="不限" min="0"><div class="unit-lbl">kg</div></div></div>
         <div class="field" id="voltage-field" style="display:none">
           <div class="fl">可接受電壓</div>
           <div class="chip-group" id="voltage-chips">
