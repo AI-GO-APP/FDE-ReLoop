@@ -1479,8 +1479,8 @@ async function openMatchDetail(id) {
     const nb = document.getElementById('tab-badge-notify');
     if (nb) { nb.textContent = unread; nb.style.display = unread > 0 ? 'inline-flex' : 'none'; }
   }
-  renderMatchDetail(match);
   goScreen('screen-match-detail');
+  renderMatchDetail(match);
 }
 
 function renderMatchDetail(m) {
