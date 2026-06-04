@@ -1422,9 +1422,16 @@ async function initApp() {
   if (!db) { goScreen('screen-login'); return; }
   const { data: { session } } = await db.auth.getSession();
   if (session) {
-    currentRecyclerId = session.user.id;
-    subscribeMatches();
-    goScreen('screen-matches');
+    const { data: acct } = await db.from('recycler_onboarding_accounts')
+      .select('id').eq('id', session.user.id).single();
+    if (acct) {
+      currentRecyclerId = session.user.id;
+      subscribeMatches();
+      goScreen('screen-matches');
+    } else {
+      await db.auth.signOut();
+      goScreen('screen-register');
+    }
   } else {
     goScreen('screen-register');
   }
@@ -1512,7 +1519,11 @@ async function submitRegister() {
   currentRecyclerId = signUpData.user.id;
 
   const saved = await createAccountRecord({ company, name, phone, lineId, businessId });
-  if (!saved) return;
+  if (!saved) {
+    await db.auth.signOut();
+    btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
+    return;
+  }
 
   await saveContractSignature(regSigPad.toDataURL('image/png'));
 
