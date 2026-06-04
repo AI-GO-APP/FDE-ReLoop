@@ -1151,13 +1151,16 @@ function resetRegisterScreen() {
 async function saveContractSignature(signatureData) {
   const db = requireSupabase();
   if (!db) return false;
+  console.log('[contract] currentRecyclerId:', currentRecyclerId);
+  console.log('[contract] signatureData length:', signatureData?.length);
   const { data: tmpl, error: tErr } = await db
     .from('contract_templates')
     .select('id, content')
     .eq('contract_type', 'cooperation_agreement')
     .eq('is_active', true)
     .single();
-  if (tErr || !tmpl) { showToast('無法載入合約範本'); return false; }
+  console.log('[contract] template:', tmpl?.id, 'error:', tErr?.message);
+  if (tErr || !tmpl) { showToast('無法載入合約範本：' + (tErr?.message || '查無範本')); return false; }
   const { error } = await db.from('contracts').insert({
     template_id: tmpl.id,
     signer_type: 'recycler',
@@ -1166,7 +1169,9 @@ async function saveContractSignature(signatureData) {
     signature: signatureData,
     content_snapshot: tmpl.content
   });
+  console.log('[contract] insert error:', error?.message);
   if (error) { showToast('合約儲存失敗：' + error.message); return false; }
+  console.log('[contract] saved OK');
   return true;
 }
 
