@@ -534,12 +534,14 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div class="field-error" id="err-login-account"></div>
       </div>
 
-      <!-- 密碼（選完帳號後顯示） -->
+      <!-- 密碼（帳號列表出現後一起顯示，未選帳號時 disabled） -->
       <div class="field" id="login-pw-section" style="display:none">
         <label class="field-label">密碼<span class="req">*</span></label>
         <div class="pw-wrap">
           <input class="field-input" type="password" id="login-password" placeholder="輸入密碼"
-            onkeydown="if(event.key==='Enter')submitLogin()">
+            disabled style="background:var(--paper2);cursor:not-allowed"
+            onclick="if(this.disabled){const e=document.getElementById('err-login-password');e.textContent='請先選擇要登入的帳號';e.classList.add('show')}"
+            onkeydown="if(!this.disabled&&event.key==='Enter')submitLogin()">
           <span class="pw-toggle" onclick="togglePw('login-password',this)">
             <i class="ti ti-eye-off"></i>
           </span>
@@ -1539,10 +1541,10 @@ async function onLoginBusinessIdInput(val) {
   const errEl   = document.getElementById('err-login-account');
   cards.innerHTML = '';
   loginSelectedPhone = null;
-  document.getElementById('login-pw-section').style.display = 'none';
-  document.getElementById('btn-login').style.display = 'none';
   if (error || !data || data.length === 0) {
     section.style.display = 'none';
+    document.getElementById('login-pw-section').style.display = 'none';
+    document.getElementById('btn-login').style.display = 'none';
     const bidEl = document.getElementById('err-login-business-id');
     bidEl.textContent = '查無此統編的帳號，請先註冊';
     bidEl.classList.add('show');
@@ -1550,6 +1552,9 @@ async function onLoginBusinessIdInput(val) {
   }
   document.getElementById('err-login-business-id').classList.remove('show');
   errEl.classList.remove('show');
+
+  const pwInput = document.getElementById('login-password');
+
   data.forEach(acc => {
     const card = document.createElement('div');
     card.className = 'login-account-card';
@@ -1559,13 +1564,27 @@ async function onLoginBusinessIdInput(val) {
       document.querySelectorAll('.login-account-card').forEach(c => c.classList.remove('sel'));
       card.classList.add('sel');
       loginSelectedPhone = acc.phone;
-      document.getElementById('login-pw-section').style.display = '';
-      document.getElementById('btn-login').style.display = '';
-      document.getElementById('login-password').focus();
+      pwInput.disabled = false;
+      pwInput.style.background = '';
+      pwInput.style.cursor = '';
+      document.getElementById('err-login-password').classList.remove('show');
+      pwInput.focus();
     };
     cards.appendChild(card);
   });
+
+  // 帳號列表、密碼欄、登入鈕一起顯示；密碼欄預設 disabled
+  if (data.length === 1) {
+    // 只有一筆時自動選取
+    cards.firstChild.click();
+  } else {
+    pwInput.disabled = true;
+    pwInput.style.background = 'var(--paper2)';
+    pwInput.style.cursor = 'not-allowed';
+  }
   section.style.display = '';
+  document.getElementById('login-pw-section').style.display = '';
+  document.getElementById('btn-login').style.display = '';
 }
 
 async function submitLogin() {
