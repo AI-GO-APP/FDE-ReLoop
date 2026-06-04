@@ -854,9 +854,9 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">媒合管理</div>
       </div>
       <div class="match-tabs-bar">
-        <button class="match-tab-btn act" id="tab-btn-notify" onclick="switchMainTab('notify')">媒合通知<span id="tab-badge-notify" class="tab-count" style="display:none"></span></button>
-        <button class="match-tab-btn" id="tab-btn-matches" onclick="switchMainTab('matches')">我的媒合<span id="tab-count-matches" class="tab-count" style="display:none"></span></button>
-        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMainTab('orders')">我的訂單<span id="tab-count-orders" class="tab-count" style="display:none"></span></button>
+        <button class="match-tab-btn act" id="tab-btn-notify" onclick="switchMainTab('notify')">媒合通知<span id="tab-badge-notify" class="tab-cnt-text" style="display:none"></span></button>
+        <button class="match-tab-btn" id="tab-btn-matches" onclick="switchMainTab('matches')">我的媒合<span id="tab-count-matches" class="tab-cnt-text" style="display:none"></span></button>
+        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMainTab('orders')">我的訂單<span id="tab-count-orders" class="tab-cnt-text" style="display:none"></span></button>
       </div>
       <div id="match-subtabs" style="display:none"></div>
       <div id="match-empty" style="text-align:center;padding:60px 0;display:none">
@@ -916,8 +916,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-subtabs-bar{display:flex;gap:0;margin:12px 0 16px;border-bottom:1px solid var(--paper3)}
 .match-subtab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--ink4);cursor:pointer;transition:all .15s}
 .match-subtab-btn.act{color:var(--ink2);border-bottom-color:var(--ink3);font-weight:600}
-.subtab-count{display:inline-flex;align-items:center;justify-content:center;background:var(--paper3);color:var(--ink3);font-size:10px;font-weight:700;min-width:15px;height:15px;border-radius:8px;padding:0 4px;margin-left:3px}
-.match-subtab-btn.act .subtab-count{background:var(--ink3);color:var(--white)}
+.tab-cnt-text{font-size:12px;color:var(--ink4);font-weight:400;margin-left:2px}
 .tab-count{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px}
 .match-status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:6px}
 .status-accepted{background:#e6f7ee;color:#276749}
@@ -1323,7 +1322,6 @@ async function loadMatches() {
   if (error) { showToast('載入媒合列表失敗'); return; }
 
   allMatchesCache = data || [];
-  updateMatchBadge(allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length);
   updateAllTabCounts();
 
   renderMatchList();
@@ -1343,15 +1341,16 @@ function getTabCounts() {
 
 function updateAllTabCounts() {
   const c = getTabCounts();
-  const nb = document.getElementById('tab-badge-notify');
-  const unread = allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length;
-  if (nb) { nb.textContent = unread; nb.style.display = unread > 0 ? 'inline-flex' : 'none'; }
-  const matchesTotal = c.matches_interested + c.matches_rejected;
-  const el_m = document.getElementById('tab-count-matches');
-  if (el_m) { el_m.textContent = matchesTotal; el_m.style.display = matchesTotal > 0 ? 'inline-flex' : 'none'; }
-  const ordersTotal = c.orders_pending + c.orders_confirmed + c.orders_received;
-  const el_o = document.getElementById('tab-count-orders');
-  if (el_o) { el_o.textContent = ordersTotal; el_o.style.display = ordersTotal > 0 ? 'inline-flex' : 'none'; }
+  const set = (id, n) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (n > 0) { el.textContent = `(${n})`; el.style.display = 'inline'; }
+    else { el.style.display = 'none'; }
+  };
+  set('tab-badge-notify', c.notify_active);
+  set('tab-count-matches', c.matches_interested + c.matches_rejected);
+  set('tab-count-orders', c.orders_pending + c.orders_confirmed + c.orders_received);
+  updateMatchBadge(allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length);
 }
 
 function matchIsExpired(m) {
@@ -1434,7 +1433,7 @@ function renderSubTabs() {
   const el = document.getElementById('match-subtabs');
   if (!el) return;
   const c = getTabCounts();
-  const cnt = n => n > 0 ? `<span class="subtab-count">${n}</span>` : '';
+  const cnt = n => n > 0 ? ` <span style="font-size:11px;color:var(--ink4)">(${n})</span>` : '';
   if (currentMainTab === 'notify') {
     el.style.display = 'block';
     el.innerHTML = `<div class="match-subtabs-bar">
