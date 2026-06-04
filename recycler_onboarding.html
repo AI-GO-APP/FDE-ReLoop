@@ -876,7 +876,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div>
       <div class="brand-logo">Re<span>Loop</span></div>
       <div class="brand-headline">設備<br>詳情</div>
-      <div class="brand-sub">確認設備資訊<br>選擇是否接受媒合。</div>
+      <div class="brand-sub">確認設備資訊<br>選擇是否有興趣出價。</div>
       <div class="brand-nav">
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
@@ -914,6 +914,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .tab-count{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px}
 .match-status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:6px}
 .status-accepted{background:#e6f7ee;color:#276749}
+.status-bidding{background:#fef3c7;color:#92400e}
 .status-received{background:#ebf4ff;color:#2b6cb0}
 .status-rejected{background:#fff5f5;color:#c53030}
 .detail-back-btn{background:none;border:none;padding:0;font-size:13px;color:var(--ink3);cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px}
@@ -1238,6 +1239,17 @@ function clearRegSignature() {
 }
 
 // ── 媒合列表 ──
+function extractArea(addr) {
+  if (!addr) return '';
+  const m = addr.match(/[一-鿿]+[市縣][一-鿿]+[區鄉鎮市]/);
+  return m ? m[0] : addr;
+}
+
+function displayAddress(m) {
+  const revealStatuses = ['payment_confirmed', 'received'];
+  return revealStatuses.includes(m.status) ? m.pickup_address : extractArea(m.pickup_address) || m.pickup_address;
+}
+
 function formatTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
@@ -1298,8 +1310,8 @@ function renderMatchList() {
   }
 
   const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
-  const statusLabel = { accepted:'已接受', received:'已收貨', rejected:'已拒絕' };
-  const statusClass = { accepted:'status-accepted', received:'status-received', rejected:'status-rejected' };
+  const statusLabel = { bidding:'已出價', accepted:'已得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
+  const statusClass = { bidding:'status-bidding', accepted:'status-accepted', payment_confirmed:'status-accepted', received:'status-received', rejected:'status-rejected' };
 
   document.getElementById('match-empty').style.display = 'none';
   document.getElementById('match-list').style.display = 'flex';
@@ -1315,7 +1327,7 @@ function renderMatchList() {
         <div class="match-time-label">${formatTimeAgo(m.created_at)}</div>
       </div>
       <div class="match-cat-tag">${m.category_name}</div>
-      <div class="match-address-row"><i class="ti ti-map-pin"></i>${m.pickup_address}</div>
+      <div class="match-address-row"><i class="ti ti-map-pin"></i>${displayAddress(m)}</div>
       <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.note ? '・' + m.note : ''}</div>
     </div>`;
   }).join('');
@@ -1346,9 +1358,14 @@ async function openMatchDetail(id) {
 
 function renderMatchDetail(m) {
   const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
-  const statusLabel = { pending:'待確認', accepted:'已接受', received:'已收貨', rejected:'已拒絕' };
-  const statusColor = { pending:'var(--ink4)', accepted:'#276749', received:'#2b6cb0', rejected:'#c53030' };
+  const statusLabel = { pending:'待出價', bidding:'已出價・等待確認', accepted:'已得標・待付款', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
+  const statusColor = { pending:'var(--ink4)', bidding:'#92400e', accepted:'#276749', payment_confirmed:'#276749', received:'#2b6cb0', rejected:'#c53030' };
   const s = m.status || 'pending';
+  const showFull = ['payment_confirmed', 'received'].includes(s);
+
+  const deadline = new Date(new Date(m.created_at).getTime() + 24 * 60 * 60 * 1000);
+  const isExpired = Date.now() > deadline.getTime();
+  const deadlineStr = deadline.toLocaleString('zh-TW');
 
   const photosWrap = document.getElementById('detail-photos-wrap');
   if (m.photo_urls && m.photo_urls.length > 0) {
@@ -1358,43 +1375,109 @@ function renderMatchDetail(m) {
     photosWrap.innerHTML = `<div class="detail-photos-empty"><i class="ti ti-photo" style="font-size:32px;color:var(--ink4)"></i><div style="font-size:12px;color:var(--ink4);margin-top:8px">尚無設備照片</div></div>`;
   }
 
+  const addrDisplay = showFull
+    ? m.pickup_address
+    : `${extractArea(m.pickup_address) || m.pickup_address}<span style="font-size:11px;color:var(--ink4);margin-left:6px">（付款確認後揭露完整地址）</span>`;
+
+  const bidInfo = m.bid_price_min != null
+    ? `<div class="detail-info-row"><i class="ti ti-currency-dollar"></i><div>出價：${m.bid_price_max != null ? `$${Number(m.bid_price_min).toLocaleString()} ～ $${Number(m.bid_price_max).toLocaleString()}` : `$${Number(m.bid_price_min).toLocaleString()}`}</div></div>
+       ${m.bid_at ? `<div class="detail-info-row" style="color:var(--ink4)"><i class="ti ti-send"></i><div>出價時間：${new Date(m.bid_at).toLocaleString('zh-TW')}</div></div>` : ''}`
+    : '';
+
+  const contactInfo = showFull && (m.contact_name || m.contact_phone)
+    ? `<div style="margin-top:16px;padding:12px 16px;background:#f0fdf4;border-radius:var(--r);border:1px solid #bbf7d0">
+        <div style="font-size:12px;font-weight:600;color:#276749;margin-bottom:8px">業務聯絡資訊</div>
+        ${m.contact_name ? `<div class="detail-info-row"><i class="ti ti-user" style="color:#276749"></i><div>${m.contact_name}</div></div>` : ''}
+        ${m.contact_phone ? `<div class="detail-info-row"><i class="ti ti-phone" style="color:#276749"></i><div>${m.contact_phone}</div></div>` : ''}
+      </div>`
+    : '';
+
   document.getElementById('detail-content').innerHTML = `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px">
       <div style="font-size:22px;font-weight:700;color:var(--ink);flex:1">${m.device_name}</div>
-      <div style="font-size:12px;font-weight:600;color:${statusColor[s]};white-space:nowrap;padding-top:4px">${statusLabel[s]}</div>
+      <div style="font-size:12px;font-weight:600;color:${statusColor[s]};white-space:nowrap;padding-top:4px">${statusLabel[s] || s}</div>
     </div>
     <div class="match-cat-tag" style="margin-bottom:16px">${m.category_name}</div>
-    <div class="detail-info-row"><i class="ti ti-map-pin"></i><div>${m.pickup_address}</div></div>
+    <div class="detail-info-row"><i class="ti ti-map-pin"></i><div>${addrDisplay}</div></div>
     <div class="detail-info-row"><i class="ti ti-tool"></i><div>狀況 ${m.condition}・${condLabel[m.condition] || m.condition}</div></div>
     ${m.note ? `<div class="detail-info-row"><i class="ti ti-notes"></i><div>${m.note}</div></div>` : ''}
-    <div class="detail-info-row"><i class="ti ti-clock"></i><div>${new Date(m.created_at).toLocaleString('zh-TW')}</div></div>
-    ${m.accepted_at ? `<div class="detail-info-row"><i class="ti ti-check"></i><div>接受時間：${new Date(m.accepted_at).toLocaleString('zh-TW')}</div></div>` : ''}
+    ${s === 'pending' ? `<div class="detail-info-row" style="color:${isExpired ? '#c53030' : 'var(--ink3)'}"><i class="ti ti-clock-hour-4"></i><div>出價截止：${deadlineStr}${isExpired ? '（已截止）' : ''}</div></div>` : ''}
+    <div class="detail-info-row" style="color:var(--ink4)"><i class="ti ti-calendar"></i><div>通知時間：${new Date(m.created_at).toLocaleString('zh-TW')}</div></div>
+    ${bidInfo}
+    ${contactInfo}
+    ${m.accepted_at ? `<div class="detail-info-row"><i class="ti ti-trophy"></i><div>得標時間：${new Date(m.accepted_at).toLocaleString('zh-TW')}</div></div>` : ''}
+    ${m.payment_confirmed_at ? `<div class="detail-info-row"><i class="ti ti-credit-card"></i><div>付款確認：${new Date(m.payment_confirmed_at).toLocaleString('zh-TW')}</div></div>` : ''}
     ${m.received_at ? `<div class="detail-info-row"><i class="ti ti-package"></i><div>收貨時間：${new Date(m.received_at).toLocaleString('zh-TW')}</div></div>` : ''}
   `;
 
   const actEl = document.getElementById('detail-actions');
   if (s === 'pending') {
     actEl.innerHTML = `
-      <button class="btn-main btn-dark" onclick="acceptMatch('${m.id}')">接受媒合</button>
-      <button class="btn-main btn-outline" onclick="rejectMatch('${m.id}')">拒絕此媒合</button>`;
+      <button class="btn-main btn-dark" onclick="openBidModal('${m.id}')">有興趣</button>
+      <button class="btn-main btn-outline" onclick="rejectMatch('${m.id}')">沒興趣</button>`;
+  } else if (s === 'bidding') {
+    actEl.innerHTML = `<div style="text-align:center;color:#92400e;font-size:13px;padding:10px 0;background:#fef3c7;border-radius:var(--r)">已出價，等待盤商確認中...</div>`;
   } else if (s === 'accepted') {
-    actEl.innerHTML = `<button class="btn-main btn-dark" onclick="receiveMatch('${m.id}')">標記已收貨</button>`;
+    actEl.innerHTML = `<div style="text-align:center;color:#276749;font-size:13px;padding:10px 0;background:#f0fdf4;border-radius:var(--r)">恭喜得標！請依匯款指示完成付款，確認後將揭露完整地址與業務聯絡資訊。</div>`;
+  } else if (s === 'received') {
+    actEl.innerHTML = `<button class="btn-main btn-outline" onclick="receiveMatch('${m.id}')">標記已收貨</button>`;
   } else {
     actEl.innerHTML = '';
   }
 }
 
-async function acceptMatch(id) {
-  const db = requireSupabase(); if (!db) return;
-  const btns = document.querySelectorAll('#detail-actions .btn-main');
-  btns.forEach(b => { b.disabled = true; });
+let currentBidMatchId = null;
+
+function openBidModal(id) {
+  currentBidMatchId = id;
+  document.querySelector('input[name="bid-type"][value="single"]').checked = true;
+  onBidTypeChange();
+  document.getElementById('bid-single-price').value = '';
+  document.getElementById('bid-range-min').value = '';
+  document.getElementById('bid-range-max').value = '';
+  document.getElementById('bid-modal').style.display = 'flex';
+}
+
+function closeBidModal() {
+  document.getElementById('bid-modal').style.display = 'none';
+  currentBidMatchId = null;
+}
+
+function onBidTypeChange() {
+  const type = document.querySelector('input[name="bid-type"]:checked')?.value;
+  document.getElementById('bid-single-wrap').style.display = type === 'single' ? 'block' : 'none';
+  document.getElementById('bid-range-wrap').style.display = type === 'range' ? 'block' : 'none';
+}
+
+async function submitBid() {
+  const db = requireSupabase();
+  if (!db || !currentBidMatchId) return;
+  const type = document.querySelector('input[name="bid-type"]:checked')?.value;
+  let minPrice, maxPrice;
+  if (type === 'single') {
+    const val = parseFloat(document.getElementById('bid-single-price').value);
+    if (!val || val <= 0) { showToast('請輸入有效的出價金額'); return; }
+    minPrice = val; maxPrice = null;
+  } else {
+    const min = parseFloat(document.getElementById('bid-range-min').value);
+    const max = parseFloat(document.getElementById('bid-range-max').value);
+    if (!min || !max || min <= 0 || max <= 0) { showToast('請輸入有效的價格區間'); return; }
+    if (min > max) { showToast('最低價格不能高於最高價格'); return; }
+    minPrice = min; maxPrice = max;
+  }
+  const saveBtn = document.querySelector('#bid-modal .btn-modal-save');
+  saveBtn.disabled = true;
   const now = new Date().toISOString();
-  const { error } = await db.from('recycler_matches').update({ status: 'accepted', accepted_at: now }).eq('id', id);
-  if (error) { showToast('操作失敗，請再試一次'); btns.forEach(b => { b.disabled = false; }); return; }
-  const m = allMatchesCache.find(x => x.id === id);
-  if (m) { m.status = 'accepted'; m.accepted_at = now; }
-  showToast('已接受媒合！');
-  renderMatchDetail(m);
+  const { error } = await db.from('recycler_matches').update({
+    status: 'bidding', bid_price_min: minPrice, bid_price_max: maxPrice, bid_at: now
+  }).eq('id', currentBidMatchId);
+  saveBtn.disabled = false;
+  if (error) { showToast('送出失敗：' + error.message); return; }
+  const m = allMatchesCache.find(x => x.id === currentBidMatchId);
+  if (m) { m.status = 'bidding'; m.bid_price_min = minPrice; m.bid_price_max = maxPrice; m.bid_at = now; }
+  closeBidModal();
+  showToast('出價已送出，等待盤商確認！');
+  if (m) renderMatchDetail(m);
 }
 
 async function rejectMatch(id) {
@@ -2193,6 +2276,52 @@ async function deletePref(idx) {
 
 renderPrefList();
 </script>
+
+<div class="modal-overlay" id="bid-modal" style="display:none" onclick="if(event.target===this)closeBidModal()">
+<div class="modal">
+  <div class="modal-hd">
+    <div class="modal-title">提交出價</div>
+    <button class="modal-close" onclick="closeBidModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="modal-body">
+    <div style="padding:10px 12px;background:#fef3c7;border-radius:var(--r);font-size:13px;color:#92400e;margin-bottom:20px">
+      出價後需等待盤商審核確認，出價不等於成交。
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">出價方式</div>
+      <div style="display:flex;gap:16px;margin-bottom:16px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer">
+          <input type="radio" name="bid-type" value="single" checked onchange="onBidTypeChange()"> 單一價格
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer">
+          <input type="radio" name="bid-type" value="range" onchange="onBidTypeChange()"> 價格區間
+        </label>
+      </div>
+      <div id="bid-single-wrap">
+        <div class="field-label">出價金額（元）<span class="req">*</span></div>
+        <input class="field-input" type="number" id="bid-single-price" placeholder="例：15000" min="0">
+      </div>
+      <div id="bid-range-wrap" style="display:none">
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:1">
+            <div class="field-label">最低價（元）<span class="req">*</span></div>
+            <input class="field-input" type="number" id="bid-range-min" placeholder="例：12000" min="0">
+          </div>
+          <div style="padding-bottom:12px;color:var(--ink4);font-size:18px">～</div>
+          <div style="flex:1">
+            <div class="field-label">最高價（元）<span class="req">*</span></div>
+            <input class="field-input" type="number" id="bid-range-max" placeholder="例：18000" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-ft">
+    <button class="btn-modal-cancel" onclick="closeBidModal()">取消</button>
+    <button class="btn-modal-save" onclick="submitBid()">送出出價</button>
+  </div>
+</div>
+</div>
 
 <div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
 <div class="modal">
