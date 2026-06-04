@@ -4,6 +4,7 @@
 - 每次改完程式碼，都要 commit（除非使用者明確說先不要）
 - 改完 `recycler_onboarding.html` 後，同步一份到 `C:\Users\apin2\Downloads\秧秧空間設計有限公司\recycler_onboarding.html`
 - 不要動到已經正常運作的功能
+- 每次有新的技術決策、畫面異動、架構調整，順手更新本檔案對應區塊（工作習慣、專案架構、技術決策記錄、主要畫面對應）
 
 ## 專案架構
 - 單一 HTML 檔案 (`recycler_onboarding.html`)，前端邏輯全在這裡
