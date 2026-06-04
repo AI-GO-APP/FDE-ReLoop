@@ -1727,10 +1727,13 @@ async function saveServiceAreas() {
   if (!db || !currentRecyclerId) return;
   const areas = [...document.querySelectorAll('#service-area-chips .chip.sel')].map(c => c.textContent);
   const excl  = [...document.querySelectorAll('.exclusion-chip.sel')].map(c => c.textContent);
+  console.log('[areas] currentRecyclerId:', currentRecyclerId);
+  console.log('[areas] areas:', areas, 'excl:', excl);
   const { error } = await db
     .from('recycler_onboarding_accounts')
     .update({ service_areas: areas, service_exclusions: excl })
     .eq('id', currentRecyclerId);
+  console.log('[areas] update error:', error?.message, error?.code);
   if (error) { showToast('儲存失敗：' + error.message); return; }
   showToast('收貨範圍已儲存');
 }
