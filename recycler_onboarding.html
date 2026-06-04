@@ -1089,10 +1089,15 @@ async function upsertPreferenceRecord(pref, index) {
   const db = requireSupabase();
   if (!db) return false;
 
+  const payload = preferencePayload(pref, index);
+  console.log('[pref] currentRecyclerId:', currentRecyclerId);
+  console.log('[pref] payload:', JSON.stringify(payload));
+
   const { error } = await db
     .from('recycler_onboarding_preferences')
-    .upsert(preferencePayload(pref, index));
+    .upsert(payload);
 
+  console.log('[pref] upsert error:', error?.message, error?.code);
   if (error) {
     showToast('Supabase 偏好寫入失敗：' + error.message);
     return false;
