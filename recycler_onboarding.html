@@ -854,9 +854,11 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">媒合管理</div>
       </div>
       <div class="match-tabs-bar">
-        <button class="match-tab-btn act" id="tab-btn-notify" onclick="switchMatchTab('notify')">媒合通知<span id="tab-badge-notify" class="tab-count" style="display:none"></span></button>
-        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMatchTab('orders')">我的訂單</button>
+        <button class="match-tab-btn act" id="tab-btn-notify" onclick="switchMainTab('notify')">媒合通知<span id="tab-badge-notify" class="tab-count" style="display:none"></span></button>
+        <button class="match-tab-btn" id="tab-btn-matches" onclick="switchMainTab('matches')">我的媒合</button>
+        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMainTab('orders')">我的訂單</button>
       </div>
+      <div id="match-subtabs" style="display:none"></div>
       <div id="match-empty" style="text-align:center;padding:60px 0;display:none">
         <svg style="width:48px;height:48px;color:var(--paper3);display:block;margin:0 auto 16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <div id="match-empty-title" style="font-size:15px;font-weight:600;color:var(--ink2)">目前沒有媒合通知</div>
@@ -908,9 +910,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-address-row i{margin-top:1px;color:var(--green);flex-shrink:0}
 .match-meta{font-size:11px;color:var(--ink4)}
 .match-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px;margin-left:4px;vertical-align:middle}
-.match-tabs-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--paper3)}
-.match-tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 20px;font-size:14px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.match-tabs-bar{display:flex;gap:0;margin-bottom:0;border-bottom:2px solid var(--paper3)}
+.match-tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
 .match-tab-btn.act{color:var(--ink);border-bottom-color:var(--green);font-weight:600}
+.match-subtabs-bar{display:flex;gap:0;margin:12px 0 16px;border-bottom:1px solid var(--paper3)}
+.match-subtab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--ink4);cursor:pointer;transition:all .15s}
+.match-subtab-btn.act{color:var(--ink2);border-bottom-color:var(--ink3);font-weight:600}
 .tab-count{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px}
 .match-status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:6px}
 .status-accepted{background:#e6f7ee;color:#276749}
@@ -947,7 +952,10 @@ function makeId() {
 
 let currentRecyclerId = null;
 let allMatchesCache = [];
-let currentMatchTab = 'notify';
+let currentMainTab = 'notify';
+let currentNotifySubTab = 'active';
+let currentMatchesSubTab = 'interested';
+let bidCountdownTimer = null;
 let regSigPad = null;
 let regContractAgreed = false;
 
@@ -1122,12 +1130,13 @@ async function deletePreferenceRecord(pref) {
 
 // ── 畫面切換 ──
 function goScreen(id) {
+  stopBidCountdown();
   const all = document.querySelectorAll('.screen');
   all.forEach(s => s.classList.remove('act'));
   const el = document.getElementById(id);
   if(el) { el.classList.add('act'); }
   window.scrollTo(0, 0);
-  if (id === 'screen-matches') loadMatches();
+  if (id === 'screen-matches') { renderSubTabs(); loadMatches(); }
   if (id === 'screen-prefs') { loadPrefsFromDb(); loadServiceAreasFromDb(); }
   if (id === 'screen-profile') loadProfileFromDb();
   if (id === 'screen-register') resetRegisterScreen();
@@ -1239,6 +1248,33 @@ function clearRegSignature() {
 }
 
 // ── 媒合列表 ──
+function startBidCountdown(deadline) {
+  stopBidCountdown();
+  function tick() {
+    const el = document.getElementById('bid-countdown');
+    if (!el) { stopBidCountdown(); return; }
+    const rem = deadline.getTime() - Date.now();
+    if (rem <= 0) {
+      el.textContent = '（已截止）';
+      el.style.color = '#c53030';
+      stopBidCountdown();
+      const actEl = document.getElementById('detail-actions');
+      if (actEl) actEl.innerHTML = `<div style="text-align:center;color:#c53030;font-size:13px;padding:10px 0;background:#fff5f5;border-radius:var(--r)">出價期限已截止</div>`;
+      return;
+    }
+    const h = Math.floor(rem / 3600000);
+    const m = Math.floor((rem % 3600000) / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    el.textContent = `（剩 ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}）`;
+  }
+  tick();
+  bidCountdownTimer = setInterval(tick, 1000);
+}
+
+function stopBidCountdown() {
+  if (bidCountdownTimer) { clearInterval(bidCountdownTimer); bidCountdownTimer = null; }
+}
+
 function extractArea(addr) {
   if (!addr) return '';
   const m = addr.match(/[一-鿿]+[市縣][一-鿿]+[區鄉鎮市]/);
@@ -1284,7 +1320,11 @@ async function loadMatches() {
   if (error) { showToast('載入媒合列表失敗'); return; }
 
   allMatchesCache = data || [];
-  const unreadPending = allMatchesCache.filter(m => !m.is_read && (m.status || 'pending') === 'pending').length;
+  const unreadPending = allMatchesCache.filter(m => {
+    if (m.is_read || (m.status || 'pending') !== 'pending') return false;
+    const dl = m.bid_deadline ? new Date(m.bid_deadline) : new Date(new Date(m.created_at).getTime() + 24*60*60*1000);
+    return Date.now() <= dl.getTime();
+  }).length;
   updateMatchBadge(unreadPending);
   const nb = document.getElementById('tab-badge-notify');
   if (nb) { nb.textContent = unreadPending; nb.style.display = unreadPending > 0 ? 'inline-flex' : 'none'; }
@@ -1292,26 +1332,49 @@ async function loadMatches() {
   renderMatchList();
 }
 
+function matchIsExpired(m) {
+  const dl = m.bid_deadline ? new Date(m.bid_deadline) : new Date(new Date(m.created_at).getTime() + 24*60*60*1000);
+  return Date.now() > dl.getTime();
+}
+
 function renderMatchList() {
-  const tab = currentMatchTab;
-  const filtered = allMatchesCache.filter(m => {
-    const s = m.status || 'pending';
-    return tab === 'notify' ? s === 'pending' : (s === 'accepted' || s === 'received' || s === 'rejected');
-  });
+  let filtered;
+  if (currentMainTab === 'notify') {
+    const pending = allMatchesCache.filter(m => (m.status || 'pending') === 'pending');
+    filtered = currentNotifySubTab === 'active'
+      ? pending.filter(m => !matchIsExpired(m))
+      : pending.filter(m => matchIsExpired(m));
+  } else if (currentMainTab === 'matches') {
+    filtered = currentMatchesSubTab === 'interested'
+      ? allMatchesCache.filter(m => m.status === 'bidding')
+      : allMatchesCache.filter(m => m.status === 'rejected');
+  } else {
+    filtered = allMatchesCache.filter(m => ['accepted','payment_confirmed','received'].includes(m.status));
+  }
+
+  const emptyMessages = {
+    notify_active:  ['目前沒有媒合通知', '盤商配對到符合您偏好的設備時會在這裡通知您'],
+    notify_expired: ['沒有已截止的通知', '截止前未回覆的媒合通知會出現在這裡'],
+    matches_interested: ['尚無出價中的媒合', '對媒合通知點選「有興趣」後會出現在這裡'],
+    matches_rejected:   ['沒有拒絕的媒合', '點選「沒興趣」的媒合會出現在這裡'],
+    orders: ['尚無訂單', '得標後的媒合會出現在這裡'],
+  };
+  const emptyKey = currentMainTab === 'notify' ? `notify_${currentNotifySubTab}`
+    : currentMainTab === 'matches' ? `matches_${currentMatchesSubTab}` : 'orders';
 
   const emptyTitle = document.getElementById('match-empty-title');
   const emptySub = document.getElementById('match-empty-sub');
   if (filtered.length === 0) {
-    if (emptyTitle) emptyTitle.textContent = tab === 'notify' ? '目前沒有媒合通知' : '目前沒有訂單';
-    if (emptySub) emptySub.textContent = tab === 'notify' ? '盤商配對到符合您偏好的設備時會在這裡通知您' : '接受媒合後會顯示在這裡';
+    if (emptyTitle) emptyTitle.textContent = emptyMessages[emptyKey][0];
+    if (emptySub) emptySub.textContent = emptyMessages[emptyKey][1];
     document.getElementById('match-empty').style.display = 'block';
     document.getElementById('match-list').style.display = 'none';
     return;
   }
 
   const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
-  const statusLabel = { bidding:'已出價', accepted:'已得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
-  const statusClass = { bidding:'status-bidding', accepted:'status-accepted', payment_confirmed:'status-accepted', received:'status-received', rejected:'status-rejected' };
+  const statusLabel = { bidding:'已出價', accepted:'付款中', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
+  const statusClass = { bidding:'status-bidding', accepted:'status-bidding', payment_confirmed:'status-accepted', received:'status-received', rejected:'status-rejected' };
 
   document.getElementById('match-empty').style.display = 'none';
   document.getElementById('match-list').style.display = 'flex';
@@ -1321,7 +1384,7 @@ function renderMatchList() {
     return `
     <div class="match-card${isUnread ? ' unread' : ''}" onclick="openMatchDetail('${m.id}')">
       ${isUnread ? '<div class="unread-dot"></div>' : ''}
-      ${s !== 'pending' ? `<div class="match-status-badge ${statusClass[s]}">${statusLabel[s]}</div>` : ''}
+      ${s !== 'pending' ? `<div class="match-status-badge ${statusClass[s] || ''}">${statusLabel[s] || s}</div>` : ''}
       <div class="match-card-hd">
         <div class="match-device-name">${m.device_name}</div>
         <div class="match-time-label">${formatTimeAgo(m.created_at)}</div>
@@ -1333,10 +1396,38 @@ function renderMatchList() {
   }).join('');
 }
 
-function switchMatchTab(tab) {
-  currentMatchTab = tab;
-  document.getElementById('tab-btn-notify').classList.toggle('act', tab === 'notify');
-  document.getElementById('tab-btn-orders').classList.toggle('act', tab === 'orders');
+function switchMainTab(tab) {
+  currentMainTab = tab;
+  ['notify','matches','orders'].forEach(t =>
+    document.getElementById(`tab-btn-${t}`)?.classList.toggle('act', t === tab));
+  renderSubTabs();
+  renderMatchList();
+}
+
+function renderSubTabs() {
+  const el = document.getElementById('match-subtabs');
+  if (!el) return;
+  if (currentMainTab === 'notify') {
+    el.style.display = 'block';
+    el.innerHTML = `<div class="match-subtabs-bar">
+      <button class="match-subtab-btn${currentNotifySubTab==='active'?' act':''}" onclick="switchSubTab('active')">通知</button>
+      <button class="match-subtab-btn${currentNotifySubTab==='expired'?' act':''}" onclick="switchSubTab('expired')">已截止</button>
+    </div>`;
+  } else if (currentMainTab === 'matches') {
+    el.style.display = 'block';
+    el.innerHTML = `<div class="match-subtabs-bar">
+      <button class="match-subtab-btn${currentMatchesSubTab==='interested'?' act':''}" onclick="switchSubTab('interested')">有興趣</button>
+      <button class="match-subtab-btn${currentMatchesSubTab==='rejected'?' act':''}" onclick="switchSubTab('rejected')">沒興趣</button>
+    </div>`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function switchSubTab(sub) {
+  if (currentMainTab === 'notify') currentNotifySubTab = sub;
+  else if (currentMainTab === 'matches') currentMatchesSubTab = sub;
+  renderSubTabs();
   renderMatchList();
 }
 
@@ -1403,10 +1494,11 @@ function renderMatchDetail(m) {
     <div class="detail-info-row"><i class="ti ti-map-pin"></i><div>${addrDisplay}</div></div>
     <div class="detail-info-row"><i class="ti ti-tool"></i><div>狀況 ${m.condition}・${condLabel[m.condition] || m.condition}</div></div>
     ${m.note ? `<div class="detail-info-row"><i class="ti ti-notes"></i><div>${m.note}</div></div>` : ''}
-    ${s === 'pending' ? `<div class="detail-info-row" style="color:${isExpired ? '#c53030' : 'var(--ink3)'}"><i class="ti ti-clock-hour-4"></i><div>出價截止：${deadlineStr}${isExpired ? '（已截止）' : ''}</div></div>` : ''}
+    ${s === 'pending' ? `<div class="detail-info-row" style="color:${isExpired ? '#c53030' : 'var(--ink3)'}"><i class="ti ti-clock-hour-4"></i><div>出價截止：${deadlineStr}<span id="bid-countdown" style="font-size:12px;margin-left:4px"></span></div></div>` : ''}
     <div class="detail-info-row" style="color:var(--ink4)"><i class="ti ti-calendar"></i><div>通知時間：${new Date(m.created_at).toLocaleString('zh-TW')}</div></div>
     ${bidInfo}
     ${contactInfo}
+    ${s === 'accepted' && m.payment_last5 ? `<div class="detail-info-row"><i class="ti ti-clock-hour-4" style="color:#92400e"></i><div style="color:#92400e">匯款後5碼已提交，等待盤商確認</div></div>` : ''}
     ${m.accepted_at ? `<div class="detail-info-row"><i class="ti ti-trophy"></i><div>得標時間：${new Date(m.accepted_at).toLocaleString('zh-TW')}</div></div>` : ''}
     ${m.payment_confirmed_at ? `<div class="detail-info-row"><i class="ti ti-credit-card"></i><div>付款確認：${new Date(m.payment_confirmed_at).toLocaleString('zh-TW')}</div></div>` : ''}
     ${m.received_at ? `<div class="detail-info-row"><i class="ti ti-package"></i><div>收貨時間：${new Date(m.received_at).toLocaleString('zh-TW')}</div></div>` : ''}
@@ -1414,15 +1506,31 @@ function renderMatchDetail(m) {
 
   const actEl = document.getElementById('detail-actions');
   if (s === 'pending') {
-    actEl.innerHTML = `
-      <button class="btn-main btn-dark" onclick="openBidModal('${m.id}')">有興趣</button>
-      <button class="btn-main btn-outline" onclick="rejectMatch('${m.id}')">沒興趣</button>`;
+    if (isExpired) {
+      actEl.innerHTML = `<div style="text-align:center;color:#c53030;font-size:13px;padding:10px 0;background:#fff5f5;border-radius:var(--r)">出價期限已截止</div>`;
+    } else {
+      actEl.innerHTML = `
+        <button class="btn-main btn-dark" onclick="openBidModal('${m.id}')">有興趣</button>
+        <button class="btn-main btn-outline" onclick="rejectMatch('${m.id}')">沒興趣</button>`;
+      startBidCountdown(deadline);
+    }
   } else if (s === 'bidding') {
     actEl.innerHTML = `<div style="text-align:center;color:#92400e;font-size:13px;padding:10px 0;background:#fef3c7;border-radius:var(--r)">已出價，等待盤商確認中...</div>`;
   } else if (s === 'accepted') {
-    actEl.innerHTML = `<div style="text-align:center;color:#276749;font-size:13px;padding:10px 0;background:#f0fdf4;border-radius:var(--r)">恭喜得標！請依匯款指示完成付款，確認後將揭露完整地址與業務聯絡資訊。</div>`;
-  } else if (s === 'received') {
-    actEl.innerHTML = `<button class="btn-main btn-outline" onclick="receiveMatch('${m.id}')">標記已收貨</button>`;
+    if (m.payment_last5) {
+      actEl.innerHTML = `<div style="text-align:center;color:#92400e;font-size:13px;padding:10px 0;background:#fef3c7;border-radius:var(--r)">匯款資訊已提交（後5碼：${m.payment_last5}），等待盤商確認...</div>`;
+    } else if (m.bank_account_info) {
+      actEl.innerHTML = `
+        <div style="padding:12px 16px;background:#ebf4ff;border-radius:var(--r);border:1px solid #bee3f8;margin-bottom:12px">
+          <div style="font-size:12px;font-weight:600;color:#2b6cb0;margin-bottom:6px">盤商匯款帳號</div>
+          <div style="font-size:14px;color:var(--ink);letter-spacing:.05em">${m.bank_account_info}</div>
+        </div>
+        <button class="btn-main btn-dark" onclick="showPaymentForm('${m.id}')">完成匯款</button>`;
+    } else {
+      actEl.innerHTML = `<div style="text-align:center;color:#276749;font-size:13px;padding:10px 0;background:#f0fdf4;border-radius:var(--r)">恭喜得標！盤商將提供匯款資訊，請稍候。</div>`;
+    }
+  } else if (s === 'payment_confirmed') {
+    actEl.innerHTML = `<button class="btn-main btn-outline" onclick="receiveMatch('${m.id}')">確認收貨完成</button>`;
   } else {
     actEl.innerHTML = '';
   }
@@ -1480,6 +1588,46 @@ async function submitBid() {
   closeBidModal();
   showToast('出價已送出，等待盤商確認！');
   if (m) renderMatchDetail(m);
+}
+
+function showPaymentForm(id) {
+  const m = allMatchesCache.find(x => x.id === id);
+  const actEl = document.getElementById('detail-actions');
+  actEl.innerHTML = `
+    ${m?.bank_account_info ? `<div style="padding:12px 16px;background:#ebf4ff;border-radius:var(--r);border:1px solid #bee3f8;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:600;color:#2b6cb0;margin-bottom:6px">盤商匯款帳號</div>
+      <div style="font-size:14px;color:var(--ink);letter-spacing:.05em">${m.bank_account_info}</div>
+    </div>` : ''}
+    <div class="field-label">您的匯款帳號後5碼<span class="req">*</span></div>
+    <div style="font-size:11px;color:var(--ink4);margin-bottom:8px">請填寫您匯款時使用的帳號後5碼（不可與盤商帳號相同）</div>
+    <input class="field-input" type="text" id="payment-last5-input" maxlength="5" placeholder="例：12345" inputmode="numeric" style="margin-bottom:12px;letter-spacing:.15em">
+    <div style="display:flex;gap:10px">
+      <button class="btn-main btn-outline" style="flex:1" onclick="renderMatchDetail(allMatchesCache.find(x=>x.id==='${id}'))">取消</button>
+      <button class="btn-main btn-dark" style="flex:2" onclick="submitPaymentLast5('${id}')">確認送出</button>
+    </div>`;
+  document.getElementById('payment-last5-input')?.focus();
+}
+
+async function submitPaymentLast5(id) {
+  const db = requireSupabase();
+  if (!db) return;
+  const val = (document.getElementById('payment-last5-input')?.value || '').trim();
+  if (!/^\d{5}$/.test(val)) { showToast('請輸入5位數字'); return; }
+  const m = allMatchesCache.find(x => x.id === id);
+  if (m?.bank_account_last5 && val === m.bank_account_last5) {
+    showToast('不能填入盤商的匯款帳號後5碼'); return;
+  }
+  const btn = document.querySelector('#detail-actions .btn-dark');
+  if (btn) btn.disabled = true;
+  const now = new Date().toISOString();
+  const { error } = await db.from('recycler_matches')
+    .update({ payment_last5: val, payment_submitted_at: now })
+    .eq('id', id);
+  if (btn) btn.disabled = false;
+  if (error) { showToast('送出失敗：' + error.message); return; }
+  if (m) { m.payment_last5 = val; m.payment_submitted_at = now; }
+  showToast('匯款資訊已送出，等待盤商確認');
+  renderMatchDetail(m);
 }
 
 async function rejectMatch(id) {
