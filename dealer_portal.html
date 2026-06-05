@@ -163,8 +163,11 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div class="field">
       <label class="field-label">密碼</label>
-      <input class="field-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')doLogin()">
+      <div style="position:relative">
+        <input class="field-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" style="padding-right:40px"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <i class="ti ti-eye-off" onclick="togglePw('login-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px"></i>
+      </div>
     </div>
     <div id="login-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:4px">登入</button>
@@ -198,11 +201,17 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div class="field">
       <label class="field-label">密碼 <span style="color:var(--red)">*</span></label>
-      <input class="field-input" type="password" id="reg-password" placeholder="至少 8 個字元">
+      <div style="position:relative">
+        <input class="field-input" type="password" id="reg-password" placeholder="至少 8 個字元" style="padding-right:40px">
+        <i class="ti ti-eye-off" onclick="togglePw('reg-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px"></i>
+      </div>
     </div>
     <div class="field">
       <label class="field-label">確認密碼 <span style="color:var(--red)">*</span></label>
-      <input class="field-input" type="password" id="reg-password2" placeholder="再輸入一次">
+      <div style="position:relative">
+        <input class="field-input" type="password" id="reg-password2" placeholder="再輸入一次" style="padding-right:40px">
+        <i class="ti ti-eye-off" onclick="togglePw('reg-password2',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px"></i>
+      </div>
     </div>
     <div id="reg-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
     <button class="btn btn-primary btn-full" onclick="doRegister()" style="margin-top:4px">送出申請</button>
@@ -555,6 +564,14 @@ function goScreen(id) {
 // ════════════════════════════════════════════
 // Toast
 // ════════════════════════════════════════════
+function togglePw(inputId, icon) {
+  const input = document.getElementById(inputId);
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  icon.className = show ? 'ti ti-eye' : 'ti ti-eye-off';
+  icon.style.cssText = icon.style.cssText;
+}
+
 function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
