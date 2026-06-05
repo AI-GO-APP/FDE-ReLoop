@@ -1153,7 +1153,7 @@ async function loadEquipmentList() {
 function setEquipPage(p) { equipPage = p; renderEquipmentList(); }
 
 function renderEquipmentList() {
-  const q      = (document.getElementById('equipment-search')?.value || '').toLowerCase();
+  const q      = (document.getElementById('equipment-search')?.value || '').toLowerCase().replace(/^#/, '');
   const status = document.getElementById('equipment-status-filter')?.value || '';
   let list = equipmentCache;
   if (q)      list = list.filter(e => e.device_name.toLowerCase().includes(q) || e.id.slice(0,8).toUpperCase().includes(q.toUpperCase()));
@@ -1660,7 +1660,7 @@ function deadlineText(m) {
 function setMatchesPage(p) { matchesPage = p; renderMatchesList(); }
 
 function renderMatchesList() {
-  const q        = (document.getElementById('matches-search')?.value || '').toLowerCase();
+  const q        = (document.getElementById('matches-search')?.value || '').toLowerCase().replace(/^#/, '');
   const dateFrom = document.getElementById('matches-date-from')?.value;
   const dateTo   = document.getElementById('matches-date-to')?.value;
   const statusLabel = { pending:'待回覆', bidding:'已出價', proposed:'建議得標', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
