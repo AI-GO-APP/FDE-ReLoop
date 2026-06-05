@@ -297,6 +297,16 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .sig-clear-btn{position:absolute;top:8px;right:8px;padding:4px 10px;border:1px solid var(--paper3);border-radius:6px;background:var(--white);font-size:11px;color:var(--ink3);cursor:pointer}
 .sig-clear-btn:hover{border-color:var(--ink);color:var(--ink)}
 
+/* ── 偏好設定 Tab ── */
+.prefs-tab-bar{display:flex;border-bottom:2px solid var(--paper3);margin-bottom:24px;gap:4px}
+.prefs-tab-btn{padding:10px 18px;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;color:var(--ink4);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s}
+.prefs-tab-btn.act{color:var(--ink);border-bottom-color:var(--ink)}
+
+/* ── 搜尋 ── */
+.search-row{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.search-input{flex:1;padding:8px 12px;border:1.5px solid var(--paper3);border-radius:var(--r);font-size:13px;background:var(--white);color:var(--ink);outline:none}
+.search-input:focus{border-color:var(--ink)}
+
 /* ── 收貨偏好愛心按鈕 ── */
 .pref-star-btn{background:none;border:none;cursor:pointer;font-size:17px;padding:2px 4px;color:var(--ink4);transition:color .15s;line-height:1;flex-shrink:0}
 .pref-star-btn.starred{color:#e8394d}
@@ -593,7 +603,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item act" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
-        <button class="brand-nav-item" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合列表</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
       </div>
     </div>
     <div class="brand-footer">ReLoop · 設備回收交易平台</div>
@@ -711,13 +722,21 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
         <button class="brand-nav-item act" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
-        <button class="brand-nav-item" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合列表</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
       </div>
     </div>
     <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="form-col" style="padding:32px 24px;align-items:flex-start">
     <div style="width:100%;max-width:580px">
+      <div class="prefs-tab-bar">
+        <button class="prefs-tab-btn act" id="prefs-tab-delivery" onclick="switchPrefsTab('delivery')">收貨偏好</button>
+        <button class="prefs-tab-btn" id="prefs-tab-notify" onclick="switchPrefsTab('notify')">通知偏好</button>
+      </div>
+
+      <!-- 收貨偏好 panel -->
+      <div id="prefs-panel-delivery">
       <!-- 收貨範圍 -->
       <div style="margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--paper3)">
         <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px">收貨範圍</div>
@@ -770,12 +789,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </button>
       </div>
 
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:12px">
         <div>
           <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">我的收貨偏好</div>
           <div style="font-size:12px;color:var(--ink3);margin-top:3px">設定您願意收的設備條件，可新增多條</div>
         </div>
         <button class="btn-add-top" onclick="openModal()">+ 新增</button>
+      </div>
+      <div class="search-row">
+        <input class="search-input" id="prefs-search" type="text" placeholder="搜尋設備名稱或品牌..." oninput="renderPrefList()">
       </div>
       <div class="empty-state" id="empty-state">
         <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px;color:var(--paper3);display:block;margin:0 auto 16px"><path d="M4 4h16v10H4z"/><path d="M4 14H2v6h20v-6h-2"/><path d="M9 14h6"/></svg>
@@ -786,8 +808,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="pref-list" id="pref-list" style="display:none"></div>
       <button class="btn-add-bottom" id="btn-add-bottom" style="display:none" onclick="openModal()">+ 新增一條收貨偏好</button>
 
+      </div><!-- end prefs-panel-delivery -->
+
+      <!-- 通知偏好 panel -->
+      <div id="prefs-panel-notify" style="display:none">
       <!-- 推播通知偏好 -->
-      <div style="margin-top:32px;padding-top:28px;border-top:1px solid var(--paper3)">
+      <div>
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:12px">
           <div>
             <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">推播通知偏好</div>
@@ -824,6 +850,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
         <div id="notif-empty-msg" style="text-align:center;padding:20px;color:var(--ink4);font-size:13px">還沒有通知偏好，不設定則符合收貨偏好的媒合都會通知</div>
       </div>
+      </div><!-- end prefs-panel-notify -->
 
     </div>
   </div>
@@ -900,7 +927,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
-        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合列表</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
       </div>
     </div>
     <div class="brand-footer">ReLoop · 設備回收交易平台</div>
@@ -910,10 +938,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div style="margin-bottom:16px">
         <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">媒合管理</div>
       </div>
+      <div class="search-row" style="margin-bottom:12px">
+        <input class="search-input" id="match-search" type="text" placeholder="搜尋設備名稱..." oninput="renderMatchList()">
+      </div>
       <div class="match-tabs-bar">
         <button class="match-tab-btn act" id="tab-btn-notify" onclick="switchMainTab('notify')">媒合通知<span id="tab-badge-notify" class="tab-cnt-text" style="display:none"></span></button>
         <button class="match-tab-btn" id="tab-btn-matches" onclick="switchMainTab('matches')">我的媒合<span id="tab-count-matches" class="tab-cnt-text" style="display:none"></span></button>
-        <button class="match-tab-btn" id="tab-btn-orders" onclick="switchMainTab('orders')">我的訂單<span id="tab-count-orders" class="tab-cnt-text" style="display:none"></span></button>
       </div>
       <div id="match-subtabs" style="display:none"></div>
       <div id="match-empty" style="text-align:center;padding:60px 0;display:none">
@@ -939,17 +969,59 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
-        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合列表</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
       </div>
     </div>
     <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="form-col" style="padding:0;overflow-y:auto;align-items:flex-start">
     <div style="width:100%;max-width:580px;padding:24px;box-sizing:border-box">
-      <button class="detail-back-btn" onclick="goScreen('screen-matches')"><i class="ti ti-arrow-left"></i> 返回媒合列表</button>
+      <button class="detail-back-btn" onclick="goScreen('screen-matches')"><i class="ti ti-arrow-left"></i> 返回媒合管理</button>
       <div id="detail-photos-wrap" style="margin-bottom:20px"></div>
       <div id="detail-content"></div>
       <div id="detail-actions" style="margin-top:24px;display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     我的訂單
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-orders">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-headline">我的<br>訂單</div>
+      <div class="brand-sub">追蹤每筆得標設備的<br>付款與收貨進度。</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
+        <button class="brand-nav-item" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="form-col" style="padding:32px 24px;align-items:flex-start">
+    <div style="width:100%;max-width:580px">
+      <div style="margin-bottom:16px">
+        <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">我的訂單</div>
+      </div>
+      <div class="search-row" style="margin-bottom:12px">
+        <input class="search-input" id="orders-search" type="text" placeholder="搜尋設備名稱..." oninput="renderOrdersList()">
+      </div>
+      <div class="match-tabs-bar">
+        <button class="match-tab-btn act" id="orders-tab-btn-pending" onclick="switchOrdersSubTab('pending_payment')">待付款<span id="orders-tab-cnt-pending" class="tab-cnt-text" style="display:none"></span></button>
+        <button class="match-tab-btn" id="orders-tab-btn-confirmed" onclick="switchOrdersSubTab('payment_confirmed')">完成付款<span id="orders-tab-cnt-confirmed" class="tab-cnt-text" style="display:none"></span></button>
+        <button class="match-tab-btn" id="orders-tab-btn-received" onclick="switchOrdersSubTab('received')">已收貨<span id="orders-tab-cnt-received" class="tab-cnt-text" style="display:none"></span></button>
+      </div>
+      <div id="orders-empty" style="text-align:center;padding:60px 0;display:none">
+        <svg style="width:48px;height:48px;color:var(--paper3);display:block;margin:0 auto 16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <div id="orders-empty-title" style="font-size:15px;font-weight:600;color:var(--ink2)">尚無訂單</div>
+        <div id="orders-empty-sub" style="font-size:12px;color:var(--ink4);margin-top:6px"></div>
+      </div>
+      <div id="orders-list" style="display:none;flex-direction:column;gap:12px"></div>
     </div>
   </div>
 </div>
@@ -1200,6 +1272,7 @@ function goScreen(id) {
   if(el) { el.classList.add('act'); }
   window.scrollTo(0, 0);
   if (id === 'screen-matches') { renderSubTabs(); loadMatches(); }
+  if (id === 'screen-orders')  { renderOrdersList(); loadMatches(); }
   if (id === 'screen-prefs') { loadPrefsFromDb(); loadServiceAreasFromDb(); loadNotifPrefsFromDb(); }
   if (id === 'screen-profile') loadProfileFromDb();
   if (id === 'screen-register') resetRegisterScreen();
@@ -1411,7 +1484,15 @@ function updateAllTabCounts() {
   };
   set('tab-badge-notify', c.notify_active);
   set('tab-count-matches', c.matches_interested + c.matches_outbid + c.matches_rejected);
-  set('tab-count-orders', c.orders_pending + c.orders_confirmed + c.orders_received);
+  // 訂單 tab 計數
+  set('orders-tab-cnt-pending',   c.orders_pending);
+  set('orders-tab-cnt-confirmed', c.orders_confirmed);
+  set('orders-tab-cnt-received',  c.orders_received);
+  const ordersTotal = c.orders_pending + c.orders_confirmed + c.orders_received;
+  document.querySelectorAll('.orders-badge').forEach(el => {
+    if (ordersTotal > 0) { el.textContent = ordersTotal; el.style.display = 'inline'; }
+    else { el.style.display = 'none'; }
+  });
   updateMatchBadge(allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length);
 }
 
@@ -1421,19 +1502,18 @@ function matchIsExpired(m) {
 }
 
 function renderMatchList() {
+  const q = (document.getElementById('match-search')?.value || '').toLowerCase();
   let filtered;
   if (currentMainTab === 'notify') {
     const pending = allMatchesCache.filter(m => (m.status || 'pending') === 'pending');
     filtered = currentNotifySubTab === 'active'
       ? pending.filter(m => !matchIsExpired(m))
       : pending.filter(m => matchIsExpired(m));
-  } else if (currentMainTab === 'matches') {
+  } else {
     const matchStatusMap = { interested:'bidding', outbid:'outbid', rejected:'rejected' };
     filtered = allMatchesCache.filter(m => m.status === matchStatusMap[currentMatchesSubTab]);
-  } else {
-    const orderMap = { pending_payment:'accepted', payment_confirmed:'payment_confirmed', received:'received' };
-    filtered = allMatchesCache.filter(m => m.status === orderMap[currentOrdersSubTab]);
   }
+  if (q) filtered = filtered.filter(m => (m.device_name || '').toLowerCase().includes(q));
 
   // 愛心追蹤偏好排序：符合 starred 偏好的媒合排在最前面
   const starredDevices = prefs.filter(p => p.isStarred).map(p => p.device);
@@ -1495,7 +1575,7 @@ function renderMatchList() {
 
 function switchMainTab(tab) {
   currentMainTab = tab;
-  ['notify','matches','orders'].forEach(t =>
+  ['notify','matches'].forEach(t =>
     document.getElementById(`tab-btn-${t}`)?.classList.toggle('act', t === tab));
   renderSubTabs();
   renderMatchList();
@@ -1512,19 +1592,12 @@ function renderSubTabs() {
       <button class="match-subtab-btn${currentNotifySubTab==='active'?' act':''}" onclick="switchSubTab('active')">通知${cnt(c.notify_active)}</button>
       <button class="match-subtab-btn${currentNotifySubTab==='expired'?' act':''}" onclick="switchSubTab('expired')">已截止${cnt(c.notify_expired)}</button>
     </div>`;
-  } else if (currentMainTab === 'matches') {
+  } else {
     el.style.display = 'block';
     el.innerHTML = `<div class="match-subtabs-bar">
       <button class="match-subtab-btn${currentMatchesSubTab==='interested'?' act':''}" onclick="switchSubTab('interested')">有興趣${cnt(c.matches_interested)}</button>
       <button class="match-subtab-btn${currentMatchesSubTab==='outbid'?' act':''}" onclick="switchSubTab('outbid')">未得標${cnt(c.matches_outbid)}</button>
       <button class="match-subtab-btn${currentMatchesSubTab==='rejected'?' act':''}" onclick="switchSubTab('rejected')">沒興趣${cnt(c.matches_rejected)}</button>
-    </div>`;
-  } else {
-    el.style.display = 'block';
-    el.innerHTML = `<div class="match-subtabs-bar">
-      <button class="match-subtab-btn${currentOrdersSubTab==='pending_payment'?' act':''}" onclick="switchSubTab('pending_payment')">尚未付款${cnt(c.orders_pending)}</button>
-      <button class="match-subtab-btn${currentOrdersSubTab==='payment_confirmed'?' act':''}" onclick="switchSubTab('payment_confirmed')">完成付款${cnt(c.orders_confirmed)}</button>
-      <button class="match-subtab-btn${currentOrdersSubTab==='received'?' act':''}" onclick="switchSubTab('received')">已收貨${cnt(c.orders_received)}</button>
     </div>`;
   }
 }
@@ -1532,7 +1605,6 @@ function renderSubTabs() {
 function switchSubTab(sub) {
   if (currentMainTab === 'notify') currentNotifySubTab = sub;
   else if (currentMainTab === 'matches') currentMatchesSubTab = sub;
-  else if (currentMainTab === 'orders') currentOrdersSubTab = sub;
   renderSubTabs();
   renderMatchList();
 }
@@ -2502,10 +2574,19 @@ function renderPrefList() {
     return;
   }
   empty.style.display  = 'none';
-  list.style.display   = 'flex';
   addBtn.style.display = 'block';
 
-  list.innerHTML = prefs.map((p, i) => {
+  const q = (document.getElementById('prefs-search')?.value || '').toLowerCase();
+  const displayPrefs = q
+    ? prefs.filter(p =>
+        (p.device || '').toLowerCase().includes(q) ||
+        (p.l2name || '').toLowerCase().includes(q) ||
+        (p.brands || []).some(b => b.toLowerCase().includes(q)))
+    : prefs;
+
+  list.style.display = displayPrefs.length > 0 ? 'flex' : 'none';
+  list.innerHTML = displayPrefs.map((p, i) => {
+    const idx = prefs.indexOf(p);
     const condTags = Object.entries(p.conds).filter(([,v]) => v).map(([k]) =>
       '<span class="ptag ptag-cond-' + k + '">狀況 ' + k.toUpperCase() + '</span>'
     ).join('');
@@ -2519,11 +2600,11 @@ function renderPrefList() {
     const noteTag  = p.note ? '<span class="ptag ptag-note" title="' + p.note + '">備註：' + p.note + '</span>' : '';
     return '<div class="pref-card">' +
       '<div class="pref-card-hd">' +
-        '<div class="pref-num">偏好 ' + (i+1) + '</div>' +
+        '<div class="pref-num">偏好 ' + (idx+1) + '</div>' +
         '<div class="pref-label"></div>' +
-        '<button class="pref-star-btn' + (p.isStarred ? ' starred' : '') + '" title="' + (p.isStarred ? '取消追蹤' : '加入追蹤，符合的媒合排最前面') + '" onclick="togglePrefStar(' + i + ')">♥</button>' +
-        '<button class="pref-edit-btn" onclick="openModal(' + i + ')">✏️ 編輯</button>' +
-        '<button class="pref-del-btn" onclick="deletePref(' + i + ')">🗑</button>' +
+        '<button class="pref-star-btn' + (p.isStarred ? ' starred' : '') + '" title="' + (p.isStarred ? '取消追蹤' : '加入追蹤，符合的媒合排最前面') + '" onclick="togglePrefStar(' + idx + ')">♥</button>' +
+        '<button class="pref-edit-btn" onclick="openModal(' + idx + ')">✏️ 編輯</button>' +
+        '<button class="pref-del-btn" onclick="deletePref(' + idx + ')">🗑</button>' +
       '</div>' +
       '<div class="pref-card-body">' +
         '<div class="pref-path">' +
@@ -2552,6 +2633,79 @@ async function deletePref(idx) {
 
 
 renderPrefList();
+
+// ════════════════════════════════════════════
+// 偏好設定 Tab 切換
+// ════════════════════════════════════════════
+
+function switchPrefsTab(tab) {
+  document.getElementById('prefs-tab-delivery').classList.toggle('act', tab === 'delivery');
+  document.getElementById('prefs-tab-notify').classList.toggle('act', tab === 'notify');
+  document.getElementById('prefs-panel-delivery').style.display = tab === 'delivery' ? 'block' : 'none';
+  document.getElementById('prefs-panel-notify').style.display   = tab === 'notify'   ? 'block' : 'none';
+  if (tab === 'notify') loadNotifPrefsFromDb();
+}
+
+// ════════════════════════════════════════════
+// 我的訂單
+// ════════════════════════════════════════════
+
+function switchOrdersSubTab(sub) {
+  currentOrdersSubTab = sub;
+  ['pending_payment','payment_confirmed','received'].forEach(s => {
+    const key = s === 'pending_payment' ? 'pending' : s === 'payment_confirmed' ? 'confirmed' : 'received';
+    document.getElementById(`orders-tab-btn-${key}`)?.classList.toggle('act', s === sub);
+  });
+  renderOrdersList();
+}
+
+function renderOrdersList() {
+  const q = (document.getElementById('orders-search')?.value || '').toLowerCase();
+  const orderMap = { pending_payment:'accepted', payment_confirmed:'payment_confirmed', received:'received' };
+  let filtered = allMatchesCache.filter(m => m.status === orderMap[currentOrdersSubTab]);
+  if (q) filtered = filtered.filter(m => (m.device_name || '').toLowerCase().includes(q));
+
+  const emptyMessages = {
+    pending_payment:   ['尚無待付款訂單', '得標後請盡快完成匯款'],
+    payment_confirmed: ['尚無完成付款的訂單', '付款確認後會出現在這裡'],
+    received:          ['尚無已收貨的訂單', '確認收貨後會出現在這裡'],
+  };
+
+  const emptyEl    = document.getElementById('orders-empty');
+  const listEl     = document.getElementById('orders-list');
+  const emptyTitle = document.getElementById('orders-empty-title');
+  const emptySub   = document.getElementById('orders-empty-sub');
+
+  if (filtered.length === 0) {
+    emptyTitle.textContent = emptyMessages[currentOrdersSubTab][0];
+    emptySub.textContent   = emptyMessages[currentOrdersSubTab][1];
+    emptyEl.style.display  = 'block';
+    listEl.style.display   = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  listEl.style.display  = 'flex';
+
+  const condLabel   = { A:'良好', B:'普通', C:'堪用', D:'待修' };
+  const statusLabel = { accepted:'付款中', payment_confirmed:'已付款', received:'已收貨' };
+  const statusClass = { accepted:'status-bidding', payment_confirmed:'status-accepted', received:'status-received' };
+
+  listEl.innerHTML = filtered.map(m => {
+    const s = m.status;
+    return `
+    <div class="match-card" onclick="openMatchDetail('${m.id}')">
+      <div class="match-status-badge ${statusClass[s] || ''}">${statusLabel[s] || s}</div>
+      <div class="match-card-hd">
+        <div class="match-device-name">${m.device_name}</div>
+        <div class="match-time-label">${formatTimeAgo(m.created_at)}</div>
+      </div>
+      <div class="match-cat-tag">${m.category_name}</div>
+      <div class="match-address-row"><i class="ti ti-map-pin"></i>${displayAddress(m)}</div>
+      <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.note ? '・' + m.note : ''}</div>
+    </div>`;
+  }).join('');
+}
 
 // ════════════════════════════════════════════
 // 愛心追蹤 (is_starred)
