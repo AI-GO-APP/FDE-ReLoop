@@ -1474,14 +1474,26 @@ async function approveWinner(matchId) {
   const db = getSupabase();
   if (!db) return;
   const m = matchesMatchCache.find(x => x.id === matchId);
+  if (!m) { showToast('找不到媒合記錄'); return; }
   if (!confirm(`核定「${m?.recycler_onboarding_accounts?.company_name}」為最終得標廠商？其他回收商將標記為未得標。`)) return;
-  // 同一設備其他出價 → outbid
-  const sameDevice = matchesMatchCache.filter(x => x.equipment_listing_id === m.equipment_listing_id && x.id !== matchId && ['bidding','proposed'].includes(x.status));
+
+  // 得標者 → accepted
+  const { error } = await db.from('recycler_matches')
+    .update({ status: 'accepted', accepted_at: new Date().toISOString(), is_read: false })
+    .eq('id', matchId);
+  if (error) { showToast('核定失敗：' + error.message); return; }
+
+  // 同一設備其他出價中/建議得標 → outbid
+  const sameDevice = matchesMatchCache.filter(x =>
+    x.equipment_listing_id === m.equipment_listing_id &&
+    x.id !== matchId &&
+    ['bidding','proposed'].includes(x.status)
+  );
   for (const x of sameDevice) {
-    await db.from('recycler_matches').update({ status: 'outbid' }).eq('id', x.id);
+    const { error: e2 } = await db.from('recycler_matches').update({ status: 'outbid' }).eq('id', x.id);
+    if (e2) console.warn('outbid 更新失敗', x.id, e2.message);
   }
-  const { error } = await db.from('recycler_matches').update({ status: 'accepted', accepted_at: new Date().toISOString() }).eq('id', matchId);
-  if (error) { showToast('操作失敗：' + error.message); return; }
+
   showToast('已核定得標，回收商將收到通知');
   loadMatchesList();
   loadAllBadges();
