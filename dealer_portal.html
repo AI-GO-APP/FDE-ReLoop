@@ -3479,8 +3479,8 @@ function openCaseSign(caseId, type) {
   if (isMandate) {
     const priceStr = c?.estimate_price != null
       ? (c.estimate_price_max
-          ? `新台幣 <strong>${Number(c.estimate_price).toLocaleString()} ～ ${Number(c.estimate_price_max).toLocaleString()}</strong> 元（評估總包價範圍）`
-          : `新台幣 <strong>${Number(c.estimate_price).toLocaleString()}</strong> 元整（評估總包價）`)
+          ? `新台幣 <strong>${Number(c.estimate_price).toLocaleString()} ～ ${Number(c.estimate_price_max).toLocaleString()}</strong> 元`
+          : `新台幣 <strong>${Number(c.estimate_price).toLocaleString()}</strong> 元整`)
       : '（待評估）';
     contractBody.innerHTML = `<p>立書人：退場商家（以下稱「委任人」）委任<strong>秧秧空間設計有限公司</strong>（以下稱「受託人」）進行設備評估、媒合與交付等相關事宜，雙方協議如下：</p>
       <p><strong>一、委任範圍</strong><br>委任人同意授權受託人就本案件所列設備，進行市場評估、向回收商媒合出售及後續交付作業。</p>
