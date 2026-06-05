@@ -1742,11 +1742,7 @@ let currentBidMatchId = null;
 
 function openBidModal(id) {
   currentBidMatchId = id;
-  document.querySelector('input[name="bid-type"][value="single"]').checked = true;
-  onBidTypeChange();
   document.getElementById('bid-single-price').value = '';
-  document.getElementById('bid-range-min').value = '';
-  document.getElementById('bid-range-max').value = '';
   document.getElementById('bid-modal').style.display = 'flex';
 }
 
@@ -1755,28 +1751,12 @@ function closeBidModal() {
   currentBidMatchId = null;
 }
 
-function onBidTypeChange() {
-  const type = document.querySelector('input[name="bid-type"]:checked')?.value;
-  document.getElementById('bid-single-wrap').style.display = type === 'single' ? 'block' : 'none';
-  document.getElementById('bid-range-wrap').style.display = type === 'range' ? 'block' : 'none';
-}
-
 async function submitBid() {
   const db = requireSupabase();
   if (!db || !currentBidMatchId) return;
-  const type = document.querySelector('input[name="bid-type"]:checked')?.value;
-  let minPrice, maxPrice;
-  if (type === 'single') {
-    const val = parseFloat(document.getElementById('bid-single-price').value);
-    if (!val || val <= 0) { showToast('請輸入有效的出價金額'); return; }
-    minPrice = val; maxPrice = null;
-  } else {
-    const min = parseFloat(document.getElementById('bid-range-min').value);
-    const max = parseFloat(document.getElementById('bid-range-max').value);
-    if (!min || !max || min <= 0 || max <= 0) { showToast('請輸入有效的價格區間'); return; }
-    if (min > max) { showToast('最低價格不能高於最高價格'); return; }
-    minPrice = min; maxPrice = max;
-  }
+  const val = parseFloat(document.getElementById('bid-single-price').value);
+  if (!val || val <= 0) { showToast('請輸入有效的出價金額'); return; }
+  const minPrice = val; const maxPrice = null;
   const saveBtn = document.querySelector('#bid-modal .btn-modal-save');
   saveBtn.disabled = true;
   const now = new Date().toISOString();
@@ -3104,32 +3084,8 @@ async function forceAddNotifPref() {
       出價後需等待盤商審核確認，出價不等於成交。
     </div>
     <div class="form-section">
-      <div class="form-section-title">出價方式</div>
-      <div style="display:flex;gap:16px;margin-bottom:16px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer">
-          <input type="radio" name="bid-type" value="single" checked onchange="onBidTypeChange()"> 單一價格
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer">
-          <input type="radio" name="bid-type" value="range" onchange="onBidTypeChange()"> 價格區間
-        </label>
-      </div>
-      <div id="bid-single-wrap">
-        <div class="field-label">出價金額（元）<span class="req">*</span></div>
-        <input class="field-input" type="number" id="bid-single-price" placeholder="例：15000" min="0">
-      </div>
-      <div id="bid-range-wrap" style="display:none">
-        <div style="display:flex;gap:10px;align-items:flex-end">
-          <div style="flex:1">
-            <div class="field-label">最低價（元）<span class="req">*</span></div>
-            <input class="field-input" type="number" id="bid-range-min" placeholder="例：12000" min="0">
-          </div>
-          <div style="padding-bottom:12px;color:var(--ink4);font-size:18px">～</div>
-          <div style="flex:1">
-            <div class="field-label">最高價（元）<span class="req">*</span></div>
-            <input class="field-input" type="number" id="bid-range-max" placeholder="例：18000" min="0">
-          </div>
-        </div>
-      </div>
+      <div class="field-label">出價金額（元）<span class="req">*</span></div>
+      <input class="field-input" type="number" id="bid-single-price" placeholder="例：15000" min="0">
     </div>
   </div>
   <div class="modal-ft">
