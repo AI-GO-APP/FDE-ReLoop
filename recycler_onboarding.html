@@ -969,15 +969,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-profile')"><i class="ti ti-user"></i><span>基本資料</span></button>
         <button class="brand-nav-item" type="button" onclick="goScreen('screen-prefs')"><i class="ti ti-adjustments-horizontal"></i><span>偏好設定</span></button>
-        <button class="brand-nav-item act" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
-        <button class="brand-nav-item" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" id="detail-nav-matches" type="button" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="match-badge" style="display:none"></span></button>
+        <button class="brand-nav-item" id="detail-nav-orders" type="button" onclick="goScreen('screen-orders')"><i class="ti ti-receipt"></i><span>我的訂單</span><span class="orders-badge" style="display:none"></span></button>
       </div>
     </div>
     <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="form-col" style="padding:0;overflow-y:auto;align-items:flex-start">
     <div style="width:100%;max-width:580px;padding:24px;box-sizing:border-box">
-      <button class="detail-back-btn" onclick="goScreen('screen-matches')"><i class="ti ti-arrow-left"></i> 返回媒合管理</button>
+      <button class="detail-back-btn" id="detail-back-btn" onclick="goScreen(window._detailFrom||'screen-matches')"><i class="ti ti-arrow-left"></i> <span id="detail-back-label">返回媒合管理</span></button>
       <div id="detail-photos-wrap" style="margin-bottom:20px"></div>
       <div id="detail-content"></div>
       <div id="detail-actions" style="margin-top:24px;display:flex;flex-direction:column;gap:10px"></div>
@@ -1654,7 +1654,7 @@ function switchSubTab(sub) {
   renderMatchList();
 }
 
-async function openMatchDetail(id) {
+async function openMatchDetail(id, fromScreen) {
   const match = allMatchesCache.find(m => m.id === id);
   if (!match) return;
   if (!match.is_read && (match.status || 'pending') === 'pending') {
@@ -1666,6 +1666,12 @@ async function openMatchDetail(id) {
     const nb = document.getElementById('tab-badge-notify');
     if (nb) { nb.textContent = unread; nb.style.display = unread > 0 ? 'inline-flex' : 'none'; }
   }
+  const from = fromScreen || 'screen-matches';
+  window._detailFrom = from;
+  const isOrders = from === 'screen-orders';
+  document.getElementById('detail-back-label').textContent = isOrders ? '返回我的訂單' : '返回媒合管理';
+  document.getElementById('detail-nav-matches').classList.toggle('act', !isOrders);
+  document.getElementById('detail-nav-orders').classList.toggle('act', isOrders);
   goScreen('screen-match-detail');
   renderMatchDetail(match);
 }
@@ -2725,7 +2731,7 @@ function renderOrdersList() {
   listEl.innerHTML = filtered.map(m => {
     const s = m.status;
     return `
-    <div class="match-card" onclick="openMatchDetail('${m.id}')">
+    <div class="match-card" onclick="openMatchDetail('${m.id}', 'screen-orders')">
       <div class="match-status-badge ${statusClass[s] || ''}">${statusLabel[s] || s}</div>
       <div class="match-card-hd">
         <div class="match-device-name">${m.device_name}</div>
