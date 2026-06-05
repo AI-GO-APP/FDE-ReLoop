@@ -248,7 +248,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
         <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
@@ -296,7 +296,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
-        <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff2" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
@@ -308,13 +308,20 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   <div class="main-col">
     <div class="main-header">
       <div class="main-header-top">
-        <div class="main-title">媒合管理</div>
+        <div class="main-title">交易管理</div>
       </div>
     </div>
     <div class="main-body">
       <div id="matches-category-tabs" class="match-tabs-bar" style="margin-bottom:16px;flex-wrap:wrap"></div>
       <div class="search-row" style="flex-wrap:wrap;gap:8px">
         <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備/廠商/設備ID..." oninput="renderMatchesList()" style="min-width:180px">
+        <select class="field-input" id="matches-status-filter" onchange="matchesStatusFilter=this.value;renderMatchesList()" style="width:150px;flex:none">
+          <option value="">全部狀態</option>
+          <option value="pending">媒合中（等回覆）</option>
+          <option value="bidding">有人出價</option>
+          <option value="proposed">待確認得標商</option>
+          <option value="delivery">準備交貨</option>
+        </select>
         <input class="field-input" id="matches-date-from" type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知開始日期">
         <input class="field-input" id="matches-date-to"   type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知結束日期">
         <button class="btn btn-ghost btn-sm" onclick="clearMatchesFilter()">清除</button>
@@ -335,7 +342,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff4" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
@@ -372,7 +379,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
         <button class="brand-nav-item act dealer-admin-only" onclick="goScreen('screen-staff')"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff3" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
@@ -410,7 +417,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches5" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches5" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments5" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff5" style="display:none"></span></button>
         <button class="brand-nav-item act dealer-admin-only" onclick="goScreen('screen-recyclers')"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
@@ -451,7 +458,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches6" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches6" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments6" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff6" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
@@ -1639,8 +1646,6 @@ function renderPaymentsList() {
     if (currentPayTab === 'pending') {
       actions = `<button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
                  <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>`;
-    } else if (currentPayTab === 'confirmed') {
-      actions = `<button class="btn btn-primary btn-sm" onclick="confirmReceived('${m.id}')"><i class="ti ti-truck"></i> 確認收貨</button>`;
     }
     const payEquipNo = m.equipment_listing_id ? m.equipment_listing_id.slice(0,8).toUpperCase() : '—';
     return `<tr>
@@ -1701,7 +1706,8 @@ async function confirmReceived(matchId) {
 // ════════════════════════════════════════════
 let matchesListingsCache = [];
 let matchesMatchCache = [];
-let matchesCategory = ''; // 空字串 = 全部，否則為大分類名稱
+let matchesCategory = '';
+let matchesStatusFilter = '';
 
 const MATCH_MAIN_CAT_MAP = {
   '冷藏冷凍設備':'家電類', '烹調加熱設備':'家電類', '飲料吧設備':'家電類',
@@ -1761,7 +1767,9 @@ function clearMatchesFilter() {
   document.getElementById('matches-search').value = '';
   document.getElementById('matches-date-from').value = '';
   document.getElementById('matches-date-to').value = '';
+  document.getElementById('matches-status-filter').value = '';
   matchesCategory = '';
+  matchesStatusFilter = '';
   buildMatchCategoryTabs();
   renderMatchesList();
 }
@@ -1833,6 +1841,13 @@ function renderMatchesList() {
   }
   if (dateFrom) listings = listings.filter(l => new Date(l.created_at) >= new Date(dateFrom));
   if (dateTo)   listings = listings.filter(l => new Date(l.created_at) <= new Date(dateTo + 'T23:59:59'));
+  if (matchesStatusFilter) {
+    listings = listings.filter(l => {
+      const allMs = matchMap[l.id] || [];
+      if (matchesStatusFilter === 'delivery') return allMs.some(m => ['accepted','payment_confirmed'].includes(m.status));
+      return allMs.some(m => m.status === matchesStatusFilter);
+    });
+  }
 
   const listEl = document.getElementById('matches-list');
   if (listings.length === 0) {
@@ -1884,7 +1899,18 @@ function renderMatchesList() {
           <span style="font-weight:700;font-size:13px">${l.device_name}</span>
           <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.pickup_address || l.region}</span>
           <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">${equipNo}</span>
-          ${ms.length > 0 ? `<span class="badge badge-active">${ms.length} 筆</span>` : ''}
+          ${(() => {
+            const cntP = allMs.filter(m=>m.status==='pending').length;
+            const cntB = allMs.filter(m=>m.status==='bidding').length;
+            const cntPr = allMs.filter(m=>m.status==='proposed').length;
+            const cntD = allMs.filter(m=>['accepted','payment_confirmed'].includes(m.status)).length;
+            return [
+              cntP  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#fed7aa;color:#c2410c;font-weight:600">待回覆 ${cntP}</span>` : '',
+              cntB  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#bfdbfe;color:#1d4ed8;font-weight:600">已出價 ${cntB}</span>` : '',
+              cntPr ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#e9d5ff;color:#7e22ce;font-weight:600">待核定 ${cntPr}</span>` : '',
+              cntD  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#bbf7d0;color:#166534;font-weight:600">待交貨 ${cntD}</span>` : '',
+            ].join('');
+          })()}
         </div>
         <div style="display:flex;gap:12px;align-items:center">
           ${reNotifyBtn}
