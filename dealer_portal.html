@@ -91,6 +91,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .badge-accepted{background:var(--blue-l);color:var(--blue)}
 .badge-payment_confirmed{background:var(--green-l);color:var(--green)}
 .badge-received{background:var(--paper2);color:var(--ink3)}
+.badge-proposed{background:var(--amber-l);color:var(--amber)}
 .badge-matched{background:var(--blue-l);color:var(--blue)}
 .badge-completed{background:var(--green-l);color:var(--green)}
 
@@ -244,7 +245,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
       </div>
     </div>
@@ -289,7 +289,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids2" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
       </div>
     </div>
@@ -315,39 +314,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- ══════════════════════════════════════════
-     出價管理
-══════════════════════════════════════════ -->
-<div class="screen" id="screen-bids">
-  <div class="brand-col">
-    <div>
-      <div class="brand-logo">Re<span>Loop</span></div>
-      <div class="brand-role">盤商後台</div>
-      <div class="brand-nav">
-        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
-        <button class="brand-nav-item act" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids3" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
-      </div>
-    </div>
-    <div>
-      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
-      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-    </div>
-  </div>
-  <div class="main-col">
-    <div class="main-header">
-      <div class="main-header-top">
-        <div class="main-title">出價管理</div>
-      </div>
-    </div>
-    <div class="main-body">
-      <div id="bids-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
-      <div id="bids-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
      款項管理
 ══════════════════════════════════════════ -->
 <div class="screen" id="screen-payments">
@@ -358,7 +324,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-nav">
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids4" style="display:none"></span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
       </div>
     </div>
@@ -543,6 +508,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 // ════════════════════════════════════════════
 const SUPABASE_URL = '__SUPABASE_URL__';
 const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+let currentDealerRole = 'agent'; // agent | manager | admin
 
 function getSupabase() {
   if (window._sb) return window._sb;
@@ -560,7 +526,6 @@ function goScreen(id) {
   window.scrollTo(0, 0);
   if (id === 'screen-equipment') loadEquipmentList();
   if (id === 'screen-matches')   loadMatchesList();
-  if (id === 'screen-bids')      loadBidsList();
   if (id === 'screen-payments')  loadPaymentsList();
 }
 
@@ -618,6 +583,10 @@ async function doLogin() {
     errEl.style.display = 'block';
     return;
   }
+
+  // 讀取角色
+  const { data: acctData } = await db.from('dealer_accounts').select('role').single();
+  if (acctData?.role) currentDealerRole = acctData.role;
 
   goScreen('screen-equipment');
   loadAllBadges();
@@ -691,14 +660,14 @@ async function loadAllBadges() {
   if (!db) return;
   const { data } = await db.from('recycler_matches').select('status, payment_last5');
   if (!data) return;
-  const bids     = data.filter(m => m.status === 'bidding').length;
+  const proposed = data.filter(m => m.status === 'proposed').length;
   const payments = data.filter(m => m.status === 'accepted' && m.payment_last5).length;
-  setBadge('bids',     bids);
+  setBadge('matches', proposed);
   setBadge('payments', payments);
 }
 
 function setBadge(key, count) {
-  [1,2,3,4].forEach(i => {
+  [1,2,4].forEach(i => {
     const el = document.getElementById(`nav-badge-${key}${i > 1 ? i : ''}`);
     if (!el) return;
     el.textContent = count;
@@ -991,73 +960,34 @@ async function confirmAndNotify() {
 }
 
 // ════════════════════════════════════════════
-// 出價管理
+// 建議得標 (業務) / 核定得標 (主管)
 // ════════════════════════════════════════════
-let bidsCache = [];
-
-async function loadBidsList() {
-  const db = getSupabase();
-  document.getElementById('bids-loading').style.display = 'block';
-  document.getElementById('bids-list').innerHTML = '';
-  if (!db) { document.getElementById('bids-loading').style.display = 'none'; return; }
-
-  const { data } = await db
-    .from('recycler_matches')
-    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone)')
-    .eq('status', 'bidding')
-    .order('bid_price_min', { ascending: false });
-
-  bidsCache = data || [];
-  document.getElementById('bids-loading').style.display = 'none';
-
-  if (bidsCache.length === 0) {
-    document.getElementById('bids-list').innerHTML = '<div class="empty-state"><i class="ti ti-gavel"></i><p>目前沒有待審出價</p></div>';
-    return;
-  }
-
-  // 依設備分組
-  const grouped = {};
-  bidsCache.forEach(m => {
-    if (!grouped[m.device_name]) grouped[m.device_name] = [];
-    grouped[m.device_name].push(m);
-  });
-
-  document.getElementById('bids-list').innerHTML = Object.entries(grouped).map(([device, bids]) => `
-    <div class="card">
-      <div class="card-title"><i class="ti ti-box"></i>${device}</div>
-      <table class="data-table">
-        <thead><tr><th>回收商</th><th>出價</th><th>出價時間</th><th style="text-align:right">操作</th></tr></thead>
-        <tbody>${bids.sort((a,b) => b.bid_price_min - a.bid_price_min).map(m => `
-          <tr>
-            <td style="font-weight:600">${m.recycler_onboarding_accounts?.company_name || '—'}</td>
-            <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
-            <td style="color:var(--ink3);font-size:12px">${m.bid_at ? new Date(m.bid_at).toLocaleString('zh-TW') : '—'}</td>
-            <td><div class="td-actions">
-              <button class="btn btn-green btn-sm" onclick="selectWinner('${m.id}')"><i class="ti ti-trophy"></i> 選為得標</button>
-            </div></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`).join('');
-}
-
-async function selectWinner(matchId) {
+async function proposeWinner(matchId) {
   const db = getSupabase();
   if (!db) return;
-  const match = bidsCache.find(m => m.id === matchId);
-  if (!confirm(`確認選定「${match?.recycler_onboarding_accounts?.company_name}」為得標廠商？`)) return;
+  const m = matchesMatchCache.find(x => x.id === matchId);
+  if (!confirm(`建議「${m?.recycler_onboarding_accounts?.company_name}」為得標廠商？送出後需主管核定。`)) return;
+  const { error } = await db.from('recycler_matches').update({ status: 'proposed' }).eq('id', matchId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+  showToast('已送出建議，等待主管核定');
+  loadMatchesList();
+  loadAllBadges();
+}
 
-  // 同一設備的其他出價設為 outbid
-  const sameDevice = bidsCache.filter(m => m.device_name === match.device_name && m.id !== matchId);
-  for (const m of sameDevice) {
-    await db.from('recycler_matches').update({ status: 'outbid' }).eq('id', m.id);
+async function approveWinner(matchId) {
+  const db = getSupabase();
+  if (!db) return;
+  const m = matchesMatchCache.find(x => x.id === matchId);
+  if (!confirm(`核定「${m?.recycler_onboarding_accounts?.company_name}」為最終得標廠商？其他回收商將標記為未得標。`)) return;
+  // 同一設備其他出價 → outbid
+  const sameDevice = matchesMatchCache.filter(x => x.equipment_listing_id === m.equipment_listing_id && x.id !== matchId && ['bidding','proposed'].includes(x.status));
+  for (const x of sameDevice) {
+    await db.from('recycler_matches').update({ status: 'outbid' }).eq('id', x.id);
   }
-  // 得標者改為 accepted
   const { error } = await db.from('recycler_matches').update({ status: 'accepted', accepted_at: new Date().toISOString() }).eq('id', matchId);
   if (error) { showToast('操作失敗：' + error.message); return; }
-
-  showToast('得標廠商已確認，回收商將收到通知');
-  loadBidsList();
+  showToast('已核定得標，回收商將收到通知');
+  loadMatchesList();
   loadAllBadges();
 }
 
@@ -1219,7 +1149,7 @@ async function loadMatchesList() {
 
 function renderMatchesList() {
   const q = (document.getElementById('matches-search')?.value || '').toLowerCase();
-  const statusLabel = { pending:'待回覆', bidding:'已出價', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
+  const statusLabel = { pending:'待回覆', bidding:'已出價', proposed:'建議得標', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
   const condLabel = { A:'良好', B:'普通', C:'堪用' };
 
   const matchMap = {};
@@ -1245,16 +1175,26 @@ function renderMatchesList() {
       ${ms.length === 0
         ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
         : `<table class="data-table">
-          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th>通知時間</th></tr></thead>
-          <tbody>${ms.map(m => {
+          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th style="text-align:right">操作</th></tr></thead>
+          <tbody>${ms.sort((a,b)=>(b.bid_price_min||0)-(a.bid_price_min||0)).map(m => {
             const acct = m.recycler_onboarding_accounts;
+            const isAgent   = currentDealerRole === 'agent';
+            const isManager = ['manager','admin'].includes(currentDealerRole);
+            let action = '';
+            if (m.status === 'bidding') {
+              if (isAgent)   action = `<button class="btn btn-ghost btn-sm" onclick="proposeWinner('${m.id}')"><i class="ti ti-thumb-up"></i> 建議得標</button>`;
+              if (isManager) action = `<button class="btn btn-green btn-sm" onclick="approveWinner('${m.id}')"><i class="ti ti-trophy"></i> 核定得標</button>`;
+            } else if (m.status === 'proposed') {
+              if (isAgent)   action = `<span style="font-size:12px;color:var(--amber)">⏳ 等待主管核定</span>`;
+              if (isManager) action = `<button class="btn btn-green btn-sm" onclick="approveWinner('${m.id}')"><i class="ti ti-trophy"></i> 核定得標</button>`;
+            }
             return `<tr>
               <td style="font-weight:600">${acct?.company_name || '—'}</td>
               <td>${acct?.contact_name || '—'}</td>
               <td>${acct?.phone || '—'}</td>
               <td><span class="badge badge-${m.status}">${statusLabel[m.status]||m.status}</span></td>
-              <td>${m.bid_price_min ? '$'+m.bid_price_min.toLocaleString() : '—'}</td>
-              <td style="color:var(--ink3);font-size:12px">${new Date(m.created_at).toLocaleString('zh-TW')}</td>
+              <td style="font-weight:${m.bid_price_min?'700':'400'};color:${m.bid_price_min?'var(--green)':'var(--ink4)'}">${m.bid_price_min ? '$'+m.bid_price_min.toLocaleString() : '—'}</td>
+              <td><div class="td-actions">${action}</div></td>
             </tr>`;}).join('')}
           </tbody></table>`}
     </div>`;
