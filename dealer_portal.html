@@ -317,10 +317,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備/廠商/設備ID..." oninput="renderMatchesList()" style="min-width:180px">
         <select class="field-input" id="matches-status-filter" onchange="matchesStatusFilter=this.value;renderMatchesList()" style="width:150px;flex:none">
           <option value="">全部狀態</option>
+          <option value="needsAction">待處理</option>
           <option value="pending">媒合中（等回覆）</option>
           <option value="bidding">有人出價</option>
           <option value="proposed">待確認得標商</option>
           <option value="delivery">準備交貨</option>
+          <option value="received">已收貨</option>
         </select>
         <input class="field-input" id="matches-date-from" type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知開始日期">
         <input class="field-input" id="matches-date-to"   type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知結束日期">
@@ -868,6 +870,20 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="modal-actions">
       <button class="btn btn-ghost" id="delivery-back-btn" style="display:none" onclick="deliveryStepBack()"><i class="ti ti-arrow-left"></i> 上一步</button>
       <button class="btn btn-primary" id="delivery-next-btn" onclick="deliveryStepNext()">下一步 <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看交貨紀錄 Modal -->
+<div class="modal-overlay" id="modal-delivery-report">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">交貨紀錄</div>
+      <button class="modal-close" onclick="closeDeliveryReport()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="delivery-report-content" style="padding:4px 0 8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeliveryReport()">關閉</button>
     </div>
   </div>
 </div>
@@ -2131,6 +2147,14 @@ function renderMatchesList() {
   if (matchesStatusFilter) {
     listings = listings.filter(l => {
       const allMs = matchMap[l.id] || [];
+      if (matchesStatusFilter === 'needsAction') {
+        const isAg = currentDealerRole === 'agent';
+        const isMg = ['manager','admin'].includes(currentDealerRole);
+        return allMs.some(m =>
+          (isAg && (m.status === 'bidding' || m.status === 'payment_confirmed')) ||
+          (isMg && m.status === 'proposed')
+        );
+      }
       if (matchesStatusFilter === 'delivery') return allMs.some(m => ['accepted','payment_confirmed'].includes(m.status));
       return allMs.some(m => m.status === matchesStatusFilter);
     });
@@ -2185,6 +2209,7 @@ function renderMatchesList() {
       : allMs.some(m=>m.status==='bidding') ? '#3b82f6'
       : allMs.some(m=>m.status==='proposed') ? '#a855f7'
       : allMs.some(m=>['accepted','payment_confirmed'].includes(m.status)) ? '#22c55e'
+      : allMs.some(m=>m.status==='received') ? '#94a3b8'
       : 'transparent';
     const isAgent   = currentDealerRole === 'agent';
     const isManager = ['manager','admin'].includes(currentDealerRole);
@@ -2205,15 +2230,17 @@ function renderMatchesList() {
           <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.pickup_address || l.region}</span>
           <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px;user-select:text" onclick="event.stopPropagation()">${equipNo}</span>
           ${(() => {
-            const cntP = allMs.filter(m=>m.status==='pending').length;
-            const cntB = allMs.filter(m=>m.status==='bidding').length;
+            const cntP  = allMs.filter(m=>m.status==='pending').length;
+            const cntB  = allMs.filter(m=>m.status==='bidding').length;
             const cntPr = allMs.filter(m=>m.status==='proposed').length;
-            const cntD = allMs.filter(m=>['accepted','payment_confirmed'].includes(m.status)).length;
+            const cntD  = allMs.filter(m=>['accepted','payment_confirmed'].includes(m.status)).length;
+            const cntR  = allMs.filter(m=>m.status==='received').length;
             return [
               cntP  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#fed7aa;color:#c2410c;font-weight:600">待回覆 ${cntP}</span>` : '',
               cntB  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#bfdbfe;color:#1d4ed8;font-weight:600">已出價 ${cntB}</span>` : '',
               cntPr ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#e9d5ff;color:#7e22ce;font-weight:600">待核定 ${cntPr}</span>` : '',
               cntD  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#bbf7d0;color:#166534;font-weight:600">待交貨 ${cntD}</span>` : '',
+              cntR  ? `<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:#e2e8f0;color:#475569;font-weight:600">已收貨 ${cntR}</span>` : '',
             ].join('');
           })()}
         </div>
@@ -2247,6 +2274,8 @@ function renderMatchesList() {
             } else if (m.status === 'proposed') {
               if (isAgent)   action = `<span style="font-size:12px;color:var(--amber)">⏳ 等待主管核定</span>`;
               if (isManager) action = `<button class="btn btn-green btn-sm" onclick="approveWinner('${m.id}')"><i class="ti ti-trophy"></i> 核定得標</button>`;
+            } else if (m.status === 'received') {
+              action = `<button class="btn btn-ghost btn-sm" onclick="openDeliveryReport('${m.id}')"><i class="ti ti-photo"></i> 查看交貨</button>`;
             } else if (m.status === 'payment_confirmed') {
               if (!m.delivery_scheduled_at) {
                 action = `<button class="btn btn-primary btn-sm" onclick="openScheduleDelivery('${m.id}')"><i class="ti ti-calendar"></i> 安排交貨</button>`;
@@ -2278,6 +2307,36 @@ function renderMatchesList() {
       </div>
     </div>`;
   }).join('') + paginationHTML(paged, MATCH_PAGE_SIZE, 'setMatchesPage');
+}
+
+function openDeliveryReport(matchId) {
+  const m = matchesMatchCache.find(x => x.id === matchId);
+  if (!m) return;
+  const deliveryTime = m.delivery_scheduled_at
+    ? new Date(m.delivery_scheduled_at).toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
+    : '未記錄';
+  const receivedTime = m.received_at
+    ? new Date(m.received_at).toLocaleString('zh-TW', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})
+    : '未記錄';
+  const photos = m.delivery_photo_urls || [];
+  const photosHtml = photos.length > 0
+    ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${photos.map(url =>
+        `<img src="${url}" style="width:100px;height:100px;object-fit:cover;border-radius:var(--r);cursor:pointer" onclick="window.open('${url}','_blank')" title="點擊放大">`
+      ).join('')}</div>`
+    : `<div style="color:var(--ink4);font-size:13px;margin-top:8px;padding:16px;text-align:center;background:var(--paper);border-radius:var(--r)">無交貨照片</div>`;
+  document.getElementById('delivery-report-content').innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center">
+      ${m.delivery_agent_signature ? `<span style="font-size:12px;padding:3px 8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;color:#276749"><i class="ti ti-writing-sign"></i> 合約已簽</span>` : ''}
+      <span style="font-size:12px;color:var(--ink4)"><i class="ti ti-calendar"></i> 預約：${deliveryTime}</span>
+      <span style="font-size:12px;color:var(--ink4)"><i class="ti ti-circle-check"></i> 完成：${receivedTime}</span>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px">交貨照片</div>
+    ${photosHtml}`;
+  document.getElementById('modal-delivery-report').classList.add('act');
+}
+
+function closeDeliveryReport() {
+  document.getElementById('modal-delivery-report').classList.remove('act');
 }
 
 async function reNotify(equipId) {
