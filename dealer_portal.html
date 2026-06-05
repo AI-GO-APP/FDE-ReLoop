@@ -1839,7 +1839,7 @@ function renderStaffList() {
         actions = `<button class="btn btn-green btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-check"></i> 核准</button>
                    <button class="btn btn-danger btn-sm" onclick="staffAction('${s.id}','reject')"><i class="ti ti-x"></i> 拒絕</button>`;
       } else if (s.status === 'rejected') {
-        actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-rotate-clockwise"></i> 撤銷拒絕</button>`;
+        actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','unreject')"><i class="ti ti-rotate-clockwise"></i> 撤銷拒絕</button>`;
       } else if (s.status === 'approved') {
         statusBadge; // not shown in approved tab
         actions = `<select class="field-input" style="width:90px;padding:5px 8px;font-size:12px" onchange="changeRole('${s.id}',this.value)">
@@ -1869,13 +1869,13 @@ function renderStaffList() {
 async function staffAction(id, action) {
   const db = getSupabase();
   if (!db) return;
-  const statusMap = { approve:'approved', reject:'rejected', suspend:'suspended' };
+  const statusMap = { approve:'approved', reject:'rejected', suspend:'suspended', unreject:'pending' };
   const newStatus = statusMap[action];
   const { error } = await db.from('dealer_accounts').update({ status: newStatus }).eq('id', id);
   if (error) { showToast('操作失敗：' + error.message); return; }
   const s = staffCache.find(x => x.id === id);
   if (s) s.status = newStatus;
-  const msgMap = { approve:'已核准', reject:'已拒絕', suspend:'已停用' };
+  const msgMap = { approve:'已核准', reject:'已拒絕', suspend:'已停用', unreject:'已撤銷，退回待審核' };
   showToast(msgMap[action]);
   renderStaffList();
   loadAllBadges();
@@ -2022,7 +2022,8 @@ async function openRecyclerDetail(id) {
         }).join('')}</tbody>
       </table>`}
     <div class="section-label" style="display:flex;align-items:center;justify-content:space-between">
-      最近媒合記錄（近 10 筆）
+      <span>最近媒合記錄（近 10 筆）</span>
+      <button class="btn btn-ghost btn-sm" onclick="viewAllRecyclerMatches('${r.company_name}')">查看全部 →</button>
     </div>
     ${!matches||matches.length===0 ? '<div style="font-size:13px;color:var(--ink4)">尚無媒合記錄</div>' :
       `<table class="data-table">
@@ -2034,6 +2035,13 @@ async function openRecyclerDetail(id) {
           <td style="font-size:12px;color:var(--ink3)">${new Date(m.created_at).toLocaleDateString('zh-TW')}</td>
         </tr>`).join('')}</tbody>
       </table>`}`;
+}
+
+function viewAllRecyclerMatches(companyName) {
+  document.getElementById('modal-recycler-detail').classList.remove('act');
+  document.getElementById('matches-search').value = companyName;
+  matchesCategory = '';
+  goScreen('screen-matches');
 }
 
 async function saveRecyclerEdit(id) {
