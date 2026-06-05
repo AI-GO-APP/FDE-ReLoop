@@ -1604,10 +1604,28 @@ window.addEventListener('DOMContentLoaded', async () => {
   const db = getSupabase();
   if (!db) return; // 開發模式不做 auth check
   const { data: { session } } = await db.auth.getSession();
-  if (session) {
-    goScreen('screen-equipment');
-    loadAllBadges();
+  if (!session) return; // 未登入，停在 screen-login
+
+  // 確認帳號狀態與角色
+  const { data: acctData } = await db.from('dealer_accounts')
+    .select('role,status')
+    .eq('id', session.user.id)
+    .single();
+
+  if (!acctData || acctData.status === 'rejected') {
+    await db.auth.signOut();
+    goScreen('screen-login');
+    return;
   }
+  if (acctData.status === 'pending') {
+    goScreen('screen-pending');
+    return;
+  }
+  // status === 'approved'
+  currentDealerRole = acctData.role || 'agent';
+  updateNavForRole();
+  goScreen('screen-equipment');
+  loadAllBadges();
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
