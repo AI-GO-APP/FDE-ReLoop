@@ -1440,6 +1440,23 @@ function updateMatchBadge(count) {
   });
 }
 
+function updateOrdersBadge() {
+  const count = allMatchesCache.filter(m =>
+    ['accepted','payment_confirmed','received'].includes(m.status) && !m.is_read
+  ).length;
+  document.querySelectorAll('.orders-badge').forEach(el => {
+    if (count > 0) { el.textContent = count; el.style.display = 'inline-flex'; }
+    else { el.style.display = 'none'; }
+  });
+  const c = getTabCounts();
+  const setPending = document.getElementById('orders-tab-cnt-pending');
+  const setConfirmed = document.getElementById('orders-tab-cnt-confirmed');
+  const setReceived = document.getElementById('orders-tab-cnt-received');
+  if (setPending)   { setPending.textContent   = c.orders_pending   || ''; setPending.style.display   = c.orders_pending   ? 'inline' : 'none'; }
+  if (setConfirmed) { setConfirmed.textContent = c.orders_confirmed || ''; setConfirmed.style.display = c.orders_confirmed ? 'inline' : 'none'; }
+  if (setReceived)  { setReceived.textContent  = c.orders_received  || ''; setReceived.style.display  = c.orders_received  ? 'inline' : 'none'; }
+}
+
 async function loadMatches() {
   const db = requireSupabase();
   if (!db) return;
@@ -1485,15 +1502,7 @@ function updateAllTabCounts() {
   };
   set('tab-badge-notify', c.notify_active);
   set('tab-count-matches', c.matches_interested + c.matches_outbid + c.matches_rejected);
-  // 訂單 tab 計數
-  set('orders-tab-cnt-pending',   c.orders_pending);
-  set('orders-tab-cnt-confirmed', c.orders_confirmed);
-  set('orders-tab-cnt-received',  c.orders_received);
-  const ordersTotal = c.orders_pending + c.orders_confirmed + c.orders_received;
-  document.querySelectorAll('.orders-badge').forEach(el => {
-    if (ordersTotal > 0) { el.textContent = ordersTotal; el.style.display = 'inline-flex'; }
-    else { el.style.display = 'none'; }
-  });
+  updateOrdersBadge();
   updateMatchBadge(allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length);
 }
 
@@ -1657,14 +1666,19 @@ function switchSubTab(sub) {
 async function openMatchDetail(id, fromScreen) {
   const match = allMatchesCache.find(m => m.id === id);
   if (!match) return;
-  if (!match.is_read && (match.status || 'pending') === 'pending') {
+  if (!match.is_read) {
     match.is_read = true;
     const db = requireSupabase();
     if (db) await db.from('recycler_matches').update({ is_read: true }).eq('id', id);
-    const unread = allMatchesCache.filter(m => !m.is_read && (m.status || 'pending') === 'pending').length;
-    updateMatchBadge(unread);
-    const nb = document.getElementById('tab-badge-notify');
-    if (nb) { nb.textContent = unread; nb.style.display = unread > 0 ? 'inline-flex' : 'none'; }
+    const s = match.status || 'pending';
+    if (s === 'pending') {
+      const unread = allMatchesCache.filter(m => !m.is_read && (m.status || 'pending') === 'pending').length;
+      updateMatchBadge(unread);
+      const nb = document.getElementById('tab-badge-notify');
+      if (nb) { nb.textContent = unread; nb.style.display = unread > 0 ? 'inline-flex' : 'none'; }
+    } else if (['accepted','payment_confirmed','received'].includes(s)) {
+      updateOrdersBadge();
+    }
   }
   const from = fromScreen || 'screen-matches';
   window._detailFrom = from;
