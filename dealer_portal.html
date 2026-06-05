@@ -866,10 +866,15 @@ async function saveEquipment() {
       const path = `equipment-photos/${equipId}/${Date.now()}_${i}.${ext}`;
       const { data: uploadData, error: uploadErr } = await db.storage
         .from('equipment-photos').upload(path, file, { upsert: true });
-      if (!uploadErr) {
-        const { data: urlData } = db.storage.from('equipment-photos').getPublicUrl(path);
-        photoUrls.push(urlData.publicUrl);
+      if (uploadErr) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> 儲存草稿';
+        errEl.textContent = '照片上傳失敗：' + uploadErr.message;
+        errEl.style.display = 'block';
+        return;
       }
+      const { data: urlData } = db.storage.from('equipment-photos').getPublicUrl(path);
+      photoUrls.push(urlData.publicUrl);
     }
   }
 
