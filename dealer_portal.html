@@ -852,15 +852,17 @@ async function doLogin() {
     return;
   }
 
-  const { error } = await db.auth.signInWithPassword({ email, password });
+  const { data: signInData, error } = await db.auth.signInWithPassword({ email, password });
   if (error) {
     errEl.textContent = '帳號或密碼錯誤';
     errEl.style.display = 'block';
     return;
   }
 
-  // 確認帳號審核狀態
-  const { data: acct } = await db.from('dealer_accounts').select('status').single();
+  const userId = signInData.user.id;
+
+  // 確認帳號審核狀態（必須加 eq(id) 避免多筆 single() 失敗）
+  const { data: acct } = await db.from('dealer_accounts').select('status,role,name,email,title').eq('id', userId).single();
   if (!acct || acct.status === 'pending') {
     await db.auth.signOut();
     errEl.textContent = '帳號審核中，請等待管理員核准後再登入。';
@@ -874,12 +876,9 @@ async function doLogin() {
     return;
   }
 
-  // 讀取角色與個人資訊
-  const { data: acctData } = await db.from('dealer_accounts').select('role,name,email,title').single();
-  if (acctData) {
-    currentDealerRole = acctData.role || 'agent';
-    currentDealerInfo = { name: acctData.name, email: acctData.email, title: acctData.title, role: acctData.role };
-  }
+  // 已 approved，讀取角色與個人資訊
+  currentDealerRole = acct.role || 'agent';
+  currentDealerInfo = { name: acct.name, email: acct.email, title: acct.title, role: acct.role };
 
   updateNavForRole();
   goScreen('screen-equipment');
