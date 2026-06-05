@@ -1776,7 +1776,7 @@ async function confirmApproveWinner() {
   const bankAccountId = selected?.value || null;
 
   const { error } = await db.from('recycler_matches')
-    .update({ status: 'accepted', accepted_at: new Date().toISOString(), is_read: false, dealer_bank_account_id: bankAccountId })
+    .update({ status: 'accepted', accepted_at: new Date().toISOString(), is_read: false, dealer_bank_account_id: bankAccountId, contact_name: currentDealerInfo.name || null })
     .eq('id', _approveMatchId);
   if (error) { showToast('核定失敗：' + error.message); btn.disabled = false; return; }
 
@@ -2138,7 +2138,7 @@ function renderMatchesList() {
           <span style="font-weight:700;font-size:13px">${l.device_name}</span>
           ${actionTag}
           <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.pickup_address || l.region}</span>
-          <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">${equipNo}</span>
+          <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px;user-select:text" onclick="event.stopPropagation()">${equipNo}</span>
           ${(() => {
             const cntP = allMs.filter(m=>m.status==='pending').length;
             const cntB = allMs.filter(m=>m.status==='bidding').length;

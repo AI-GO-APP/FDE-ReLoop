@@ -1789,7 +1789,10 @@ async function renderMatchDetail(m) {
       m.dealer_bank_accounts = ba;
     }
   } else if (s === 'payment_confirmed') {
-    actEl.innerHTML = `<div style="background:var(--green-l);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--green);line-height:1.6;display:flex;align-items:flex-start;gap:10px"><i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0;margin-top:1px"></i><div>確認已完成付款，請與業務聯繫收貨交付時間。</div></div>`;
+    const deliveryMsg = m.delivery_scheduled_at
+      ? `確認已完成付款，已與業務約定交貨時間：<strong>${new Date(m.delivery_scheduled_at).toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}</strong>`
+      : `確認已完成付款，請與業務聯繫收貨交付時間。`;
+    actEl.innerHTML = `<div style="background:var(--green-l);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--green);line-height:1.6;display:flex;align-items:flex-start;gap:10px"><i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0;margin-top:1px"></i><div>${deliveryMsg}</div></div>`;
   } else {
     actEl.innerHTML = '';
   }
