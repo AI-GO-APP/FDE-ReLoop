@@ -786,6 +786,69 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- Modal：安排交貨 -->
+<div class="modal-overlay" id="modal-schedule-delivery">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">安排交貨時間</div>
+      <button class="modal-close" onclick="document.getElementById('modal-schedule-delivery').classList.remove('act')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label class="field-label">交貨日期與時間 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" type="datetime-local" id="delivery-schedule-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-schedule-delivery').classList.remove('act')">取消</button>
+      <button class="btn btn-primary" id="schedule-delivery-btn" onclick="saveDeliverySchedule()"><i class="ti ti-calendar"></i> 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal：執行交貨 -->
+<div class="modal-overlay" id="modal-delivery-process">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="delivery-process-title">交貨流程</div>
+      <button class="modal-close" onclick="closeDeliveryProcess()"><i class="ti ti-x"></i></button>
+    </div>
+    <!-- 步驟指示 -->
+    <div style="display:flex;gap:0;margin-bottom:20px">
+      <div class="delivery-step-ind act" id="dstep-ind-1" style="flex:1;text-align:center;font-size:12px;padding:6px;border-bottom:2px solid var(--green);color:var(--green);font-weight:600">① 合約簽名</div>
+      <div class="delivery-step-ind" id="dstep-ind-2" style="flex:1;text-align:center;font-size:12px;padding:6px;border-bottom:2px solid var(--paper2);color:var(--ink4)">② 交貨照片</div>
+      <div class="delivery-step-ind" id="dstep-ind-3" style="flex:1;text-align:center;font-size:12px;padding:6px;border-bottom:2px solid var(--paper2);color:var(--ink4)">③ 確認完成</div>
+    </div>
+    <!-- Step 1: 簽名 -->
+    <div id="delivery-step-1">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">業務簽名</div>
+      <canvas id="delivery-agent-canvas" style="width:100%;height:120px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
+      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearDeliverySig('agent')"><i class="ti ti-eraser"></i> 清除</button>
+      <div style="font-size:13px;font-weight:600;margin:16px 0 8px">司機簽名</div>
+      <canvas id="delivery-driver-canvas" style="width:100%;height:120px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
+      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearDeliverySig('driver')"><i class="ti ti-eraser"></i> 清除</button>
+    </div>
+    <!-- Step 2: 照片 -->
+    <div id="delivery-step-2" style="display:none">
+      <div style="font-size:13px;color:var(--ink3);margin-bottom:12px">請上傳交貨現場照片（可多張）</div>
+      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--paper2);border-radius:var(--r);padding:24px;cursor:pointer;gap:8px">
+        <i class="ti ti-photo-plus" style="font-size:28px;color:var(--ink4)"></i>
+        <span style="font-size:13px;color:var(--ink4)">點擊上傳照片（可多張）</span>
+        <input type="file" accept="image/*" multiple style="display:none" onchange="handleDeliveryPhotos(this)">
+      </label>
+      <div id="delivery-photo-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"></div>
+    </div>
+    <!-- Step 3: 確認 -->
+    <div id="delivery-step-3" style="display:none;text-align:center;padding:16px 0">
+      <i class="ti ti-circle-check" style="font-size:48px;color:var(--green);display:block;margin-bottom:12px"></i>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px">確認完成交貨？</div>
+      <div style="font-size:13px;color:var(--ink4)">簽名與照片將儲存，此操作不可撤回。</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="delivery-back-btn" style="display:none" onclick="deliveryStepBack()"><i class="ti ti-arrow-left"></i> 上一步</button>
+      <button class="btn btn-primary" id="delivery-next-btn" onclick="deliveryStepNext()">下一步 <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -1545,6 +1608,163 @@ function closeApproveModal() {
   _approveMatchId = null;
 }
 
+// ════════════════════════════════════════════
+// 交貨流程
+// ════════════════════════════════════════════
+let _deliveryMatchId = null;
+let _deliveryStep = 1;
+let _deliveryAgentSigPad = null;
+let _deliveryDriverSigPad = null;
+let _deliveryPhotoFiles = [];
+
+function openScheduleDelivery(matchId) {
+  _deliveryMatchId = matchId;
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  now.setHours(now.getHours() + 1);
+  document.getElementById('delivery-schedule-input').value =
+    now.toISOString().slice(0, 16);
+  document.getElementById('modal-schedule-delivery').classList.add('act');
+}
+
+async function saveDeliverySchedule() {
+  const db = getSupabase();
+  if (!db || !_deliveryMatchId) return;
+  const val = document.getElementById('delivery-schedule-input').value;
+  if (!val) { showToast('請選擇交貨時間'); return; }
+  const btn = document.getElementById('schedule-delivery-btn');
+  btn.disabled = true;
+  const { error } = await db.from('recycler_matches')
+    .update({ delivery_scheduled_at: new Date(val).toISOString() })
+    .eq('id', _deliveryMatchId);
+  btn.disabled = false;
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  document.getElementById('modal-schedule-delivery').classList.remove('act');
+  showToast('交貨時間已安排');
+  loadMatchesList();
+}
+
+function openDeliveryProcess(matchId) {
+  _deliveryMatchId = matchId;
+  _deliveryStep = 1;
+  _deliveryPhotoFiles = [];
+  document.getElementById('delivery-photo-preview').innerHTML = '';
+  goDeliveryStep(1);
+  document.getElementById('modal-delivery-process').classList.add('act');
+  setTimeout(initDeliverySigPads, 100);
+}
+
+function closeDeliveryProcess() {
+  document.getElementById('modal-delivery-process').classList.remove('act');
+  _deliveryMatchId = null;
+}
+
+function initDeliverySigPads() {
+  ['agent','driver'].forEach(role => {
+    const canvas = document.getElementById(`delivery-${role}-canvas`);
+    if (!canvas || !window.SignaturePad) return;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width  = canvas.offsetWidth  * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext('2d').scale(ratio, ratio);
+    const pad = new SignaturePad(canvas, { backgroundColor:'rgb(255,255,255)', penColor:'#1A1A18' });
+    if (role === 'agent') _deliveryAgentSigPad = pad;
+    else _deliveryDriverSigPad = pad;
+  });
+}
+
+function clearDeliverySig(role) {
+  if (role === 'agent' && _deliveryAgentSigPad) _deliveryAgentSigPad.clear();
+  if (role === 'driver' && _deliveryDriverSigPad) _deliveryDriverSigPad.clear();
+}
+
+function goDeliveryStep(step) {
+  _deliveryStep = step;
+  [1,2,3].forEach(s => {
+    document.getElementById(`delivery-step-${s}`).style.display = s === step ? '' : 'none';
+    const ind = document.getElementById(`dstep-ind-${s}`);
+    ind.style.borderBottomColor = s <= step ? 'var(--green)' : 'var(--paper2)';
+    ind.style.color = s <= step ? 'var(--green)' : 'var(--ink4)';
+    ind.style.fontWeight = s === step ? '600' : '400';
+  });
+  document.getElementById('delivery-back-btn').style.display = step > 1 ? '' : 'none';
+  const nextBtn = document.getElementById('delivery-next-btn');
+  if (step === 3) {
+    nextBtn.innerHTML = '<i class="ti ti-check"></i> 確認完成';
+    nextBtn.className = 'btn btn-green';
+  } else {
+    nextBtn.innerHTML = '下一步 <i class="ti ti-arrow-right"></i>';
+    nextBtn.className = 'btn btn-primary';
+  }
+}
+
+function deliveryStepBack() { if (_deliveryStep > 1) goDeliveryStep(_deliveryStep - 1); }
+
+async function deliveryStepNext() {
+  if (_deliveryStep === 1) {
+    if (_deliveryAgentSigPad?.isEmpty()) { showToast('請填寫業務簽名'); return; }
+    if (_deliveryDriverSigPad?.isEmpty()) { showToast('請填寫司機簽名'); return; }
+    goDeliveryStep(2);
+  } else if (_deliveryStep === 2) {
+    goDeliveryStep(3);
+  } else {
+    await confirmDelivery();
+  }
+}
+
+function handleDeliveryPhotos(input) {
+  _deliveryPhotoFiles = [..._deliveryPhotoFiles, ...Array.from(input.files)];
+  const preview = document.getElementById('delivery-photo-preview');
+  preview.innerHTML = _deliveryPhotoFiles.map((f, i) => `
+    <div style="position:relative;width:80px;height:80px">
+      <img src="${URL.createObjectURL(f)}" style="width:80px;height:80px;object-fit:cover;border-radius:6px">
+      <button onclick="removeDeliveryPhoto(${i})" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`).join('');
+  input.value = '';
+}
+
+function removeDeliveryPhoto(i) {
+  _deliveryPhotoFiles.splice(i, 1);
+  handleDeliveryPhotos({ files: [] });
+}
+
+async function confirmDelivery() {
+  const db = getSupabase();
+  if (!db || !_deliveryMatchId) return;
+  const btn = document.getElementById('delivery-next-btn');
+  btn.disabled = true;
+
+  const agentSig  = _deliveryAgentSigPad?.toDataURL('image/png') || null;
+  const driverSig = _deliveryDriverSigPad?.toDataURL('image/png') || null;
+
+  // 上傳照片
+  const photoUrls = [];
+  for (let i = 0; i < _deliveryPhotoFiles.length; i++) {
+    const file = _deliveryPhotoFiles[i];
+    const ext  = file.name.split('.').pop();
+    const path = `delivery/${_deliveryMatchId}/${Date.now()}_${i}.${ext}`;
+    const { error: upErr } = await db.storage.from('equipment-photos').upload(path, file, { upsert: true });
+    if (upErr) { showToast(`照片 ${file.name} 上傳失敗，略過`); continue; }
+    const { data: urlData } = db.storage.from('equipment-photos').getPublicUrl(path);
+    photoUrls.push(urlData.publicUrl);
+  }
+
+  const { error } = await db.from('recycler_matches').update({
+    status: 'received',
+    received_at: new Date().toISOString(),
+    delivery_agent_signature: agentSig,
+    delivery_driver_signature: driverSig,
+    delivery_photo_urls: photoUrls,
+  }).eq('id', _deliveryMatchId);
+
+  btn.disabled = false;
+  if (error) { showToast('完成交貨失敗：' + error.message); return; }
+  closeDeliveryProcess();
+  showToast('交貨完成！案件已結案');
+  loadMatchesList();
+  loadAllBadges();
+}
+
 async function confirmApproveWinner() {
   const db = getSupabase();
   if (!db || !_approveMatchId) return;
@@ -1962,6 +2182,16 @@ function renderMatchesList() {
             } else if (m.status === 'proposed') {
               if (isAgent)   action = `<span style="font-size:12px;color:var(--amber)">⏳ 等待主管核定</span>`;
               if (isManager) action = `<button class="btn btn-green btn-sm" onclick="approveWinner('${m.id}')"><i class="ti ti-trophy"></i> 核定得標</button>`;
+            } else if (m.status === 'payment_confirmed') {
+              if (!m.delivery_scheduled_at) {
+                action = `<button class="btn btn-primary btn-sm" onclick="openScheduleDelivery('${m.id}')"><i class="ti ti-calendar"></i> 安排交貨</button>`;
+              } else {
+                const schStr = new Date(m.delivery_scheduled_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+                action = `<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+                  <span style="font-size:11px;color:var(--ink4)"><i class="ti ti-calendar"></i> ${schStr}</span>
+                  <button class="btn btn-green btn-sm" onclick="openDeliveryProcess('${m.id}')"><i class="ti ti-truck"></i> 執行交貨</button>
+                </div>`;
+              }
             }
             return `<tr>
               <td style="font-weight:600">${acct?.company_name || '—'}</td>
@@ -2319,5 +2549,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 </body>
 </html>
