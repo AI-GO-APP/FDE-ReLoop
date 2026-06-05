@@ -1690,7 +1690,7 @@ async function openMatchDetail(id, fromScreen) {
   renderMatchDetail(match);
 }
 
-function renderMatchDetail(m) {
+async function renderMatchDetail(m) {
   const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
   const statusLabel = { pending:'待出價', bidding:'已出價・等待確認', accepted:'已得標・待付款', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
   const statusColor = { pending:'var(--ink4)', bidding:'#92400e', accepted:'#c53030', outbid:'#c53030', payment_confirmed:'#276749', received:'#2b6cb0', rejected:'#c53030' };
