@@ -636,7 +636,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div id="equipment-form-error" style="font-size:12px;color:var(--red);margin-top:8px;display:none"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeEquipmentForm()">取消</button>
-      <button class="btn btn-primary" id="equipment-save-btn" onclick="saveEquipment()"><i class="ti ti-device-floppy"></i> 儲存草稿</button>
+      <button class="btn btn-primary" id="equipment-save-btn" onclick="saveEquipment()"><i class="ti ti-device-floppy"></i> 儲存</button>
     </div>
   </div>
 </div>
@@ -1343,21 +1343,23 @@ async function saveEquipment() {
 
   if (db && pendingPhotoFiles.length > 0) {
     const equipId = editingEquipmentId || crypto.randomUUID();
+    const failedPhotos = [];
     for (let i = 0; i < pendingPhotoFiles.length; i++) {
       const file = pendingPhotoFiles[i];
       const ext  = file.name.split('.').pop();
-      const path = `equipment-photos/${equipId}/${Date.now()}_${i}.${ext}`;
-      const { data: uploadData, error: uploadErr } = await db.storage
+      const path = `${equipId}/${Date.now()}_${i}.${ext}`;
+      const { error: uploadErr } = await db.storage
         .from('equipment-photos').upload(path, file, { upsert: true });
       if (uploadErr) {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="ti ti-device-floppy"></i> 儲存草稿';
-        errEl.textContent = '照片上傳失敗：' + uploadErr.message;
-        errEl.style.display = 'block';
-        return;
+        failedPhotos.push(file.name);
+        continue;
       }
       const { data: urlData } = db.storage.from('equipment-photos').getPublicUrl(path);
       photoUrls.push(urlData.publicUrl);
+    }
+    if (failedPhotos.length > 0) {
+      errEl.textContent = `${failedPhotos.length} 張照片上傳失敗（${failedPhotos.join('、')}），其餘資料仍會儲存`;
+      errEl.style.display = 'block';
     }
   }
 
@@ -1386,7 +1388,7 @@ async function saveEquipment() {
   }
 
   btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-device-floppy"></i> 儲存草稿';
+  btn.innerHTML = '<i class="ti ti-device-floppy"></i> 儲存';
 
   if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
   closeEquipmentForm();
