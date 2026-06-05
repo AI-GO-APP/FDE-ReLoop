@@ -250,6 +250,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
@@ -298,6 +300,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff2" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
@@ -346,6 +350,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff4" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
@@ -383,6 +389,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
         <button class="brand-nav-item act dealer-admin-only" onclick="goScreen('screen-staff')"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff3" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
@@ -405,6 +413,278 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
       <div id="staff-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
       <div id="staff-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     客戶管理
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-clients">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches7" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments7" style="display:none"></span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff7" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">客戶管理</div>
+        <button class="btn btn-primary" onclick="openCreateClient()"><i class="ti ti-plus"></i> 新增客戶</button>
+      </div>
+    </div>
+    <div class="main-body">
+      <div class="search-row">
+        <input class="search-input" id="clients-search" type="text" placeholder="搜尋公司名稱 / 聯絡人" oninput="renderClientsList()">
+      </div>
+      <div id="clients-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
+      <div id="clients-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     案件管理
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-cases">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches8" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments8" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff8" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">案件管理</div>
+        <button class="btn btn-primary" onclick="openCreateCase(null)"><i class="ti ti-plus"></i> 新增案件</button>
+      </div>
+      <div class="match-tabs-bar" style="margin-top:12px">
+        <button class="match-tab-btn act" id="cases-tab-active" onclick="setCasesFilter('active')">進行中<span id="cases-cnt-active" class="tab-cnt" style="display:none"></span></button>
+        <button class="match-tab-btn" id="cases-tab-completed" onclick="setCasesFilter('completed')">已結案<span id="cases-cnt-completed" class="tab-cnt" style="display:none"></span></button>
+        <button class="match-tab-btn" id="cases-tab-cancelled" onclick="setCasesFilter('cancelled')">已取消<span id="cases-cnt-cancelled" class="tab-cnt" style="display:none"></span></button>
+      </div>
+    </div>
+    <div class="main-body">
+      <div id="cases-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
+      <div id="cases-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/編輯客戶 Modal -->
+<div class="modal-overlay" id="modal-client-form">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="client-form-title">新增客戶</div>
+      <button class="modal-close" onclick="closeClientForm()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">公司名稱 *</label>
+        <input class="field-input" id="client-company" type="text" placeholder="公司名稱">
+      </div>
+      <div class="field">
+        <label class="field-label">產業別</label>
+        <input class="field-input" id="client-industry" type="text" placeholder="餐飲、零售…">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">聯絡人</label>
+        <input class="field-input" id="client-contact" type="text" placeholder="姓名">
+      </div>
+      <div class="field">
+        <label class="field-label">電話</label>
+        <input class="field-input" id="client-phone" type="tel" placeholder="09xx-xxxxxx">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">LINE ID</label>
+        <input class="field-input" id="client-line" type="text" placeholder="LINE ID">
+      </div>
+      <div class="field"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">地址</label>
+      <input class="field-input" id="client-address" type="text" placeholder="設備所在地址">
+    </div>
+    <div class="field">
+      <label class="field-label">備註</label>
+      <textarea class="field-input field-textarea" id="client-note" placeholder="備註"></textarea>
+    </div>
+    <div id="client-form-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeClientForm()">取消</button>
+      <button class="btn btn-primary" id="client-form-save-btn" onclick="saveClient()"><i class="ti ti-device-floppy"></i> 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增案件 Modal -->
+<div class="modal-overlay" id="modal-create-case">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">新增案件</div>
+      <button class="modal-close" onclick="closeCreateCase()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label class="field-label">客戶 *</label>
+      <select class="field-input" id="case-client-sel"></select>
+    </div>
+    <div class="field">
+      <label class="field-label">負責業務</label>
+      <select class="field-input" id="case-agent-sel">
+        <option value="">（未指定）</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">備註</label>
+      <textarea class="field-input field-textarea" id="case-note" placeholder="案件備註" style="min-height:64px"></textarea>
+    </div>
+    <div id="create-case-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCreateCase()">取消</button>
+      <button class="btn btn-primary" id="create-case-save-btn" onclick="saveCreateCase()"><i class="ti ti-plus"></i> 建立</button>
+    </div>
+  </div>
+</div>
+
+<!-- 安排場勘 Modal -->
+<div class="modal-overlay" id="modal-case-survey">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title">安排場勘</div>
+      <button class="modal-close" onclick="document.getElementById('modal-case-survey').classList.remove('act')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label class="field-label">場勘日期時間</label>
+      <input class="field-input" id="case-survey-input" type="datetime-local">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-case-survey').classList.remove('act')">取消</button>
+      <button class="btn btn-primary" id="case-survey-save-btn" onclick="saveCaseSurvey()"><i class="ti ti-calendar-check"></i> 確認</button>
+    </div>
+  </div>
+</div>
+
+<!-- 記錄報價 Modal -->
+<div class="modal-overlay" id="modal-case-pricing">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title" id="pricing-modal-title">記錄評估總包價</div>
+      <button class="modal-close" onclick="document.getElementById('modal-case-pricing').classList.remove('act')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label class="field-label" id="pricing-label">評估總包價（元）</label>
+      <input class="field-input" id="case-price-input" type="number" min="0" placeholder="0">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-case-pricing').classList.remove('act')">取消</button>
+      <button class="btn btn-primary" id="case-pricing-save-btn" onclick="saveCasePricing()"><i class="ti ti-device-floppy"></i> 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增設備（案件內）Modal -->
+<div class="modal-overlay" id="modal-case-equipment">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">新增設備</div>
+      <button class="modal-close" onclick="document.getElementById('modal-case-equipment').classList.remove('act')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">設備名稱 *</label>
+        <input class="field-input" id="ce-device" type="text" placeholder="設備名稱">
+      </div>
+      <div class="field">
+        <label class="field-label">類別 *</label>
+        <input class="field-input" id="ce-category" type="text" placeholder="類別">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">品牌</label>
+        <input class="field-input" id="ce-brand" type="text" placeholder="品牌">
+      </div>
+      <div class="field">
+        <label class="field-label">狀況</label>
+        <select class="field-input" id="ce-condition">
+          <option value="A">A・良好</option>
+          <option value="B">B・普通</option>
+          <option value="C">C・堪用</option>
+          <option value="D">D・待修</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">備註</label>
+      <textarea class="field-input field-textarea" id="ce-note" placeholder="備註" style="min-height:56px"></textarea>
+    </div>
+    <div id="case-equip-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-case-equipment').classList.remove('act')">取消</button>
+      <button class="btn btn-primary" id="case-equip-save-btn" onclick="saveCaseEquipment()"><i class="ti ti-plus"></i> 新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- 簽署合約 Modal (委任書 / 正式合約) -->
+<div class="modal-overlay" id="modal-case-sign">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="case-sign-title">簽署委任同意書</div>
+      <button class="modal-close" onclick="closeCaseSign()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:12px;color:var(--ink4);margin-bottom:6px">請閱讀以下合約，捲動至底部後方可簽名</div>
+    <div id="case-contract-scroll" onscroll="checkCaseContractScroll()" style="height:180px;overflow-y:auto;background:var(--paper);border:1px solid var(--paper2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:1.8;color:var(--ink3)">
+      <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;text-align:center" id="case-contract-title">委任同意書</div>
+      <div id="case-contract-body">
+        <p>立書人：退場商家（以下稱「委任人」）委任<strong>秧秧空間設計有限公司</strong>（以下稱「受託人」）進行設備評估、媒合與交付等相關事宜，雙方協議如下：</p>
+        <p><strong>一、委任範圍</strong><br>委任人同意授權受託人就本案件所列設備，進行市場評估、向回收商媒合出售及後續交付作業。</p>
+        <p><strong>二、委任期間</strong><br>自本同意書簽署日起，至設備全數完成交付或雙方協議終止為止。</p>
+        <p><strong>三、報價與確認</strong><br>受託人將就每項設備或整批設備提出評估總包價，委任人確認後方正式啟動媒合。</p>
+        <p><strong>四、費用說明</strong><br>本委任同意書階段不涉及費用收取，正式費用將於正式合約中載明。</p>
+        <p><strong>五、保密義務</strong><br>雙方同意對本案件相關資訊負有保密義務，未經對方書面同意不得對外披露。</p>
+        <p style="text-align:center;margin-top:16px;color:var(--ink4);font-size:11px">── 已閱讀全文，簽名欄位將於此處解鎖 ──</p>
+      </div>
+    </div>
+    <div id="case-sign-section" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin:16px 0 8px">業務簽名</div>
+      <canvas id="case-agent-canvas" style="width:100%;height:100px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
+      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearCaseSign('agent')"><i class="ti ti-eraser"></i> 清除</button>
+      <div style="font-size:13px;font-weight:600;margin:16px 0 8px">客戶代表簽名</div>
+      <canvas id="case-client-canvas" style="width:100%;height:100px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
+      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearCaseSign('client')"><i class="ti ti-eraser"></i> 清除</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCaseSign()">取消</button>
+      <button class="btn btn-primary" id="case-sign-save-btn" onclick="saveCaseSign()"><i class="ti ti-writing-sign"></i> 儲存簽名</button>
     </div>
   </div>
 </div>
@@ -460,6 +740,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches5" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments5" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
         <button class="brand-nav-item act dealer-admin-only" onclick="goScreen('screen-recyclers')"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff5" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
@@ -501,6 +783,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches6" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments6" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff6" style="display:none"></span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
@@ -984,6 +1268,8 @@ function goScreen(id) {
   if (id === 'screen-staff')      { staffPage = 1; loadStaffList(); }
   if (id === 'screen-recyclers')  { recyclersPage = 1; loadRecyclersList(); }
   if (id === 'screen-profile')    loadProfileScreen();
+  if (id === 'screen-clients')    { clientsPage = 1; loadClientsList(); }
+  if (id === 'screen-cases')      { casesPage = 1; loadCasesList(); }
 }
 
 // ════════════════════════════════════════════
@@ -2569,6 +2855,548 @@ async function changeRole(id, role) {
 // ════════════════════════════════════════════
 // 回收商管理
 // ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// 客戶管理
+// ════════════════════════════════════════════
+let clientsCache = [];
+let clientsPage = 1;
+let _editClientId = null;
+
+async function loadClientsList() {
+  const db = getSupabase();
+  document.getElementById('clients-loading').style.display = 'block';
+  document.getElementById('clients-list').innerHTML = '';
+  if (!db) { document.getElementById('clients-loading').style.display = 'none'; return; }
+  const { data } = await db.from('clients').select('*').order('created_at', { ascending: false });
+  clientsCache = data || [];
+  document.getElementById('clients-loading').style.display = 'none';
+  renderClientsList();
+}
+
+function renderClientsList() {
+  const q = (document.getElementById('clients-search')?.value || '').toLowerCase().trim();
+  let list = clientsCache;
+  if (q) list = list.filter(c =>
+    (c.company_name||'').toLowerCase().includes(q) ||
+    (c.contact_name||'').toLowerCase().includes(q) ||
+    (c.contact_phone||'').toLowerCase().includes(q)
+  );
+  const el = document.getElementById('clients-list');
+  if (!el) return;
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state"><i class="ti ti-building-store"></i><p>尚無客戶資料</p></div>';
+    return;
+  }
+  const paged = paginateList(list, clientsPage, PAGE_SIZE);
+  el.innerHTML = `<table class="data-table">
+    <thead><tr><th>公司名稱</th><th>聯絡人</th><th>電話</th><th>LINE ID</th><th>地址</th><th>建立日期</th><th style="text-align:right">操作</th></tr></thead>
+    <tbody>${paged.items.map(c => `<tr>
+      <td style="font-weight:600">${c.company_name}</td>
+      <td>${c.contact_name||'—'}</td>
+      <td>${c.contact_phone||'—'}</td>
+      <td>${c.contact_line_id||'—'}</td>
+      <td style="font-size:12px;color:var(--ink3)">${c.address||'—'}</td>
+      <td style="font-size:12px;color:var(--ink3)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openCreateCase('${c.id}')"><i class="ti ti-plus"></i> 新增案件</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEditClient('${c.id}')"><i class="ti ti-pencil"></i> 編輯</button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table>
+    ${paginationHTML(paged, PAGE_SIZE, 'setClientsPage')}`;
+}
+
+function setClientsPage(p) { clientsPage = p; renderClientsList(); }
+
+function openCreateClient() {
+  _editClientId = null;
+  document.getElementById('client-form-title').textContent = '新增客戶';
+  ['client-company','client-industry','client-contact','client-phone','client-line','client-address','client-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('client-form-error').style.display = 'none';
+  document.getElementById('modal-client-form').classList.add('act');
+}
+
+function openEditClient(id) {
+  const c = clientsCache.find(x => x.id === id);
+  if (!c) return;
+  _editClientId = id;
+  document.getElementById('client-form-title').textContent = '編輯客戶';
+  document.getElementById('client-company').value  = c.company_name    || '';
+  document.getElementById('client-industry').value = c.industry        || '';
+  document.getElementById('client-contact').value  = c.contact_name    || '';
+  document.getElementById('client-phone').value    = c.contact_phone   || '';
+  document.getElementById('client-line').value     = c.contact_line_id || '';
+  document.getElementById('client-address').value  = c.address         || '';
+  document.getElementById('client-note').value     = c.note            || '';
+  document.getElementById('client-form-error').style.display = 'none';
+  document.getElementById('modal-client-form').classList.add('act');
+}
+
+function closeClientForm() {
+  document.getElementById('modal-client-form').classList.remove('act');
+  _editClientId = null;
+}
+
+async function saveClient() {
+  const db = getSupabase();
+  if (!db) return;
+  const company_name    = document.getElementById('client-company').value.trim();
+  const industry        = document.getElementById('client-industry').value.trim();
+  const contact_name    = document.getElementById('client-contact').value.trim();
+  const contact_phone   = document.getElementById('client-phone').value.trim();
+  const contact_line_id = document.getElementById('client-line').value.trim();
+  const address         = document.getElementById('client-address').value.trim();
+  const note            = document.getElementById('client-note').value.trim();
+  const errEl = document.getElementById('client-form-error');
+  errEl.style.display = 'none';
+  if (!company_name) { errEl.textContent = '請填寫公司名稱'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('client-form-save-btn');
+  btn.disabled = true;
+  const payload = { company_name, industry: industry||null, contact_name: contact_name||null, contact_phone: contact_phone||null, contact_line_id: contact_line_id||null, address: address||null, note: note||null };
+  let error;
+  if (_editClientId) {
+    ({ error } = await db.from('clients').update(payload).eq('id', _editClientId));
+    if (!error) { const c = clientsCache.find(x => x.id === _editClientId); if (c) Object.assign(c, payload); }
+  } else {
+    const { data, error: e } = await db.from('clients').insert(payload).select().single();
+    error = e;
+    if (!error && data) clientsCache.unshift(data);
+  }
+  btn.disabled = false;
+  if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
+  closeClientForm();
+  showToast(_editClientId ? '客戶資料已更新' : '客戶已新增');
+  renderClientsList();
+}
+
+// ════════════════════════════════════════════
+// 案件管理
+// ════════════════════════════════════════════
+let casesCache = [];
+let casesPage = 1;
+let currentCasesFilter = 'active';
+let _createCaseClientId = null;
+let _surveyDateCaseId = null;
+let _pricingCaseId = null;
+let _pricingType = null;
+let _signCaseId = null;
+let _signCaseType = null;
+let _signCaseAgentPad = null;
+let _signCaseClientPad = null;
+let _signCaseInited = false;
+let _addEquipCaseId = null;
+
+const CASE_STATUS_LABELS = {
+  lead:'潛在', surveying:'場勘中', pricing:'評估中',
+  pending_mandate:'待簽委任書', matching:'媒合中',
+  offer_sent:'報價已提', pending_contract:'待簽合約',
+  completed:'已結案', cancelled:'已取消'
+};
+const CASE_STATUS_STEPS = ['lead','surveying','pricing','pending_mandate','matching','offer_sent','pending_contract','completed'];
+const CASE_STATUS_COLORS = {
+  lead:'#94a3b8', surveying:'#3b82f6', pricing:'#f97316',
+  pending_mandate:'#a855f7', matching:'#22c55e',
+  offer_sent:'#0ea5e9', pending_contract:'#f59e0b',
+  completed:'#16a34a', cancelled:'#ef4444'
+};
+
+async function loadCasesList() {
+  const db = getSupabase();
+  document.getElementById('cases-loading').style.display = 'block';
+  document.getElementById('cases-list').innerHTML = '';
+  if (!db) { document.getElementById('cases-loading').style.display = 'none'; return; }
+  const { data: cases } = await db.from('cases')
+    .select('*, clients(company_name,contact_name,contact_phone,address)')
+    .order('created_at', { ascending: false });
+  casesCache = cases || [];
+  document.getElementById('cases-loading').style.display = 'none';
+  updateCasesTabCounts();
+  renderCasesList();
+}
+
+function updateCasesTabCounts() {
+  const active = casesCache.filter(c => !['completed','cancelled'].includes(c.status)).length;
+  const completed = casesCache.filter(c => c.status === 'completed').length;
+  const cancelled = casesCache.filter(c => c.status === 'cancelled').length;
+  [['cases-cnt-active',active],['cases-cnt-completed',completed],['cases-cnt-cancelled',cancelled]].forEach(([id,n]) => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = n; el.style.display = n > 0 ? 'inline' : 'none'; }
+  });
+}
+
+function setCasesFilter(f) {
+  currentCasesFilter = f;
+  ['active','completed','cancelled'].forEach(tab => {
+    const btn = document.getElementById(`cases-tab-${tab}`);
+    if (btn) btn.classList.toggle('act', tab === f);
+  });
+  casesPage = 1;
+  renderCasesList();
+}
+
+function renderCasesList() {
+  const el = document.getElementById('cases-list');
+  if (!el) return;
+  let list = casesCache;
+  if (currentCasesFilter === 'active') list = list.filter(c => !['completed','cancelled'].includes(c.status));
+  else if (currentCasesFilter === 'completed') list = list.filter(c => c.status === 'completed');
+  else if (currentCasesFilter === 'cancelled') list = list.filter(c => c.status === 'cancelled');
+
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state"><i class="ti ti-folder-open"></i><p>沒有符合的案件</p></div>';
+    return;
+  }
+  const paged = paginateList(list, casesPage, PAGE_SIZE);
+  el.innerHTML = paged.items.map(c => {
+    const safeId = c.id.replace(/-/g,'');
+    const client = c.clients || {};
+    const color = CASE_STATUS_COLORS[c.status] || '#94a3b8';
+    const label = CASE_STATUS_LABELS[c.status] || c.status;
+    const shortId = c.id.slice(0,8).toUpperCase();
+    const stepIdx = CASE_STATUS_STEPS.indexOf(c.status);
+    const stepperHtml = CASE_STATUS_STEPS.map((s, i) => {
+      const done = i < stepIdx; const cur = i === stepIdx;
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:0">
+        <div style="width:20px;height:20px;border-radius:50%;background:${done?'var(--green)':cur?color:'var(--paper3)'};display:flex;align-items:center;justify-content:center;margin-bottom:4px">
+          ${done ? '<i class="ti ti-check" style="font-size:11px;color:#fff"></i>' : `<div style="width:8px;height:8px;border-radius:50%;background:${cur?'#fff':'var(--paper2)'}"></div>`}
+        </div>
+        <div style="font-size:9px;color:${cur?color:'var(--ink4)'};font-weight:${cur?'700':'400'};text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;padding:0 2px">${CASE_STATUS_LABELS[s]}</div>
+      </div>`;
+    }).join('<div style="flex:none;height:1.5px;background:var(--paper3);width:12px;margin-bottom:20px;align-self:center"></div>');
+
+    const actionBtn = getCaseActionBtn(c);
+    return `<div class="card" style="padding:0;overflow:hidden;border-left:4px solid ${color};margin-bottom:12px">
+      <div onclick="if(!window.getSelection().toString())toggleCaseCard('${safeId}')" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 20px;cursor:pointer">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <i class="ti ti-folder" style="color:${color}"></i>
+          <span style="font-weight:700;font-size:14px">${client.company_name||'—'}</span>
+          <span style="font-size:10px;font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px;color:var(--ink4);user-select:text" onclick="event.stopPropagation()">${shortId}</span>
+          <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;background:${color}22;color:${color}">${label}</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <span style="font-size:11px;color:var(--ink4)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</span>
+          <i id="cc-chevron-${safeId}" class="ti ti-chevron-down" style="font-size:16px;color:var(--ink4);transition:transform .2s"></i>
+        </div>
+      </div>
+      <div id="cc-body-${safeId}" style="display:none;border-top:1px solid var(--paper2);padding:16px 20px">
+        <!-- 進度條 -->
+        ${c.status !== 'cancelled' ? `<div style="display:flex;align-items:flex-start;margin-bottom:20px;overflow-x:auto;padding-bottom:4px">${stepperHtml}</div>` : ''}
+        <!-- 客戶資訊 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:13px">
+          ${client.contact_name ? `<div><span style="color:var(--ink4);font-size:11px">聯絡人</span><div>${client.contact_name}</div></div>` : ''}
+          ${client.contact_phone ? `<div><span style="color:var(--ink4);font-size:11px">電話</span><div>${client.contact_phone}</div></div>` : ''}
+          ${c.survey_date ? `<div><span style="color:var(--ink4);font-size:11px">場勘時間</span><div>${new Date(c.survey_date).toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}</div></div>` : ''}
+          ${c.estimate_price != null ? `<div><span style="color:var(--ink4);font-size:11px">評估總包價</span><div style="font-weight:700;color:var(--green)">$${Number(c.estimate_price).toLocaleString()}</div></div>` : ''}
+          ${c.formal_price != null ? `<div><span style="color:var(--ink4);font-size:11px">正式報價</span><div style="font-weight:700;color:var(--green)">$${Number(c.formal_price).toLocaleString()}</div></div>` : ''}
+          ${c.mandate_signed_at ? `<div><span style="color:var(--ink4);font-size:11px">委任書簽署</span><div style="color:#276749"><i class="ti ti-circle-check"></i> ${new Date(c.mandate_signed_at).toLocaleDateString('zh-TW')}</div></div>` : ''}
+          ${c.formal_signed_at ? `<div><span style="color:var(--ink4);font-size:11px">正式合約</span><div style="color:#276749"><i class="ti ti-circle-check"></i> ${new Date(c.formal_signed_at).toLocaleDateString('zh-TW')}</div></div>` : ''}
+          ${c.note ? `<div style="grid-column:1/-1"><span style="color:var(--ink4);font-size:11px">備註</span><div>${c.note}</div></div>` : ''}
+        </div>
+        <!-- 設備清單 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:var(--ink3)">設備清單</span>
+          ${['surveying','pricing'].includes(c.status) ? `<button class="btn btn-ghost btn-sm" onclick="openAddCaseEquipment('${c.id}')"><i class="ti ti-plus"></i> 新增設備</button>` : ''}
+        </div>
+        <div id="cc-equip-${safeId}" style="font-size:12px;color:var(--ink4)">載入中...</div>
+        <!-- 操作按鈕 -->
+        ${actionBtn ? `<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">${actionBtn}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('') + paginationHTML(paged, PAGE_SIZE, 'setCasesPage');
+}
+
+function getCaseActionBtn(c) {
+  const id = c.id;
+  switch(c.status) {
+    case 'lead':
+      return `<button class="btn btn-primary btn-sm" onclick="openCaseSurvey('${id}')"><i class="ti ti-calendar"></i> 安排場勘</button>`;
+    case 'surveying':
+      return `<button class="btn btn-primary btn-sm" onclick="advanceCaseStatus('${id}','pricing')"><i class="ti ti-check"></i> 設備建檔完成，進入評估</button>`;
+    case 'pricing':
+      return `<button class="btn btn-primary btn-sm" onclick="openCasePricing('${id}','estimate')"><i class="ti ti-currency-dollar"></i> 記錄評估總包價</button>`;
+    case 'pending_mandate':
+      return `<button class="btn btn-primary btn-sm" onclick="openCaseSign('${id}','mandate')"><i class="ti ti-writing-sign"></i> 簽署委任同意書</button>`;
+    case 'matching':
+      return `<button class="btn btn-primary btn-sm" onclick="openCasePricing('${id}','formal')"><i class="ti ti-currency-dollar"></i> 提出正式報價</button>`;
+    case 'offer_sent':
+      return `<button class="btn btn-green btn-sm" onclick="advanceCaseStatus('${id}','pending_contract')"><i class="ti ti-thumb-up"></i> 退場商家已確認報價</button>`;
+    case 'pending_contract':
+      return `<button class="btn btn-primary btn-sm" onclick="openCaseSign('${id}','formal')"><i class="ti ti-writing-sign"></i> 簽署正式合約</button>`;
+    default:
+      return '';
+  }
+}
+
+function toggleCaseCard(safeId) {
+  const body = document.getElementById(`cc-body-${safeId}`);
+  const chevron = document.getElementById(`cc-chevron-${safeId}`);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+  if (!isOpen) {
+    const caseId = safeId.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+    loadCaseEquipment(caseId, safeId);
+  }
+}
+
+async function loadCaseEquipment(caseId, safeId) {
+  const db = getSupabase();
+  const equipEl = document.getElementById(`cc-equip-${safeId}`);
+  if (!db || !equipEl) return;
+  const { data } = await db.from('equipment_listings').select('id,device_name,category_name,condition,status').eq('case_id', caseId).order('created_at');
+  if (!data || data.length === 0) {
+    equipEl.innerHTML = '<div style="color:var(--ink4);padding:8px 0">尚無設備</div>';
+    return;
+  }
+  const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
+  const stLabel = { draft:'草稿', active:'媒合中', matched:'已媒合', completed:'已完成', cancelled:'已取消' };
+  equipEl.innerHTML = `<table class="data-table" style="font-size:12px">
+    <thead><tr><th>設備名稱</th><th>類別</th><th>狀況</th><th>媒合狀態</th></tr></thead>
+    <tbody>${data.map(e => `<tr>
+      <td style="font-weight:600">${e.device_name}</td>
+      <td>${e.category_name||'—'}</td>
+      <td>${e.condition}・${condLabel[e.condition]||''}</td>
+      <td><span class="badge badge-${e.status}">${stLabel[e.status]||e.status}</span></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function setCasesPage(p) { casesPage = p; renderCasesList(); }
+
+async function openCreateCase(clientId) {
+  _createCaseClientId = clientId;
+  const db = getSupabase();
+  if (!db) return;
+  if (clientsCache.length === 0) {
+    const { data } = await db.from('clients').select('id,company_name').order('company_name');
+    clientsCache = data || [];
+  }
+  const selC = document.getElementById('case-client-sel');
+  selC.innerHTML = clientsCache.map(c => `<option value="${c.id}" ${c.id===clientId?'selected':''}>${c.company_name}</option>`).join('');
+  if (!clientsCache.length) selC.innerHTML = '<option value="">（請先新增客戶）</option>';
+  const { data: staff } = await db.from('dealer_accounts').select('id,name').eq('status','approved').order('name');
+  const selA = document.getElementById('case-agent-sel');
+  selA.innerHTML = '<option value="">（未指定）</option>' + (staff||[]).map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('case-note').value = '';
+  document.getElementById('create-case-error').style.display = 'none';
+  document.getElementById('modal-create-case').classList.add('act');
+}
+
+function closeCreateCase() {
+  document.getElementById('modal-create-case').classList.remove('act');
+}
+
+async function saveCreateCase() {
+  const db = getSupabase();
+  if (!db) return;
+  const client_id = document.getElementById('case-client-sel').value;
+  const assigned_agent_id = document.getElementById('case-agent-sel').value || null;
+  const note = document.getElementById('case-note').value.trim();
+  const errEl = document.getElementById('create-case-error');
+  if (!client_id) { errEl.textContent = '請選擇客戶'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  const btn = document.getElementById('create-case-save-btn');
+  btn.disabled = true;
+  const { data, error } = await db.from('cases').insert({ client_id, assigned_agent_id, note: note||null }).select('*, clients(company_name,contact_name,contact_phone,address)').single();
+  btn.disabled = false;
+  if (error) { errEl.textContent = '建立失敗：' + error.message; errEl.style.display = 'block'; return; }
+  casesCache.unshift(data);
+  closeCreateCase();
+  showToast('案件已建立');
+  updateCasesTabCounts();
+  renderCasesList();
+  if (document.getElementById('screen-cases').classList.contains('act')) return;
+  goScreen('screen-cases');
+}
+
+function openCaseSurvey(caseId) {
+  _surveyDateCaseId = caseId;
+  const now = new Date(); now.setMinutes(0,0,0); now.setHours(now.getHours()+1);
+  document.getElementById('case-survey-input').value = now.toISOString().slice(0,16);
+  document.getElementById('modal-case-survey').classList.add('act');
+}
+
+async function saveCaseSurvey() {
+  const db = getSupabase();
+  if (!db || !_surveyDateCaseId) return;
+  const val = document.getElementById('case-survey-input').value;
+  if (!val) { showToast('請選擇場勘時間'); return; }
+  const btn = document.getElementById('case-survey-save-btn');
+  btn.disabled = true;
+  const { error } = await db.from('cases').update({ survey_date: new Date(val).toISOString(), status: 'surveying' }).eq('id', _surveyDateCaseId);
+  btn.disabled = false;
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  const c = casesCache.find(x => x.id === _surveyDateCaseId);
+  if (c) { c.survey_date = new Date(val).toISOString(); c.status = 'surveying'; }
+  document.getElementById('modal-case-survey').classList.remove('act');
+  _surveyDateCaseId = null;
+  showToast('場勘時間已安排');
+  renderCasesList();
+}
+
+function openCasePricing(caseId, type) {
+  _pricingCaseId = caseId; _pricingType = type;
+  const isEstimate = type === 'estimate';
+  document.getElementById('pricing-modal-title').textContent = isEstimate ? '記錄評估總包價' : '提出正式報價';
+  document.getElementById('pricing-label').textContent = isEstimate ? '評估總包價（元）' : '正式報價（元）';
+  const c = casesCache.find(x => x.id === caseId);
+  document.getElementById('case-price-input').value = isEstimate ? (c?.estimate_price||'') : (c?.formal_price||'');
+  document.getElementById('modal-case-pricing').classList.add('act');
+}
+
+async function saveCasePricing() {
+  const db = getSupabase();
+  if (!db || !_pricingCaseId) return;
+  const val = Number(document.getElementById('case-price-input').value);
+  if (!val || val < 0) { showToast('請輸入有效金額'); return; }
+  const btn = document.getElementById('case-pricing-save-btn');
+  btn.disabled = true;
+  const isEst = _pricingType === 'estimate';
+  const nextStatus = isEst ? 'pending_mandate' : 'offer_sent';
+  const payload = isEst ? { estimate_price: val, status: nextStatus } : { formal_price: val, status: nextStatus };
+  const { error } = await db.from('cases').update(payload).eq('id', _pricingCaseId);
+  btn.disabled = false;
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  const c = casesCache.find(x => x.id === _pricingCaseId);
+  if (c) Object.assign(c, payload);
+  document.getElementById('modal-case-pricing').classList.remove('act');
+  showToast(isEst ? '評估總包價已記錄' : '正式報價已提出');
+  renderCasesList();
+}
+
+async function advanceCaseStatus(caseId, nextStatus) {
+  const db = getSupabase();
+  if (!db) return;
+  const { error } = await db.from('cases').update({ status: nextStatus }).eq('id', caseId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+  const c = casesCache.find(x => x.id === caseId);
+  if (c) c.status = nextStatus;
+  showToast('案件狀態已更新');
+  renderCasesList();
+}
+
+function openAddCaseEquipment(caseId) {
+  _addEquipCaseId = caseId;
+  ['ce-device','ce-category','ce-brand','ce-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('ce-condition').value = 'B';
+  document.getElementById('case-equip-error').style.display = 'none';
+  document.getElementById('modal-case-equipment').classList.add('act');
+}
+
+async function saveCaseEquipment() {
+  const db = getSupabase();
+  if (!db || !_addEquipCaseId) return;
+  const device_name   = document.getElementById('ce-device').value.trim();
+  const category_name = document.getElementById('ce-category').value.trim();
+  const brand         = document.getElementById('ce-brand').value.trim();
+  const condition     = document.getElementById('ce-condition').value;
+  const note          = document.getElementById('ce-note').value.trim();
+  const errEl = document.getElementById('case-equip-error');
+  if (!device_name) { errEl.textContent = '請填寫設備名稱'; errEl.style.display = 'block'; return; }
+  if (!category_name) { errEl.textContent = '請填寫類別'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  const c = casesCache.find(x => x.id === _addEquipCaseId);
+  const pickup_address = c?.clients?.address || '';
+  const btn = document.getElementById('case-equip-save-btn');
+  btn.disabled = true;
+  const { error } = await db.from('equipment_listings').insert({
+    device_name, category_name, brand: brand||null, condition, note: note||null,
+    pickup_address, status: 'draft', photo_urls: [], case_id: _addEquipCaseId
+  });
+  btn.disabled = false;
+  if (error) { errEl.textContent = '新增失敗：' + error.message; errEl.style.display = 'block'; return; }
+  document.getElementById('modal-case-equipment').classList.remove('act');
+  showToast('設備已新增');
+  const safeId = _addEquipCaseId.replace(/-/g,'');
+  loadCaseEquipment(_addEquipCaseId, safeId);
+}
+
+let _caseSignInited = false;
+function openCaseSign(caseId, type) {
+  _signCaseId = caseId; _signCaseType = type; _caseSignInited = false;
+  const isMandate = type === 'mandate';
+  document.getElementById('case-sign-title').textContent = isMandate ? '簽署委任同意書' : '簽署正式合約';
+  document.getElementById('case-contract-title').textContent = isMandate ? '委任同意書' : '正式合約';
+  const contractBody = document.getElementById('case-contract-body');
+  if (!isMandate) {
+    contractBody.innerHTML = `<p>立書人：退場商家（以下稱「甲方」）與<strong>秧秧空間設計有限公司</strong>（以下稱「乙方」），就設備回收買賣事宜訂立本合約：</p>
+      <p><strong>一、買賣標的</strong><br>依案件設備清單所列設備，甲方同意以乙方提出之正式報價出售予乙方。</p>
+      <p><strong>二、價金</strong><br>乙方應於設備交付完成後，依約定方式將買賣價金匯付予甲方。</p>
+      <p><strong>三、設備狀況</strong><br>甲方保證設備與描述相符，如有重大不符，乙方得要求調整價格或取消買賣。</p>
+      <p><strong>四、交付</strong><br>乙方負責設備搬運，甲方應配合提供場地及人員協助。</p>
+      <p><strong>五、所有權移轉</strong><br>設備所有權於交付完成並乙方確認後移轉。</p>
+      <p style="text-align:center;margin-top:16px;color:var(--ink4);font-size:11px">── 已閱讀全文，簽名欄位將於此處解鎖 ──</p>`;
+  }
+  const scroll = document.getElementById('case-contract-scroll');
+  scroll.scrollTop = 0;
+  document.getElementById('case-sign-section').style.display = 'none';
+  document.getElementById('modal-case-sign').classList.add('act');
+}
+
+function checkCaseContractScroll() {
+  const el = document.getElementById('case-contract-scroll');
+  const sig = document.getElementById('case-sign-section');
+  if (!el || !sig || sig.style.display !== 'none') return;
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 20) {
+    sig.style.display = '';
+    if (!_caseSignInited) {
+      _caseSignInited = true;
+      setTimeout(() => {
+        ['agent','client'].forEach(role => {
+          const canvas = document.getElementById(`case-${role}-canvas`);
+          if (!canvas || !window.SignaturePad) return;
+          const ratio = window.devicePixelRatio || 1;
+          canvas.width = canvas.offsetWidth * ratio;
+          canvas.height = canvas.offsetHeight * ratio;
+          canvas.getContext('2d').scale(ratio, ratio);
+          const pad = new SignaturePad(canvas, { backgroundColor:'rgb(255,255,255)', penColor:'#1A1A18' });
+          if (role === 'agent') _signCaseAgentPad = pad;
+          else _signCaseClientPad = pad;
+        });
+      }, 100);
+    }
+  }
+}
+
+function clearCaseSign(role) {
+  if (role === 'agent' && _signCaseAgentPad) _signCaseAgentPad.clear();
+  if (role === 'client' && _signCaseClientPad) _signCaseClientPad.clear();
+}
+
+function closeCaseSign() {
+  document.getElementById('modal-case-sign').classList.remove('act');
+  _signCaseId = null; _signCaseType = null;
+}
+
+async function saveCaseSign() {
+  const db = getSupabase();
+  if (!db || !_signCaseId) return;
+  if (document.getElementById('case-sign-section').style.display === 'none') { showToast('請先閱讀合約至底部'); return; }
+  if (_signCaseAgentPad?.isEmpty()) { showToast('請填寫業務簽名'); return; }
+  if (_signCaseClientPad?.isEmpty()) { showToast('請填寫客戶代表簽名'); return; }
+  const btn = document.getElementById('case-sign-save-btn');
+  btn.disabled = true;
+  const agentSig = _signCaseAgentPad.toDataURL('image/png');
+  const clientSig = _signCaseClientPad.toDataURL('image/png');
+  const isMandate = _signCaseType === 'mandate';
+  const payload = isMandate
+    ? { mandate_agent_signature: agentSig, mandate_client_signature: clientSig, mandate_signed_at: new Date().toISOString(), status: 'matching' }
+    : { formal_agent_signature: agentSig, formal_client_signature: clientSig, formal_signed_at: new Date().toISOString(), status: 'completed' };
+  const { error } = await db.from('cases').update(payload).eq('id', _signCaseId);
+  btn.disabled = false;
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  const c = casesCache.find(x => x.id === _signCaseId);
+  if (c) Object.assign(c, payload);
+  closeCaseSign();
+  showToast(isMandate ? '委任同意書已簽署，案件進入媒合中' : '正式合約已簽署，案件已結案');
+  updateCasesTabCounts();
+  renderCasesList();
+}
+
 let recyclersCache = [];
 
 async function loadRecyclersList() {
