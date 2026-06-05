@@ -1519,11 +1519,20 @@ function renderMatchList() {
     (m.device_name      || '').toLowerCase().includes(q));
 
   // 愛心追蹤偏好排序：符合 starred 偏好的媒合排在最前面
-  const starredDevices = prefs.filter(p => p.isStarred).map(p => p.device);
-  if (starredDevices.length > 0) {
+  // 比對 device_name，若偏好有指定品牌則 match 的 brand 也要符合
+  const starredPrefs = prefs.filter(p => p.isStarred);
+  function matchesStarred(m) {
+    return starredPrefs.some(p => {
+      if (p.device !== m.device_name) return false;
+      const hasBrandFilter = p.brands && p.brands.length > 0 && !p.brands.includes('不限品牌');
+      if (!hasBrandFilter) return true;
+      return m.brand && p.brands.includes(m.brand);
+    });
+  }
+  if (starredPrefs.length > 0) {
     filtered = [
-      ...filtered.filter(m => starredDevices.includes(m.device_name)),
-      ...filtered.filter(m => !starredDevices.includes(m.device_name)),
+      ...filtered.filter(m => matchesStarred(m)),
+      ...filtered.filter(m => !matchesStarred(m)),
     ];
   }
 
@@ -1560,7 +1569,7 @@ function renderMatchList() {
   document.getElementById('match-list').innerHTML = filtered.map(m => {
     const s = m.status || 'pending';
     const isUnread = !m.is_read && s === 'pending';
-    const isStarredMatch = starredDevices.includes(m.device_name);
+    const isStarredMatch = matchesStarred(m);
     return `
     <div class="match-card${isUnread ? ' unread' : ''}" onclick="openMatchDetail('${m.id}')">
       ${isUnread ? '<div class="unread-dot"></div>' : ''}
