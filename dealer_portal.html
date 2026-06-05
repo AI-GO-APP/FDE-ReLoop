@@ -1580,7 +1580,16 @@ async function confirmReceived(matchId) {
 // ════════════════════════════════════════════
 let matchesListingsCache = [];
 let matchesMatchCache = [];
-let matchesCategory = '';
+let matchesCategory = ''; // 空字串 = 全部，否則為大分類名稱
+
+const MATCH_MAIN_CAT_MAP = {
+  '冷藏冷凍設備':'家電類', '烹調加熱設備':'家電類', '飲料吧設備':'家電類',
+  '清潔衛生設備':'家電類', '辦公店務設備':'家電類', '洗衣家電':'家電類',
+  '桌椅類':'家具類', '吧台工作台':'家具類', '收納櫃類':'家具類', '床寢類':'家具類',
+  '廚房用具':'雜項', '餐具容器':'雜項', '包裝封口':'雜項', '攤車推車':'雜項', '食材處理設備':'雜項',
+  '衛浴設備':'建材類', '水電配管':'建材類', '門窗隔間':'建材類', '地板牆面':'建材類',
+};
+const MATCH_MAIN_CATS = ['全部', '家電類', '家具類', '雜項', '建材類'];
 
 async function loadMatchesList() {
   const db = getSupabase();
@@ -1613,10 +1622,9 @@ async function loadMatchesList() {
 }
 
 function buildMatchCategoryTabs() {
-  const cats = ['全部', ...new Set(matchesListingsCache.map(l => l.category_name).filter(Boolean))];
   const tabEl = document.getElementById('matches-category-tabs');
   if (!tabEl) return;
-  tabEl.innerHTML = cats.map(c =>
+  tabEl.innerHTML = MATCH_MAIN_CATS.map(c =>
     `<button class="match-tab-btn ${c === (matchesCategory||'全部') ? 'act' : ''}" onclick="switchMatchCategory('${c}')">${c}</button>`
   ).join('');
 }
@@ -1666,7 +1674,7 @@ function renderMatchesList() {
   });
 
   let listings = matchesListingsCache;
-  if (matchesCategory) listings = listings.filter(l => l.category_name === matchesCategory);
+  if (matchesCategory) listings = listings.filter(l => MATCH_MAIN_CAT_MAP[l.category_name] === matchesCategory);
   if (q) {
     const matchingEquipIds = new Set(
       matchesMatchCache
