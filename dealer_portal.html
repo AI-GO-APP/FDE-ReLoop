@@ -1794,6 +1794,17 @@ function renderMatchesList() {
       ? `<button class="btn btn-ghost btn-sm" onclick="reNotify('${l.id}')"><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`
       : '';
     const safeId = l.id.replace(/-/g,'');
+    const pendingMs = ms.filter(m => m.status === 'pending');
+    const nearestDl = pendingMs.length
+      ? pendingMs.reduce((min, m) => { const t = matchDeadline(m).getTime(); return t < min ? t : min; }, Infinity)
+      : null;
+    let headerDlHtml = '';
+    if (nearestDl && nearestDl !== Infinity) {
+      const rem = nearestDl - Date.now();
+      const dlColor = rem <= 0 ? 'var(--red)' : rem < 3600000 ? 'var(--red)' : rem < 7200000 ? 'var(--amber)' : 'var(--ink3)';
+      const dlStr = new Date(nearestDl).toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
+      headerDlHtml = `<span style="font-size:11px;color:var(--ink4)">截止日期：<span style="color:${dlColor};font-weight:600">${rem <= 0 ? '已截止' : dlStr}</span></span>`;
+    }
     return `<div class="card" style="padding:0;overflow:hidden">
       <div onclick="toggleMatchCard('${safeId}')" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 20px;cursor:pointer;user-select:none">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -1803,9 +1814,10 @@ function renderMatchesList() {
           <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">${equipNo}</span>
           ${ms.length > 0 ? `<span class="badge badge-active">${ms.length} 筆</span>` : ''}
         </div>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:12px;align-items:center">
           ${reNotifyBtn}
-          <span style="font-size:11px;color:var(--ink4)">${createdAt}</span>
+          ${headerDlHtml}
+          <span style="font-size:11px;color:var(--ink4)">媒合日期：${createdAt}</span>
           <i id="mc-chevron-${safeId}" class="ti ti-chevron-down" style="font-size:16px;color:var(--ink4);transition:transform .2s"></i>
         </div>
       </div>
