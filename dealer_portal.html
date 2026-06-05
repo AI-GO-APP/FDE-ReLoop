@@ -135,6 +135,13 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 
+/* ── Tab Bar ── */
+.match-tabs-bar{display:flex;gap:0;border-bottom:2px solid var(--paper3)}
+.match-tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.match-tab-btn.act{color:var(--ink);border-bottom-color:var(--green);font-weight:600}
+.tab-cnt{font-size:12px;font-weight:600;color:var(--ink4);margin-left:2px}
+.match-tab-btn.act .tab-cnt{color:var(--ink2)}
+
 /* ── 分隔線標題 ── */
 .section-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;margin-top:24px}
 .section-label:first-child{margin-top:0}
@@ -229,7 +236,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
       </div>
     </div>
     <div>
@@ -274,7 +281,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids2" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
       </div>
     </div>
     <div>
@@ -307,7 +314,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids3" style="display:none"></span></button>
-        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
       </div>
     </div>
     <div>
@@ -329,7 +336,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- ══════════════════════════════════════════
-     款項確認
+     款項管理
 ══════════════════════════════════════════ -->
 <div class="screen" id="screen-payments">
   <div class="brand-col">
@@ -340,7 +347,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids4" style="display:none"></span></button>
-        <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
       </div>
     </div>
     <div>
@@ -351,10 +358,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   <div class="main-col">
     <div class="main-header">
       <div class="main-header-top">
-        <div class="main-title">款項確認</div>
+        <div class="main-title">款項管理</div>
       </div>
     </div>
     <div class="main-body">
+      <div class="match-tabs-bar" style="margin-bottom:16px">
+        <button class="match-tab-btn act" id="pay-tab-pending"   onclick="switchPayTab('pending')">待確認<span id="pay-cnt-pending"   class="tab-cnt" style="display:none"></span></button>
+        <button class="match-tab-btn"     id="pay-tab-confirmed" onclick="switchPayTab('confirmed')">已付款<span id="pay-cnt-confirmed" class="tab-cnt" style="display:none"></span></button>
+        <button class="match-tab-btn"     id="pay-tab-received"  onclick="switchPayTab('received')">已收貨<span id="pay-cnt-received"  class="tab-cnt" style="display:none"></span></button>
+      </div>
       <div id="payments-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
       <div id="payments-list"></div>
     </div>
@@ -1025,9 +1037,17 @@ async function selectWinner(matchId) {
 }
 
 // ════════════════════════════════════════════
-// 款項確認
+// 款項管理
 // ════════════════════════════════════════════
 let paymentsCache = [];
+let currentPayTab = 'pending';
+
+function switchPayTab(tab) {
+  currentPayTab = tab;
+  ['pending','confirmed','received'].forEach(t =>
+    document.getElementById(`pay-tab-${t}`)?.classList.toggle('act', t === tab));
+  renderPaymentsList();
+}
 
 async function loadPaymentsList() {
   const db = getSupabase();
@@ -1038,35 +1058,67 @@ async function loadPaymentsList() {
   const { data } = await db
     .from('recycler_matches')
     .select('*, recycler_onboarding_accounts(company_name, contact_name)')
-    .eq('status', 'accepted')
-    .not('payment_last5', 'is', null)
-    .order('payment_submitted_at', { ascending: true });
+    .in('status', ['accepted','payment_confirmed','received'])
+    .order('created_at', { ascending: false });
 
   paymentsCache = data || [];
   document.getElementById('payments-loading').style.display = 'none';
 
-  if (paymentsCache.length === 0) {
-    document.getElementById('payments-list').innerHTML = '<div class="empty-state"><i class="ti ti-credit-card-off"></i><p>目前沒有待確認款項</p></div>';
+  // 更新分頁計數
+  const cntPending   = paymentsCache.filter(m => m.status === 'accepted' && m.payment_last5).length;
+  const cntConfirmed = paymentsCache.filter(m => m.status === 'payment_confirmed').length;
+  const cntReceived  = paymentsCache.filter(m => m.status === 'received').length;
+  const setCnt = (id, n) => { const el = document.getElementById(id); if(el){el.textContent=n||'';el.style.display=n?'inline':'none';} };
+  setCnt('pay-cnt-pending',   cntPending);
+  setCnt('pay-cnt-confirmed', cntConfirmed);
+  setCnt('pay-cnt-received',  cntReceived);
+
+  renderPaymentsList();
+}
+
+function renderPaymentsList() {
+  const listEl = document.getElementById('payments-list');
+  let filtered;
+  let emptyMsg;
+
+  if (currentPayTab === 'pending') {
+    filtered = paymentsCache.filter(m => m.status === 'accepted' && m.payment_last5);
+    emptyMsg = '目前沒有待確認的匯款';
+  } else if (currentPayTab === 'confirmed') {
+    filtered = paymentsCache.filter(m => m.status === 'payment_confirmed');
+    emptyMsg = '目前沒有已確認付款的記錄';
+  } else {
+    filtered = paymentsCache.filter(m => m.status === 'received');
+    emptyMsg = '目前沒有已收貨的記錄';
+  }
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="empty-state"><i class="ti ti-credit-card-off"></i><p>${emptyMsg}</p></div>`;
     return;
   }
 
-  document.getElementById('payments-list').innerHTML = `
-    <table class="data-table">
-      <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th><th style="text-align:right">操作</th></tr></thead>
-      <tbody>${paymentsCache.map(m => `
-        <tr>
-          <td style="font-weight:600">${m.device_name}</td>
-          <td>${m.recycler_onboarding_accounts?.company_name || '—'}</td>
-          <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
-          <td><span style="font-family:monospace;font-size:13px;letter-spacing:.1em">${m.payment_last5 || '—'}</span></td>
-          <td style="color:var(--ink3);font-size:12px">${m.payment_submitted_at ? new Date(m.payment_submitted_at).toLocaleString('zh-TW') : '—'}</td>
-          <td><div class="td-actions">
-            <button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
-            <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>
-          </div></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
+  const rows = filtered.map(m => {
+    let actions = '';
+    if (currentPayTab === 'pending') {
+      actions = `<button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
+                 <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>`;
+    } else if (currentPayTab === 'confirmed') {
+      actions = `<button class="btn btn-primary btn-sm" onclick="confirmReceived('${m.id}')"><i class="ti ti-truck"></i> 確認收貨</button>`;
+    }
+    return `<tr>
+      <td style="font-weight:600">${m.device_name}</td>
+      <td>${m.recycler_onboarding_accounts?.company_name || '—'}</td>
+      <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
+      <td><span style="font-family:monospace;font-size:13px;letter-spacing:.1em">${m.payment_last5 || '—'}</span></td>
+      <td style="color:var(--ink3);font-size:12px">${m.payment_submitted_at ? new Date(m.payment_submitted_at).toLocaleString('zh-TW') : '—'}</td>
+      <td><div class="td-actions">${actions}</div></td>
+    </tr>`;
+  }).join('');
+
+  listEl.innerHTML = `<table class="data-table">
+    <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th><th style="text-align:right">操作</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 async function confirmPayment(matchId) {
@@ -1090,6 +1142,18 @@ async function rejectPayment(matchId) {
     .eq('id', matchId);
   if (error) { showToast('操作失敗：' + error.message); return; }
   showToast('已退回，回收商需重新填寫匯款資訊');
+  loadPaymentsList();
+}
+
+async function confirmReceived(matchId) {
+  const db = getSupabase();
+  if (!db) return;
+  if (!confirm('確認已完成收貨？此操作不可撤回。')) return;
+  const { error } = await db.from('recycler_matches')
+    .update({ status: 'received', received_at: new Date().toISOString() })
+    .eq('id', matchId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+  showToast('已標記收貨完成');
   loadPaymentsList();
 }
 
