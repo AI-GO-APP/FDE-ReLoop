@@ -297,6 +297,28 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .sig-clear-btn{position:absolute;top:8px;right:8px;padding:4px 10px;border:1px solid var(--paper3);border-radius:6px;background:var(--white);font-size:11px;color:var(--ink3);cursor:pointer}
 .sig-clear-btn:hover{border-color:var(--ink);color:var(--ink)}
 
+/* ── 收貨偏好愛心按鈕 ── */
+.pref-star-btn{background:none;border:none;cursor:pointer;font-size:17px;padding:2px 4px;color:var(--ink4);transition:color .15s;line-height:1;flex-shrink:0}
+.pref-star-btn.starred{color:#e8394d}
+.pref-star-btn:hover{color:#e8394d}
+
+/* ── 通知偏好表格 ── */
+.notif-filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.notif-filter-sel{padding:6px 10px;border:1.5px solid var(--paper3);border-radius:var(--r);font-size:12px;background:var(--white);color:var(--ink);outline:none;cursor:pointer;max-width:140px}
+.notif-filter-sel:focus{border-color:var(--ink)}
+.notif-filter-input{padding:6px 10px;border:1.5px solid var(--paper3);border-radius:var(--r);font-size:12px;background:var(--white);color:var(--ink);outline:none;width:80px}
+.notif-filter-input:focus{border-color:var(--ink)}
+.notif-clear-btn{padding:5px 10px;border:1px solid var(--paper3);border-radius:var(--r);font-size:11px;background:var(--paper2);color:var(--ink3);cursor:pointer}
+.notif-table-wrap{overflow-x:auto;border:1px solid var(--paper3);border-radius:var(--r-lg);margin-top:4px}
+.notif-table{width:100%;border-collapse:collapse;font-size:13px}
+.notif-table th{background:var(--paper2);padding:9px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--ink3);border-bottom:1px solid var(--paper3);white-space:nowrap;user-select:none}
+.notif-table th.sortable{cursor:pointer}
+.notif-table th.sortable:hover{color:var(--ink)}
+.notif-table td{padding:10px 12px;border-bottom:1px solid var(--paper2);vertical-align:middle;color:var(--ink)}
+.notif-table tr:last-child td{border-bottom:none}
+.notif-table tr:hover td{background:var(--paper)}
+.notif-empty-row td{text-align:center;color:var(--ink4);padding:24px}
+
 </style>
 </head>
 <body>
@@ -764,6 +786,45 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="pref-list" id="pref-list" style="display:none"></div>
       <button class="btn-add-bottom" id="btn-add-bottom" style="display:none" onclick="openModal()">+ 新增一條收貨偏好</button>
 
+      <!-- 推播通知偏好 -->
+      <div style="margin-top:32px;padding-top:28px;border-top:1px solid var(--paper3)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;gap:12px">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px">推播通知偏好</div>
+            <div style="font-size:12px;color:var(--ink3);margin-top:3px">設定想收到通知的設備條件。不設定則符合收貨偏好的媒合都會通知。</div>
+          </div>
+          <button class="btn-add-top" onclick="openNotifPrefModal()">+ 新增</button>
+        </div>
+
+        <div class="notif-filter-row" id="notif-filter-row" style="display:none;margin-top:12px">
+          <select class="notif-filter-sel" id="notif-filter-device" onchange="renderNotifPrefsTable()">
+            <option value="">全部設備</option>
+          </select>
+          <select class="notif-filter-sel" id="notif-filter-brand" onchange="renderNotifPrefsTable()">
+            <option value="">全部品牌</option>
+          </select>
+          <input class="notif-filter-input" id="notif-filter-year" type="number" placeholder="年份" title="年份最小值篩選" oninput="renderNotifPrefsTable()">
+          <input class="notif-filter-input" id="notif-filter-size" type="number" placeholder="尺寸(cm)" title="寬度上限篩選" oninput="renderNotifPrefsTable()">
+          <button class="notif-clear-btn" onclick="clearNotifFilters()">清除篩選</button>
+        </div>
+
+        <div class="notif-table-wrap" id="notif-table-wrap" style="display:none">
+          <table class="notif-table">
+            <thead>
+              <tr>
+                <th>設備名稱</th>
+                <th>品牌</th>
+                <th class="sortable" onclick="sortNotifTable('year')">年份 <span id="notif-sort-year-icon"></span></th>
+                <th class="sortable" onclick="sortNotifTable('size')">尺寸(cm) <span id="notif-sort-size-icon"></span></th>
+                <th style="width:80px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="notif-table-body"></tbody>
+          </table>
+        </div>
+        <div id="notif-empty-msg" style="text-align:center;padding:20px;color:var(--ink4);font-size:13px">還沒有通知偏好，不設定則符合收貨偏好的媒合都會通知</div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1091,6 +1152,7 @@ async function loadPrefsFromDb() {
     maxD: row.max_depth_cm,   maxWeight: row.max_weight_kg,
     conds: row.accepted_conditions || {},
     note: row.note || '',
+    isStarred: row.is_starred || false,
   }));
   renderPrefList();
 }
@@ -1138,7 +1200,7 @@ function goScreen(id) {
   if(el) { el.classList.add('act'); }
   window.scrollTo(0, 0);
   if (id === 'screen-matches') { renderSubTabs(); loadMatches(); }
-  if (id === 'screen-prefs') { loadPrefsFromDb(); loadServiceAreasFromDb(); }
+  if (id === 'screen-prefs') { loadPrefsFromDb(); loadServiceAreasFromDb(); loadNotifPrefsFromDb(); }
   if (id === 'screen-profile') loadProfileFromDb();
   if (id === 'screen-register') resetRegisterScreen();
 }
@@ -1373,6 +1435,15 @@ function renderMatchList() {
     filtered = allMatchesCache.filter(m => m.status === orderMap[currentOrdersSubTab]);
   }
 
+  // 愛心追蹤偏好排序：符合 starred 偏好的媒合排在最前面
+  const starredDevices = prefs.filter(p => p.isStarred).map(p => p.device);
+  if (starredDevices.length > 0) {
+    filtered = [
+      ...filtered.filter(m => starredDevices.includes(m.device_name)),
+      ...filtered.filter(m => !starredDevices.includes(m.device_name)),
+    ];
+  }
+
   const emptyMessages = {
     notify_active:            ['目前沒有媒合通知', '盤商配對到符合您偏好的設備時會在這裡通知您'],
     notify_expired:           ['沒有已截止的通知', '截止前未回覆的媒合通知會出現在這裡'],
@@ -1406,12 +1477,13 @@ function renderMatchList() {
   document.getElementById('match-list').innerHTML = filtered.map(m => {
     const s = m.status || 'pending';
     const isUnread = !m.is_read && s === 'pending';
+    const isStarredMatch = starredDevices.includes(m.device_name);
     return `
     <div class="match-card${isUnread ? ' unread' : ''}" onclick="openMatchDetail('${m.id}')">
       ${isUnread ? '<div class="unread-dot"></div>' : ''}
       ${s !== 'pending' ? `<div class="match-status-badge ${statusClass[s] || ''}">${statusLabel[s] || s}</div>` : ''}
       <div class="match-card-hd">
-        <div class="match-device-name">${m.device_name}</div>
+        <div class="match-device-name">${isStarredMatch ? '<span style="color:#e8394d;margin-right:4px">♥</span>' : ''}${m.device_name}</div>
         <div class="match-time-label">${formatTimeAgo(m.created_at)}</div>
       </div>
       <div class="match-cat-tag">${m.category_name}</div>
@@ -2449,6 +2521,7 @@ function renderPrefList() {
       '<div class="pref-card-hd">' +
         '<div class="pref-num">偏好 ' + (i+1) + '</div>' +
         '<div class="pref-label"></div>' +
+        '<button class="pref-star-btn' + (p.isStarred ? ' starred' : '') + '" title="' + (p.isStarred ? '取消追蹤' : '加入追蹤，符合的媒合排最前面') + '" onclick="togglePrefStar(' + i + ')">♥</button>' +
         '<button class="pref-edit-btn" onclick="openModal(' + i + ')">✏️ 編輯</button>' +
         '<button class="pref-del-btn" onclick="deletePref(' + i + ')">🗑</button>' +
       '</div>' +
@@ -2479,6 +2552,364 @@ async function deletePref(idx) {
 
 
 renderPrefList();
+
+// ════════════════════════════════════════════
+// 愛心追蹤 (is_starred)
+// ════════════════════════════════════════════
+
+async function togglePrefStar(idx) {
+  const pref = prefs[idx];
+  if (!pref) return;
+  const newVal = !pref.isStarred;
+  const db = requireSupabase();
+  if (!db) return;
+  const { error } = await db.from('recycler_onboarding_preferences')
+    .update({ is_starred: newVal }).eq('id', pref.id).eq('recycler_id', currentRecyclerId);
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  pref.isStarred = newVal;
+  renderPrefList();
+  showToast(newVal ? '已加入追蹤，符合的媒合將排在最前面' : '已取消追蹤');
+}
+
+// ════════════════════════════════════════════
+// 推播通知偏好
+// ════════════════════════════════════════════
+
+let notifPrefs = [];
+let notifSortField = null;
+let notifSortDir = 'asc';
+let editingNotifPrefId = null;
+let pendingNotifPrefData = null;
+
+async function loadNotifPrefsFromDb() {
+  const db = requireSupabase();
+  if (!db || !currentRecyclerId) return;
+  const { data, error } = await db
+    .from('notification_preferences')
+    .select('*')
+    .eq('recycler_id', currentRecyclerId)
+    .order('created_at', { ascending: true });
+  if (error) return;
+  notifPrefs = data || [];
+  renderNotifPrefsTable();
+}
+
+async function saveNotifPrefToDb(payload) {
+  const db = requireSupabase();
+  if (!db) return null;
+  const { data, error } = await db.from('notification_preferences').upsert(payload).select().single();
+  if (error) { showToast('儲存失敗：' + error.message); return null; }
+  return data;
+}
+
+async function deleteNotifPref(id) {
+  if (!confirm('確定要刪除這筆通知偏好？')) return;
+  const db = requireSupabase();
+  if (!db) return;
+  const { error } = await db.from('notification_preferences').delete().eq('id', id).eq('recycler_id', currentRecyclerId);
+  if (error) { showToast('刪除失敗：' + error.message); return; }
+  notifPrefs = notifPrefs.filter(p => p.id !== id);
+  renderNotifPrefsTable();
+  showToast('已刪除通知偏好');
+}
+
+function renderNotifPrefsTable() {
+  const deviceFilter = document.getElementById('notif-filter-device')?.value || '';
+  const brandFilter  = document.getElementById('notif-filter-brand')?.value  || '';
+  const yearFilter   = parseFloat(document.getElementById('notif-filter-year')?.value)  || null;
+  const sizeFilter   = parseFloat(document.getElementById('notif-filter-size')?.value)  || null;
+
+  let filtered = notifPrefs.filter(p => {
+    if (deviceFilter && p.device_name !== deviceFilter) return false;
+    if (brandFilter  && !(p.brands || []).includes(brandFilter)) return false;
+    if (yearFilter   && (!p.year_min || p.year_min < yearFilter)) return false;
+    if (sizeFilter   && (!p.max_width_cm || p.max_width_cm > sizeFilter)) return false;
+    return true;
+  });
+
+  if (notifSortField === 'year') {
+    filtered.sort((a, b) => notifSortDir === 'asc'
+      ? (a.year_min || 0) - (b.year_min || 0)
+      : (b.year_min || 0) - (a.year_min || 0));
+  } else if (notifSortField === 'size') {
+    filtered.sort((a, b) => notifSortDir === 'asc'
+      ? (a.max_width_cm || 0) - (b.max_width_cm || 0)
+      : (b.max_width_cm || 0) - (a.max_width_cm || 0));
+  }
+
+  const emptyMsg   = document.getElementById('notif-empty-msg');
+  const tableWrap  = document.getElementById('notif-table-wrap');
+  const filterRow  = document.getElementById('notif-filter-row');
+  const tbody      = document.getElementById('notif-table-body');
+
+  if (notifPrefs.length === 0) {
+    emptyMsg.style.display  = 'block';
+    tableWrap.style.display = 'none';
+    filterRow.style.display = 'none';
+    return;
+  }
+
+  emptyMsg.style.display  = 'none';
+  tableWrap.style.display = 'block';
+  filterRow.style.display = 'flex';
+  updateNotifFilterOptions();
+
+  document.getElementById('notif-sort-year-icon').textContent =
+    notifSortField === 'year' ? (notifSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+  document.getElementById('notif-sort-size-icon').textContent =
+    notifSortField === 'size' ? (notifSortDir === 'asc' ? ' ▲' : ' ▼') : '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr class="notif-empty-row"><td colspan="5">沒有符合篩選條件的資料</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(p => {
+    const deviceLabel = [p.category_name, p.subcategory_name, p.device_name].filter(Boolean).join(' › ');
+    const brandLabel  = (p.brands && p.brands.length) ? p.brands.join('、') : '不限品牌';
+    const yearLabel   = p.year_min ? p.year_min + ' 年以後' : (p.year_within ? p.year_within + ' 年內' : '—');
+    const sizeArr     = [p.max_width_cm?'寬≤'+p.max_width_cm:'', p.max_height_cm?'高≤'+p.max_height_cm:'', p.max_depth_cm?'深≤'+p.max_depth_cm:'', p.max_weight_kg?'≤'+p.max_weight_kg+'kg':''].filter(Boolean);
+    const sizeLabel   = sizeArr.length ? sizeArr.join(' ') : '—';
+    return `<tr>
+      <td style="font-weight:600">${deviceLabel}</td>
+      <td style="color:var(--ink2)">${brandLabel}</td>
+      <td>${yearLabel}</td>
+      <td style="font-size:11px;color:var(--ink3)">${sizeLabel}</td>
+      <td>
+        <button style="font-size:11px;padding:3px 8px;border:1px solid var(--paper3);border-radius:6px;background:var(--paper);cursor:pointer;margin-right:4px" onclick="openNotifPrefModal('${p.id}')">編輯</button>
+        <button style="font-size:11px;padding:3px 8px;border:1px solid var(--paper3);border-radius:6px;background:var(--paper);cursor:pointer;color:var(--red-m)" onclick="deleteNotifPref('${p.id}')">刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateNotifFilterOptions() {
+  const devSel   = document.getElementById('notif-filter-device');
+  const brandSel = document.getElementById('notif-filter-brand');
+  const curDev   = devSel.value;
+  const curBrand = brandSel.value;
+
+  const devices = [...new Set(notifPrefs.map(p => p.device_name).filter(Boolean))];
+  const brands  = [...new Set(notifPrefs.flatMap(p => p.brands || []).filter(Boolean))];
+
+  devSel.innerHTML = '<option value="">全部設備</option>' +
+    devices.map(d => `<option value="${d}"${curDev === d ? ' selected' : ''}>${d}</option>`).join('');
+  brandSel.innerHTML = '<option value="">全部品牌</option>' +
+    brands.map(b => `<option value="${b}"${curBrand === b ? ' selected' : ''}>${b}</option>`).join('');
+}
+
+function clearNotifFilters() {
+  document.getElementById('notif-filter-device').value = '';
+  document.getElementById('notif-filter-brand').value  = '';
+  document.getElementById('notif-filter-year').value   = '';
+  document.getElementById('notif-filter-size').value   = '';
+  notifSortField = null;
+  renderNotifPrefsTable();
+}
+
+function sortNotifTable(field) {
+  if (notifSortField === field) {
+    notifSortDir = notifSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    notifSortField = field;
+    notifSortDir   = 'asc';
+  }
+  renderNotifPrefsTable();
+}
+
+function openNotifPrefModal(id = null) {
+  editingNotifPrefId = id;
+  pendingNotifPrefData = null;
+  document.getElementById('notif-modal-title').textContent = id ? '編輯通知偏好' : '新增通知偏好';
+  resetNotifForm();
+  if (id) {
+    const np = notifPrefs.find(p => p.id === id);
+    if (np) loadNotifPrefToForm(np);
+  }
+  document.getElementById('notif-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  // 初始化 L1 選項
+  const l1sel = document.getElementById('notif-sel-l1');
+  if (!l1sel.options.length || l1sel.options.length === 1) {
+    l1sel.innerHTML = '<option value="">請選擇大分類</option>';
+    Object.entries(CATS).forEach(([id, cat]) => {
+      l1sel.innerHTML += `<option value="${id}">${cat.emoji} ${cat.name}</option>`;
+    });
+  }
+}
+
+function closeNotifPrefModal() {
+  document.getElementById('notif-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  editingNotifPrefId = null;
+  pendingNotifPrefData = null;
+}
+
+function resetNotifForm() {
+  document.getElementById('notif-sel-l1').value = '';
+  document.getElementById('notif-sel-l2').innerHTML = '<option value="">請先選擇大分類</option>';
+  document.getElementById('notif-sel-l2').disabled = true;
+  document.getElementById('notif-sel-dev').innerHTML = '<option value="">請先選擇細項分類</option>';
+  document.getElementById('notif-sel-dev').disabled = true;
+  ['notif-section-brands','notif-section-year','notif-section-size'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('notif-submit-btn').style.display = 'none';
+  ['notif-year-min','notif-year-within','notif-max-w','notif-max-h','notif-max-d','notif-max-weight'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+}
+
+function loadNotifPrefToForm(np) {
+  const l1sel = document.getElementById('notif-sel-l1');
+  l1sel.innerHTML = '<option value="">請選擇大分類</option>';
+  Object.entries(CATS).forEach(([id, cat]) => {
+    l1sel.innerHTML += `<option value="${id}">${cat.emoji} ${cat.name}</option>`;
+  });
+  l1sel.value = np.category_id || '';
+  onNotifL1Change();
+  setTimeout(() => {
+    document.getElementById('notif-sel-l2').value = np.subcategory_id || '';
+    onNotifL2Change();
+    setTimeout(() => {
+      document.getElementById('notif-sel-dev').value = np.device_name || '';
+      onNotifDevChange();
+      setTimeout(() => {
+        document.querySelectorAll('#notif-brand-chips .chip').forEach(c => {
+          c.classList.toggle('sel', (np.brands || []).includes(c.textContent));
+        });
+        document.getElementById('notif-year-min').value    = np.year_min    || '';
+        document.getElementById('notif-year-within').value = np.year_within || '';
+        document.getElementById('notif-max-w').value       = np.max_width_cm  || '';
+        document.getElementById('notif-max-h').value       = np.max_height_cm || '';
+        document.getElementById('notif-max-d').value       = np.max_depth_cm  || '';
+        document.getElementById('notif-max-weight').value  = np.max_weight_kg || '';
+      }, 50);
+    }, 50);
+  }, 50);
+}
+
+function onNotifL1Change() {
+  const l1id = document.getElementById('notif-sel-l1').value;
+  const l2sel = document.getElementById('notif-sel-l2');
+  const devsel = document.getElementById('notif-sel-dev');
+  l2sel.innerHTML = '<option value="">請選擇細項分類...</option>';
+  devsel.innerHTML = '<option value="">請先選擇細項分類</option>';
+  l2sel.disabled = !l1id;
+  devsel.disabled = true;
+  ['notif-section-brands','notif-section-year','notif-section-size'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('notif-submit-btn').style.display = 'none';
+  if (!l1id) return;
+  Object.entries(CATS[l1id].subs).forEach(([id, sub]) => {
+    l2sel.innerHTML += `<option value="${id}">${sub.name}</option>`;
+  });
+}
+
+function onNotifL2Change() {
+  const l1id = document.getElementById('notif-sel-l1').value;
+  const l2id = document.getElementById('notif-sel-l2').value;
+  const devsel = document.getElementById('notif-sel-dev');
+  devsel.innerHTML = '<option value="">請選擇設備...</option>';
+  devsel.disabled = !l2id;
+  ['notif-section-brands','notif-section-year','notif-section-size'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('notif-submit-btn').style.display = 'none';
+  if (!l2id) return;
+  CATS[l1id].subs[l2id].devices.forEach(dev => {
+    devsel.innerHTML += `<option value="${dev}">${dev}</option>`;
+  });
+}
+
+function onNotifDevChange() {
+  const l1id = document.getElementById('notif-sel-l1').value;
+  const l2id = document.getElementById('notif-sel-l2').value;
+  const dev  = document.getElementById('notif-sel-dev').value;
+  if (!dev) { document.getElementById('notif-submit-btn').style.display = 'none'; return; }
+  ['notif-section-brands','notif-section-year','notif-section-size'].forEach(id => document.getElementById(id).style.display = 'block');
+  document.getElementById('notif-submit-btn').style.display = 'flex';
+  const brands = CATS[l1id]?.subs[l2id]?.brands || [];
+  document.getElementById('notif-brand-chips').innerHTML = brands.map(b =>
+    `<div class="chip" onclick="this.classList.toggle('sel')">${b}</div>`
+  ).join('');
+}
+
+async function submitNotifPref() {
+  const l1id  = document.getElementById('notif-sel-l1').value;
+  const l2id  = document.getElementById('notif-sel-l2').value;
+  const dev   = document.getElementById('notif-sel-dev').value;
+  if (!dev) { showToast('請選擇設備名稱'); return; }
+
+  const brands = [...document.querySelectorAll('#notif-brand-chips .chip.sel')].map(c => c.textContent);
+
+  const payload = {
+    recycler_id:      currentRecyclerId,
+    category_id:      l1id,
+    category_name:    CATS[l1id]?.name || '',
+    subcategory_id:   l2id,
+    subcategory_name: CATS[l1id]?.subs[l2id]?.name || '',
+    device_name:      dev,
+    brands:           brands,
+    year_min:         toIntOrNull(document.getElementById('notif-year-min').value),
+    year_within:      toIntOrNull(document.getElementById('notif-year-within').value),
+    max_width_cm:     toNumOrNull(document.getElementById('notif-max-w').value),
+    max_height_cm:    toNumOrNull(document.getElementById('notif-max-h').value),
+    max_depth_cm:     toNumOrNull(document.getElementById('notif-max-d').value),
+    max_weight_kg:    toNumOrNull(document.getElementById('notif-max-weight').value),
+    updated_at:       new Date().toISOString(),
+  };
+
+  if (editingNotifPrefId) {
+    payload.id = editingNotifPrefId;
+  } else {
+    // 偵測同 device_name 是否已有其他筆
+    const dup = notifPrefs.find(p => p.device_name === dev && p.id !== editingNotifPrefId);
+    if (dup) {
+      pendingNotifPrefData = payload;
+      const brandStr = (dup.brands && dup.brands.length) ? dup.brands.join('、') : '不限品牌';
+      const yearStr  = dup.year_min ? dup.year_min + ' 年以後' : (dup.year_within ? dup.year_within + ' 年內' : '不限');
+      document.getElementById('notif-conflict-content').innerHTML =
+        `「<strong>${dev}</strong>」已有一筆通知偏好：<br>` +
+        `品牌：${brandStr}<br>` +
+        `年份：${yearStr}<br><br>` +
+        `是否要直接編輯那筆，還是仍要新增一筆？`;
+      document.getElementById('notif-conflict-modal').style.display = 'flex';
+      document.getElementById('notif-conflict-modal')._dupId = dup.id;
+      return;
+    }
+  }
+
+  const saved = await saveNotifPrefToDb(payload);
+  if (!saved) return;
+
+  if (editingNotifPrefId) {
+    const idx = notifPrefs.findIndex(p => p.id === editingNotifPrefId);
+    if (idx >= 0) notifPrefs[idx] = saved;
+  } else {
+    notifPrefs.push(saved);
+  }
+
+  closeNotifPrefModal();
+  renderNotifPrefsTable();
+  showToast(editingNotifPrefId ? '已更新通知偏好' : '已新增通知偏好');
+}
+
+function editExistingNotifPref() {
+  const dupId = document.getElementById('notif-conflict-modal')._dupId;
+  document.getElementById('notif-conflict-modal').style.display = 'none';
+  openNotifPrefModal(dupId);
+}
+
+async function forceAddNotifPref() {
+  document.getElementById('notif-conflict-modal').style.display = 'none';
+  if (!pendingNotifPrefData) return;
+  const saved = await saveNotifPrefToDb(pendingNotifPrefData);
+  if (!saved) return;
+  notifPrefs.push(saved);
+  closeNotifPrefModal();
+  renderNotifPrefsTable();
+  showToast('已新增通知偏好');
+  pendingNotifPrefData = null;
+}
+
 </script>
 
 <div class="modal-overlay" id="bid-modal" style="display:none" onclick="if(event.target===this)closeBidModal()">
@@ -2523,6 +2954,87 @@ renderPrefList();
   <div class="modal-ft">
     <button class="btn-modal-cancel" onclick="closeBidModal()">取消</button>
     <button class="btn-modal-save" onclick="submitBid()">送出出價</button>
+  </div>
+</div>
+</div>
+
+<!-- 通知偏好 Modal -->
+<div class="modal-overlay" id="notif-modal" style="display:none" onclick="if(event.target===this)closeNotifPrefModal()">
+<div class="modal">
+  <div class="modal-hd">
+    <div class="modal-title" id="notif-modal-title">新增通知偏好</div>
+    <button class="modal-close" onclick="closeNotifPrefModal()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="modal-body" style="padding:20px">
+    <div class="form-section" style="margin-bottom:16px">
+      <div class="form-section-title">設備類型</div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">大分類</label>
+        <select class="field-input" id="notif-sel-l1" onchange="onNotifL1Change()">
+          <option value="">請選擇大分類</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label class="field-label">細項分類</label>
+        <select class="field-input" id="notif-sel-l2" onchange="onNotifL2Change()" disabled>
+          <option value="">請先選擇大分類</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">設備名稱</label>
+        <select class="field-input" id="notif-sel-dev" onchange="onNotifDevChange()" disabled>
+          <option value="">請先選擇細項分類</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="notif-section-brands" style="display:none;margin-bottom:16px">
+      <div class="form-section-title">品牌 <span style="font-size:10px;font-weight:400;color:var(--ink4)">選填，不選則不限品牌</span></div>
+      <div id="notif-brand-chips" class="city-grid" style="margin-top:6px;gap:6px"></div>
+    </div>
+
+    <div id="notif-section-year" style="display:none;margin-bottom:16px">
+      <div class="form-section-title">年份條件 <span style="font-size:10px;font-weight:400;color:var(--ink4)">選填</span></div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <div class="field" style="flex:1;margin-bottom:0">
+          <label class="field-label" style="font-size:10px">幾年以後（例：2019）</label>
+          <input class="field-input" type="number" id="notif-year-min" placeholder="例：2019">
+        </div>
+        <div class="field" style="flex:1;margin-bottom:0">
+          <label class="field-label" style="font-size:10px">幾年內</label>
+          <input class="field-input" type="number" id="notif-year-within" placeholder="例：5">
+        </div>
+      </div>
+    </div>
+
+    <div id="notif-section-size" style="display:none;margin-bottom:16px">
+      <div class="form-section-title">尺寸上限 <span style="font-size:10px;font-weight:400;color:var(--ink4)">選填，單位 cm / kg</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+        <div class="field" style="margin-bottom:0"><label class="field-label" style="font-size:10px">寬(cm)</label><input class="field-input" type="number" id="notif-max-w" placeholder="不限"></div>
+        <div class="field" style="margin-bottom:0"><label class="field-label" style="font-size:10px">高(cm)</label><input class="field-input" type="number" id="notif-max-h" placeholder="不限"></div>
+        <div class="field" style="margin-bottom:0"><label class="field-label" style="font-size:10px">深(cm)</label><input class="field-input" type="number" id="notif-max-d" placeholder="不限"></div>
+        <div class="field" style="margin-bottom:0"><label class="field-label" style="font-size:10px">重量(kg)</label><input class="field-input" type="number" id="notif-max-weight" placeholder="不限"></div>
+      </div>
+    </div>
+
+    <button class="btn-main btn-dark" id="notif-submit-btn" style="display:none" onclick="submitNotifPref()">儲存通知偏好</button>
+  </div>
+</div>
+</div>
+
+<!-- 通知偏好衝突提示 -->
+<div class="modal-overlay" id="notif-conflict-modal" style="display:none">
+<div class="modal" style="max-width:360px">
+  <div class="modal-hd">
+    <div class="modal-title">已有相同設備的通知偏好</div>
+    <button class="modal-close" onclick="document.getElementById('notif-conflict-modal').style.display='none'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="modal-body" style="padding:16px 20px">
+    <div id="notif-conflict-content" style="font-size:13px;color:var(--ink2);line-height:1.8;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-main btn-ghost" style="margin-top:0;flex:1" onclick="editExistingNotifPref()">編輯那筆</button>
+      <button class="btn-main btn-dark" style="margin-top:0;flex:1" onclick="forceAddNotifPref()">仍要新增</button>
+    </div>
   </div>
 </div>
 </div>
