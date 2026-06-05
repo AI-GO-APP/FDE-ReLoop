@@ -146,6 +146,10 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 /* ── 分隔線標題 ── */
 .section-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;margin-top:24px}
 .section-label:first-child{margin-top:0}
+
+/* ── 分頁 ── */
+.pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:16px;font-size:13px;color:var(--ink3)}
+.pagination button:disabled{opacity:.35;cursor:default}
 </style>
 </head>
 <body>
@@ -173,7 +177,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div id="login-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:4px">登入</button>
     <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink3)">
-      還沒有帳號？<button onclick="goScreen('screen-register')" style="background:none;border:none;color:var(--green);font-weight:600;cursor:pointer;font-size:13px;padding:0">申請加入</button>
+      還沒有帳號？<button onclick="goScreen('screen-register')" style="background:none;border:none;color:var(--green);font-weight:600;cursor:pointer;font-size:13px;padding:0">註冊</button>
     </div>
   </div>
 </div>
@@ -185,7 +189,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   <div class="login-wrap" style="max-width:460px">
     <div class="login-logo">Re<span>Loop</span></div>
     <div class="login-role">盤商後台管理系統</div>
-    <div class="login-title">申請加入</div>
+    <div class="login-title">註冊</div>
     <div class="field-row">
       <div class="field">
         <label class="field-label">姓名 <span style="color:var(--red)">*</span></label>
@@ -235,7 +239,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- ══════════════════════════════════════════
-     設備建檔
+     設備管理
 ══════════════════════════════════════════ -->
 <div class="screen" id="screen-equipment">
   <div class="brand-col">
@@ -243,22 +247,20 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-logo">Re<span>Loop</span></div>
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
-        <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
       </div>
     </div>
-    <div>
-      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
-      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="main-col">
     <div class="main-header">
       <div class="main-header-top">
-        <div class="main-title">設備建檔</div>
+        <div class="main-title">設備管理</div>
         <button class="btn btn-primary" onclick="openEquipmentForm()"><i class="ti ti-plus"></i> 新增設備</button>
       </div>
     </div>
@@ -289,17 +291,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-logo">Re<span>Loop</span></div>
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
-        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff2" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
       </div>
     </div>
-    <div>
-      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
-      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="main-col">
     <div class="main-header">
@@ -329,17 +329,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-logo">Re<span>Loop</span></div>
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
-        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
         <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff4" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
       </div>
     </div>
-    <div>
-      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
-      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="main-col">
     <div class="main-header">
@@ -368,22 +366,21 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-logo">Re<span>Loop</span></div>
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
-        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
         <button class="brand-nav-item act dealer-admin-only" onclick="goScreen('screen-staff')"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff3" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
       </div>
     </div>
-    <div>
-      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
-      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="main-col">
     <div class="main-header">
       <div class="main-header-top">
         <div class="main-title">人員管理</div>
+        <button class="btn btn-primary" onclick="document.getElementById('modal-create-staff').classList.add('act')"><i class="ti ti-user-plus"></i> 新增成員</button>
       </div>
     </div>
     <div class="main-body">
@@ -407,17 +404,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="brand-logo">Re<span>Loop</span></div>
       <div class="brand-role">盤商後台</div>
       <div class="brand-nav">
-        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches5" style="display:none"></span></button>
         <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments5" style="display:none"></span></button>
         <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff5" style="display:none"></span></button>
         <button class="brand-nav-item act dealer-admin-only" onclick="goScreen('screen-recyclers')"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
       </div>
     </div>
-    <div>
-      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
-      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
-    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
   </div>
   <div class="main-col">
     <div class="main-header">
@@ -440,6 +435,81 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     帳號設定
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-profile">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches6" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments6" style="display:none"></span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff6" style="display:none"></span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">帳號設定</div>
+      </div>
+    </div>
+    <div class="main-body">
+      <div class="card" style="max-width:500px">
+        <div class="card-title"><i class="ti ti-user"></i> 個人資訊</div>
+        <div class="field">
+          <label class="field-label">Email</label>
+          <input class="field-input" id="profile-email" type="email" readonly style="background:var(--paper2);color:var(--ink3)">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">姓名</label>
+            <input class="field-input" id="profile-name" type="text" placeholder="姓名">
+          </div>
+          <div class="field">
+            <label class="field-label">職稱</label>
+            <input class="field-input" id="profile-title" type="text" placeholder="職稱">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">角色</label>
+          <input class="field-input" id="profile-role" type="text" readonly style="background:var(--paper2);color:var(--ink3)">
+        </div>
+        <div id="profile-save-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+        <button class="btn btn-primary" onclick="saveProfile()"><i class="ti ti-device-floppy"></i> 儲存變更</button>
+      </div>
+      <div class="card" style="max-width:500px;margin-top:16px">
+        <div class="card-title"><i class="ti ti-lock"></i> 變更密碼</div>
+        <div class="field">
+          <label class="field-label">新密碼</label>
+          <div style="position:relative">
+            <input class="field-input" type="password" id="new-password" placeholder="至少 8 個字元" style="padding-right:40px">
+            <i class="ti ti-eye-off" onclick="togglePw('new-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px"></i>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">確認新密碼</label>
+          <div style="position:relative">
+            <input class="field-input" type="password" id="new-password2" placeholder="再輸入一次" style="padding-right:40px">
+            <i class="ti ti-eye-off" onclick="togglePw('new-password2',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px"></i>
+          </div>
+        </div>
+        <div id="pw-change-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+        <button class="btn btn-primary" onclick="changePassword()"><i class="ti ti-key"></i> 變更密碼</button>
+      </div>
+      <div style="max-width:500px;margin-top:16px">
+        <button class="btn btn-danger btn-full" onclick="doLogout()"><i class="ti ti-logout"></i> 登出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal：回收商詳情 -->
 <div class="modal-overlay" id="modal-recycler-detail">
   <div class="modal" style="max-width:680px">
@@ -452,7 +522,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 </div>
 
 <!-- ══════════════════════════════════════════
-     Modal：設備建檔表單
+     Modal：設備管理表單
 ══════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-equipment">
   <div class="modal">
@@ -600,6 +670,50 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- Modal：新增成員 -->
+<div class="modal-overlay" id="modal-create-staff">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">新增成員</div>
+      <button class="modal-close" onclick="document.getElementById('modal-create-staff').classList.remove('act')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">姓名 <span style="color:var(--red)">*</span></label>
+        <input class="field-input" type="text" id="new-staff-name" placeholder="王業務">
+      </div>
+      <div class="field">
+        <label class="field-label">職稱</label>
+        <input class="field-input" type="text" id="new-staff-title" placeholder="業務、主管...">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Email <span style="color:var(--red)">*</span></label>
+      <input class="field-input" type="email" id="new-staff-email" placeholder="staff@reloop.com">
+    </div>
+    <div class="field">
+      <label class="field-label">初始密碼 <span style="color:var(--red)">*</span></label>
+      <div style="position:relative">
+        <input class="field-input" type="password" id="new-staff-password" placeholder="至少 8 個字元" style="padding-right:40px">
+        <i class="ti ti-eye-off" onclick="togglePw('new-staff-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--ink4);font-size:18px"></i>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">角色</label>
+      <select class="field-input" id="new-staff-role">
+        <option value="agent">業務</option>
+        <option value="manager">主管</option>
+        <option value="admin">管理員</option>
+      </select>
+    </div>
+    <div id="create-staff-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-create-staff').classList.remove('act')">取消</button>
+      <button class="btn btn-primary" id="create-staff-btn" onclick="createStaff()"><i class="ti ti-user-plus"></i> 建立帳號</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -610,6 +724,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 const SUPABASE_URL = '__SUPABASE_URL__';
 const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
 let currentDealerRole = 'agent'; // agent | manager | admin
+let currentDealerInfo = {};
 
 function getSupabase() {
   if (window._sb) return window._sb;
@@ -619,17 +734,43 @@ function getSupabase() {
 }
 
 // ════════════════════════════════════════════
+// 分頁輔助
+// ════════════════════════════════════════════
+const PAGE_SIZE = 15;
+const MATCH_PAGE_SIZE = 10;
+let equipPage = 1, matchesPage = 1, paymentsPage = 1, staffPage = 1, recyclersPage = 1;
+
+function paginateList(list, page, size) {
+  const total = list.length;
+  const pages = Math.max(1, Math.ceil(total / size));
+  const p = Math.max(1, Math.min(page, pages));
+  return { items: list.slice((p - 1) * size, p * size), total, pages, page: p };
+}
+
+function paginationHTML(state, size, setPageFn) {
+  if (state.pages <= 1) return '';
+  const start = (state.page - 1) * size + 1;
+  const end   = Math.min(state.page * size, state.total);
+  return `<div class="pagination">
+    <span>${start}–${end} / ${state.total} 筆</span>
+    <button class="btn btn-ghost btn-sm" onclick="${setPageFn}(${state.page - 1})" ${state.page <= 1 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button>
+    <button class="btn btn-ghost btn-sm" onclick="${setPageFn}(${state.page + 1})" ${state.page >= state.pages ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button>
+  </div>`;
+}
+
+// ════════════════════════════════════════════
 // 畫面切換
 // ════════════════════════════════════════════
 function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('act'));
   document.getElementById(id)?.classList.add('act');
   window.scrollTo(0, 0);
-  if (id === 'screen-equipment')  loadEquipmentList();
-  if (id === 'screen-matches')    loadMatchesList();
-  if (id === 'screen-payments')   loadPaymentsList();
-  if (id === 'screen-staff')      loadStaffList();
-  if (id === 'screen-recyclers')  loadRecyclersList();
+  if (id === 'screen-equipment')  { equipPage = 1; loadEquipmentList(); }
+  if (id === 'screen-matches')    { matchesPage = 1; loadMatchesList(); }
+  if (id === 'screen-payments')   { paymentsPage = 1; loadPaymentsList(); }
+  if (id === 'screen-staff')      { staffPage = 1; loadStaffList(); }
+  if (id === 'screen-recyclers')  { recyclersPage = 1; loadRecyclersList(); }
+  if (id === 'screen-profile')    loadProfileScreen();
 }
 
 // ════════════════════════════════════════════
@@ -687,9 +828,12 @@ async function doLogin() {
     return;
   }
 
-  // 讀取角色
-  const { data: acctData } = await db.from('dealer_accounts').select('role').single();
-  if (acctData?.role) currentDealerRole = acctData.role;
+  // 讀取角色與個人資訊
+  const { data: acctData } = await db.from('dealer_accounts').select('role,name,email,title').single();
+  if (acctData) {
+    currentDealerRole = acctData.role || 'agent';
+    currentDealerInfo = { name: acctData.name, email: acctData.email, title: acctData.title, role: acctData.role };
+  }
 
   updateNavForRole();
   goScreen('screen-equipment');
@@ -757,6 +901,97 @@ async function doLogout() {
 }
 
 // ════════════════════════════════════════════
+// 帳號設定
+// ════════════════════════════════════════════
+function loadProfileScreen() {
+  const roleLabel = { agent:'業務', manager:'主管', admin:'管理員' };
+  document.getElementById('profile-email').value  = currentDealerInfo.email  || '';
+  document.getElementById('profile-name').value   = currentDealerInfo.name   || '';
+  document.getElementById('profile-title').value  = currentDealerInfo.title  || '';
+  document.getElementById('profile-role').value   = roleLabel[currentDealerInfo.role] || currentDealerInfo.role || '';
+}
+
+async function saveProfile() {
+  const db = getSupabase();
+  if (!db) return;
+  const name  = document.getElementById('profile-name').value.trim();
+  const title = document.getElementById('profile-title').value.trim();
+  const errEl = document.getElementById('profile-save-error');
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = '請填寫姓名'; errEl.style.display = 'block'; return; }
+  const { data: { user } } = await db.auth.getUser();
+  const { error } = await db.from('dealer_accounts').update({ name, title }).eq('id', user.id);
+  if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
+  currentDealerInfo.name  = name;
+  currentDealerInfo.title = title;
+  showToast('個人資訊已更新');
+}
+
+async function changePassword() {
+  const db = getSupabase();
+  if (!db) return;
+  const newPw  = document.getElementById('new-password').value;
+  const newPw2 = document.getElementById('new-password2').value;
+  const errEl  = document.getElementById('pw-change-error');
+  errEl.style.display = 'none';
+  if (newPw.length < 8) { errEl.textContent = '密碼至少需要 8 個字元'; errEl.style.display = 'block'; return; }
+  if (newPw !== newPw2)  { errEl.textContent = '兩次密碼不一致'; errEl.style.display = 'block'; return; }
+  const { error } = await db.auth.updateUser({ password: newPw });
+  if (error) { errEl.textContent = '變更失敗：' + error.message; errEl.style.display = 'block'; return; }
+  document.getElementById('new-password').value  = '';
+  document.getElementById('new-password2').value = '';
+  showToast('密碼已更新');
+}
+
+// ════════════════════════════════════════════
+// 人員管理：後台新增成員
+// ════════════════════════════════════════════
+async function createStaff() {
+  const db = getSupabase();
+  if (!db) return;
+  const name     = document.getElementById('new-staff-name').value.trim();
+  const title    = document.getElementById('new-staff-title').value.trim();
+  const email    = document.getElementById('new-staff-email').value.trim();
+  const password = document.getElementById('new-staff-password').value;
+  const role     = document.getElementById('new-staff-role').value;
+  const errEl    = document.getElementById('create-staff-error');
+  errEl.style.display = 'none';
+  if (!name || !email || !password) { errEl.textContent = '請填寫所有必填欄位'; errEl.style.display = 'block'; return; }
+  if (password.length < 8) { errEl.textContent = '密碼至少需要 8 個字元'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('create-staff-btn');
+  btn.disabled = true;
+  btn.textContent = '建立中...';
+
+  // 用獨立 client 建立帳號，不影響當前 admin session
+  const tempSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+  const { data, error: signupErr } = await tempSb.auth.signUp({ email, password });
+  if (signupErr || !data?.user) {
+    errEl.textContent = '建立失敗：' + (signupErr?.message || '未知錯誤');
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> 建立帳號';
+    return;
+  }
+  const { error: insertErr } = await tempSb.from('dealer_accounts').insert({
+    id: data.user.id, name, email, title, role, status: 'approved'
+  });
+  if (insertErr) {
+    errEl.textContent = '帳號建立但資料寫入失敗：' + insertErr.message;
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> 建立帳號';
+    return;
+  }
+
+  document.getElementById('modal-create-staff').classList.remove('act');
+  ['new-staff-name','new-staff-title','new-staff-email','new-staff-password'].forEach(id => document.getElementById(id).value = '');
+  btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> 建立帳號';
+  showToast('成員已建立，可直接登入後台');
+  loadStaffList();
+}
+
+// ════════════════════════════════════════════
 // ════════════════════════════════════════════
 // 角色 Nav 控制
 // ════════════════════════════════════════════
@@ -789,7 +1024,7 @@ async function loadAllBadges() {
 }
 
 function setBadge(key, count) {
-  [1,2,3,4,5].forEach(i => {
+  [1,2,3,4,5,6].forEach(i => {
     const el = document.getElementById(`nav-badge-${key}${i > 1 ? i : ''}`);
     if (!el) return;
     el.textContent = count;
@@ -798,7 +1033,7 @@ function setBadge(key, count) {
 }
 
 // ════════════════════════════════════════════
-// 設備建檔
+// 設備管理
 // ════════════════════════════════════════════
 let equipmentCache = [];
 let editingEquipmentId = null;
@@ -819,11 +1054,13 @@ async function loadEquipmentList() {
   renderEquipmentList();
 }
 
+function setEquipPage(p) { equipPage = p; renderEquipmentList(); }
+
 function renderEquipmentList() {
   const q      = (document.getElementById('equipment-search')?.value || '').toLowerCase();
   const status = document.getElementById('equipment-status-filter')?.value || '';
   let list = equipmentCache;
-  if (q)      list = list.filter(e => e.device_name.toLowerCase().includes(q));
+  if (q)      list = list.filter(e => e.device_name.toLowerCase().includes(q) || e.id.slice(0,8).toUpperCase().includes(q.toUpperCase()));
   if (status) list = list.filter(e => e.status === status);
 
   const el = document.getElementById('equipment-list');
@@ -832,14 +1069,15 @@ function renderEquipmentList() {
     return;
   }
 
+  const paged = paginateList(list, equipPage, PAGE_SIZE);
   const statusLabel = { draft:'草稿', active:'媒合中', matched:'已媒合', completed:'已完成', cancelled:'已取消' };
   el.innerHTML = `<table class="data-table">
     <thead><tr>
       <th>設備名稱</th><th>分類</th><th>狀況</th><th>品牌</th><th>地區</th><th>狀態</th><th style="text-align:right">操作</th>
     </tr></thead>
-    <tbody>${list.map(e => `
+    <tbody>${paged.items.map(e => `
     <tr>
-      <td style="font-weight:600">${e.device_name}</td>
+      <td><div style="font-weight:600">${e.device_name}</div><div style="font-size:10px;color:var(--ink4);font-family:monospace">#${e.id.slice(0,8).toUpperCase()}</div></td>
       <td>${e.category_name}</td>
       <td>${e.condition || '—'}</td>
       <td>${e.brand || '—'}</td>
@@ -850,7 +1088,8 @@ function renderEquipmentList() {
         <button class="btn btn-ghost btn-sm" onclick="openEquipmentForm('${e.id}')"><i class="ti ti-edit"></i></button>
       </div></td>
     </tr>`).join('')}
-    </tbody></table>`;
+    </tbody></table>
+    ${paginationHTML(paged, PAGE_SIZE, 'setEquipPage')}`;
 }
 
 function openEquipmentForm(id) {
@@ -1119,8 +1358,11 @@ async function approveWinner(matchId) {
 let paymentsCache = [];
 let currentPayTab = 'pending';
 
+function setPaymentsPage(p) { paymentsPage = p; renderPaymentsList(); }
+
 function switchPayTab(tab) {
   currentPayTab = tab;
+  paymentsPage = 1;
   ['pending','confirmed','received'].forEach(t =>
     document.getElementById(`pay-tab-${t}`)?.classList.toggle('act', t === tab));
   renderPaymentsList();
@@ -1174,7 +1416,8 @@ function renderPaymentsList() {
     return;
   }
 
-  const rows = filtered.map(m => {
+  const paged = paginateList(filtered, paymentsPage, PAGE_SIZE);
+  const rows = paged.items.map(m => {
     let actions = '';
     if (currentPayTab === 'pending') {
       actions = `<button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
@@ -1195,7 +1438,8 @@ function renderPaymentsList() {
   listEl.innerHTML = `<table class="data-table">
     <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table>
+  ${paginationHTML(paged, PAGE_SIZE, 'setPaymentsPage')}`;
 }
 
 async function confirmPayment(matchId) {
@@ -1281,13 +1525,15 @@ function matchDeadline(m) {
 }
 
 function deadlineText(m) {
-  const rem = matchDeadline(m) - Date.now();
+  const dl  = matchDeadline(m);
+  const rem = dl - Date.now();
   if (rem <= 0) return '<span style="color:var(--red);font-size:11px">已截止</span>';
-  const h = Math.floor(rem / 3600000);
-  const min = Math.floor((rem % 3600000) / 60000);
   const color = rem < 3600000 ? 'var(--red)' : rem < 7200000 ? 'var(--amber)' : 'var(--ink3)';
-  return `<span style="font-size:11px;color:${color}">${h > 0 ? h+'h ' : ''}${min}m</span>`;
+  const dtStr = dl.toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
+  return `<span style="font-size:11px;color:${color}">${dtStr}</span>`;
 }
+
+function setMatchesPage(p) { matchesPage = p; renderMatchesList(); }
 
 function renderMatchesList() {
   const q        = (document.getElementById('matches-search')?.value || '').toLowerCase();
@@ -1303,20 +1549,38 @@ function renderMatchesList() {
   });
 
   let listings = matchesListingsCache;
-  if (q) listings = listings.filter(l => l.device_name.toLowerCase().includes(q));
+  if (q) {
+    const matchingEquipIds = new Set(
+      matchesMatchCache
+        .filter(m => (m.recycler_onboarding_accounts?.company_name || '').toLowerCase().includes(q))
+        .map(m => m.equipment_listing_id)
+    );
+    listings = listings.filter(l =>
+      l.device_name.toLowerCase().includes(q) ||
+      l.id.slice(0, 8).toUpperCase().includes(q.toUpperCase()) ||
+      matchingEquipIds.has(l.id)
+    );
+  }
   if (dateFrom) listings = listings.filter(l => new Date(l.created_at) >= new Date(dateFrom));
   if (dateTo)   listings = listings.filter(l => new Date(l.created_at) <= new Date(dateTo + 'T23:59:59'));
 
+  const listEl = document.getElementById('matches-list');
   if (listings.length === 0) {
-    document.getElementById('matches-list').innerHTML = '<div class="empty-state"><i class="ti ti-list-search"></i><p>沒有符合的設備</p></div>';
+    listEl.innerHTML = '<div class="empty-state"><i class="ti ti-list-search"></i><p>沒有符合的設備</p></div>';
     return;
   }
 
-  document.getElementById('matches-list').innerHTML = listings.map(l => {
+  const paged = paginateList(listings, matchesPage, MATCH_PAGE_SIZE);
+
+  listEl.innerHTML = paged.items.map(l => {
     const ms = matchMap[l.id] || [];
     const equipNo = l.id.slice(0, 8).toUpperCase();
-    const photosBtn = l.photo_urls?.length
-      ? `<button class="btn btn-ghost btn-sm" onclick="window.open('${l.photo_urls[0]}','_blank')"><i class="ti ti-photo"></i> 照片(${l.photo_urls.length})</button>`
+    const createdAt = new Date(l.created_at).toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
+    // 再次通知：只在有 pending 且全部已截止時顯示，一次通知全部
+    const pendingMs = ms.filter(m => m.status === 'pending');
+    const allExpired = pendingMs.length > 0 && pendingMs.every(m => matchDeadline(m) < Date.now());
+    const reNotifyBtn = allExpired
+      ? `<button class="btn btn-ghost btn-sm" onclick="reNotify('${l.id}')"><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`
       : '';
     return `<div class="card">
       <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
@@ -1327,22 +1591,20 @@ function renderMatchesList() {
           <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">#${equipNo}</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
-          ${photosBtn}
-          <span style="font-size:11px;color:var(--ink4)">${new Date(l.created_at).toLocaleDateString('zh-TW')}</span>
+          ${reNotifyBtn}
+          <span style="font-size:11px;color:var(--ink4)">${createdAt}</span>
         </div>
       </div>
       ${ms.length === 0
         ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
         : `<table class="data-table">
-          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th>截止</th><th style="text-align:right">操作</th></tr></thead>
+          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th>截止日期</th><th style="text-align:right">操作</th></tr></thead>
           <tbody>${ms.sort((a,b)=>(b.bid_price_min||0)-(a.bid_price_min||0)).map(m => {
             const acct = m.recycler_onboarding_accounts;
             const isAgent   = currentDealerRole === 'agent';
             const isManager = ['manager','admin'].includes(currentDealerRole);
             let action = '';
-            if (m.status === 'pending') {
-              action = `<button class="btn btn-ghost btn-sm" onclick="reNotify('${m.id}')"><i class="ti ti-bell"></i> 再次通知</button>`;
-            } else if (m.status === 'bidding') {
+            if (m.status === 'bidding') {
               if (isAgent)   action = `<button class="btn btn-ghost btn-sm" onclick="proposeWinner('${m.id}')"><i class="ti ti-thumb-up"></i> 建議得標</button>`;
               if (isManager) action = `<button class="btn btn-green btn-sm" onclick="approveWinner('${m.id}')"><i class="ti ti-trophy"></i> 核定得標</button>`;
             } else if (m.status === 'proposed') {
@@ -1360,22 +1622,22 @@ function renderMatchesList() {
             </tr>`;}).join('')}
           </tbody></table>`}
     </div>`;
-  }).join('');
+  }).join('') + paginationHTML(paged, MATCH_PAGE_SIZE, 'setMatchesPage');
 }
 
-async function reNotify(matchId) {
+async function reNotify(equipId) {
   const db = getSupabase();
   if (!db) return;
-  const m = matchesMatchCache.find(x => x.id === matchId);
-  if (!confirm(`確認再次通知「${m?.recycler_onboarding_accounts?.company_name}」？`)) return;
-  // 重設出價截止時間為現在起 24 小時後
+  const pendingMs = matchesMatchCache.filter(x => x.equipment_listing_id === equipId && x.status === 'pending');
+  if (pendingMs.length === 0) { showToast('沒有待回覆的廠商'); return; }
+  if (!confirm(`確認再次通知 ${pendingMs.length} 間未回覆的廠商？截止期限重設為 24 小時後。`)) return;
   const newDeadline = new Date(Date.now() + 86400000).toISOString();
   const { error } = await db.from('recycler_matches')
     .update({ bid_deadline: newDeadline, is_read: false })
-    .eq('id', matchId);
+    .in('id', pendingMs.map(m => m.id));
   if (error) { showToast('操作失敗：' + error.message); return; }
-  if (m) m.bid_deadline = newDeadline;
-  showToast('已再次通知，出價期限重設為 24 小時');
+  pendingMs.forEach(m => { m.bid_deadline = newDeadline; });
+  showToast(`已通知 ${pendingMs.length} 間廠商，截止重設為 24 小時後`);
   renderMatchesList();
 }
 
@@ -1387,6 +1649,7 @@ let currentStaffTab = 'pending';
 
 function switchStaffTab(tab) {
   currentStaffTab = tab;
+  staffPage = 1;
   ['pending','approved','suspended'].forEach(t =>
     document.getElementById(`staff-tab-${t}`)?.classList.toggle('act', t === tab));
   renderStaffList();
@@ -1407,6 +1670,8 @@ async function loadStaffList() {
   renderStaffList();
 }
 
+function setStaffPage(p) { staffPage = p; renderStaffList(); }
+
 function renderStaffList() {
   const el = document.getElementById('staff-list');
   const filtered = staffCache.filter(s => {
@@ -1421,10 +1686,11 @@ function renderStaffList() {
     return;
   }
 
+  const paged = paginateList(filtered, staffPage, PAGE_SIZE);
   const roleLabel = { agent:'業務', manager:'主管', admin:'管理員' };
   el.innerHTML = `<table class="data-table">
     <thead><tr><th>姓名</th><th>Email</th><th>職稱</th><th>角色</th><th>申請時間</th><th style="text-align:right">操作</th></tr></thead>
-    <tbody>${filtered.map(s => {
+    <tbody>${paged.items.map(s => {
       let actions = '';
       if (s.status === 'pending') {
         actions = `<button class="btn btn-green btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-check"></i> 核准</button>
@@ -1448,7 +1714,8 @@ function renderStaffList() {
         <td><div class="td-actions">${actions}</div></td>
       </tr>`;
     }).join('')}
-    </tbody></table>`;
+    </tbody></table>
+    ${paginationHTML(paged, PAGE_SIZE, 'setStaffPage')}`;
 }
 
 async function staffAction(id, action) {
@@ -1495,6 +1762,8 @@ async function loadRecyclersList() {
   renderRecyclersList();
 }
 
+function setRecyclersPage(p) { recyclersPage = p; renderRecyclersList(); }
+
 function renderRecyclersList() {
   const q      = (document.getElementById('recyclers-search')?.value || '').toLowerCase();
   const filter = document.getElementById('recyclers-status-filter')?.value;
@@ -1509,9 +1778,10 @@ function renderRecyclersList() {
     return;
   }
 
+  const paged = paginateList(list, recyclersPage, PAGE_SIZE);
   el.innerHTML = `<table class="data-table">
     <thead><tr><th>公司名稱</th><th>聯絡人</th><th>電話</th><th>服務地區</th><th>偏好分類數</th><th>狀態</th><th style="text-align:right">操作</th></tr></thead>
-    <tbody>${list.map(r => {
+    <tbody>${paged.items.map(r => {
       const prefCount = (r.recycler_onboarding_preferences||[]).length;
       const isActive = r.is_active !== false;
       return `<tr>
@@ -1529,7 +1799,8 @@ function renderRecyclersList() {
         </div></td>
       </tr>`;
     }).join('')}
-    </tbody></table>`;
+    </tbody></table>
+    ${paginationHTML(paged, PAGE_SIZE, 'setRecyclersPage')}`;
 }
 
 async function toggleRecycler(id, newActive) {
@@ -1623,6 +1894,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   // status === 'approved'
   currentDealerRole = acctData.role || 'agent';
+  currentDealerInfo = { name: acctData.name, email: acctData.email || session.user.email, title: acctData.title, role: acctData.role };
   updateNavForRole();
   goScreen('screen-equipment');
   loadAllBadges();
