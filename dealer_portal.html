@@ -3447,7 +3447,19 @@ function openCaseSign(caseId, type) {
   document.getElementById('case-sign-title').textContent = isMandate ? '簽署委任同意書' : '簽署正式合約';
   document.getElementById('case-contract-title').textContent = isMandate ? '委任同意書' : '正式合約';
   const contractBody = document.getElementById('case-contract-body');
-  if (!isMandate) {
+  const c = casesCache.find(x => x.id === caseId);
+  if (isMandate) {
+    const priceStr = c?.estimate_price != null
+      ? `新台幣 <strong>${Number(c.estimate_price).toLocaleString()}</strong> 元整（評估總包價）`
+      : '（待評估）';
+    contractBody.innerHTML = `<p>立書人：退場商家（以下稱「委任人」）委任<strong>秧秧空間設計有限公司</strong>（以下稱「受託人」）進行設備評估、媒合與交付等相關事宜，雙方協議如下：</p>
+      <p><strong>一、委任範圍</strong><br>委任人同意授權受託人就本案件所列設備，進行市場評估、向回收商媒合出售及後續交付作業。</p>
+      <p><strong>二、委任期間</strong><br>自本同意書簽署日起，至設備全數完成交付或雙方協議終止為止。</p>
+      <p><strong>三、報價與確認</strong><br>本案件評估總包價為 ${priceStr}。受託人將依此基礎啟動媒合，最終成交價以正式合約為準。</p>
+      <p><strong>四、費用說明</strong><br>本委任同意書階段不涉及費用收取，正式費用將於正式合約中載明。</p>
+      <p><strong>五、保密義務</strong><br>雙方同意對本案件相關資訊負有保密義務，未經對方書面同意不得對外披露。</p>
+      <p style="text-align:center;margin-top:16px;color:var(--ink4);font-size:11px">── 已閱讀全文，簽名欄位將於此處解鎖 ──</p>`;
+  } else {
     contractBody.innerHTML = `<p>立書人：退場商家（以下稱「甲方」）與<strong>秧秧空間設計有限公司</strong>（以下稱「乙方」），就設備回收買賣事宜訂立本合約：</p>
       <p><strong>一、買賣標的</strong><br>依案件設備清單所列設備，甲方同意以乙方提出之正式報價出售予乙方。</p>
       <p><strong>二、價金</strong><br>乙方應於設備交付完成後，依約定方式將買賣價金匯付予甲方。</p>
