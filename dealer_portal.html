@@ -490,6 +490,16 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
             <input class="field-input" id="profile-title" type="text" placeholder="職稱">
           </div>
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">電話</label>
+            <input class="field-input" id="profile-phone" type="tel" placeholder="09xx-xxxxxx">
+          </div>
+          <div class="field">
+            <label class="field-label">LINE ID</label>
+            <input class="field-input" id="profile-line-id" type="text" placeholder="LINE ID">
+          </div>
+        </div>
         <div class="field">
           <label class="field-label">角色</label>
           <input class="field-input" id="profile-role" type="text" readonly style="background:var(--paper2);color:var(--ink3)">
@@ -964,7 +974,7 @@ async function doLogin() {
   const userId = signInData.user.id;
 
   // 確認帳號審核狀態（必須加 eq(id) 避免多筆 single() 失敗）
-  const { data: acct } = await db.from('dealer_accounts').select('status,role,name,email,title').eq('id', userId).single();
+  const { data: acct } = await db.from('dealer_accounts').select('status,role,name,email,title,phone,line_id').eq('id', userId).single();
   if (!acct || acct.status === 'pending') {
     await db.auth.signOut();
     errEl.textContent = '帳號審核中，請等待管理員核准後再登入。';
@@ -980,7 +990,7 @@ async function doLogin() {
 
   // 已 approved，讀取角色與個人資訊
   currentDealerRole = acct.role || 'agent';
-  currentDealerInfo = { name: acct.name, email: acct.email, title: acct.title, role: acct.role };
+  currentDealerInfo = { name: acct.name, email: acct.email, title: acct.title, role: acct.role, phone: acct.phone, line_id: acct.line_id };
 
   updateNavForRole();
   goScreen('screen-equipment');
@@ -1052,25 +1062,31 @@ async function doLogout() {
 // ════════════════════════════════════════════
 function loadProfileScreen() {
   const roleLabel = { agent:'業務', manager:'主管', admin:'管理員' };
-  document.getElementById('profile-email').value  = currentDealerInfo.email  || '';
-  document.getElementById('profile-name').value   = currentDealerInfo.name   || '';
-  document.getElementById('profile-title').value  = currentDealerInfo.title  || '';
-  document.getElementById('profile-role').value   = roleLabel[currentDealerInfo.role] || currentDealerInfo.role || '';
+  document.getElementById('profile-email').value   = currentDealerInfo.email   || '';
+  document.getElementById('profile-name').value    = currentDealerInfo.name    || '';
+  document.getElementById('profile-title').value   = currentDealerInfo.title   || '';
+  document.getElementById('profile-phone').value   = currentDealerInfo.phone   || '';
+  document.getElementById('profile-line-id').value = currentDealerInfo.line_id || '';
+  document.getElementById('profile-role').value    = roleLabel[currentDealerInfo.role] || currentDealerInfo.role || '';
 }
 
 async function saveProfile() {
   const db = getSupabase();
   if (!db) return;
-  const name  = document.getElementById('profile-name').value.trim();
-  const title = document.getElementById('profile-title').value.trim();
+  const name    = document.getElementById('profile-name').value.trim();
+  const title   = document.getElementById('profile-title').value.trim();
+  const phone   = document.getElementById('profile-phone').value.trim();
+  const line_id = document.getElementById('profile-line-id').value.trim();
   const errEl = document.getElementById('profile-save-error');
   errEl.style.display = 'none';
   if (!name) { errEl.textContent = '請填寫姓名'; errEl.style.display = 'block'; return; }
   const { data: { user } } = await db.auth.getUser();
-  const { error } = await db.from('dealer_accounts').update({ name, title }).eq('id', user.id);
+  const { error } = await db.from('dealer_accounts').update({ name, title, phone: phone || null, line_id: line_id || null }).eq('id', user.id);
   if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
-  currentDealerInfo.name  = name;
-  currentDealerInfo.title = title;
+  currentDealerInfo.name    = name;
+  currentDealerInfo.title   = title;
+  currentDealerInfo.phone   = phone;
+  currentDealerInfo.line_id = line_id;
   showToast('個人資訊已更新');
 }
 
@@ -1825,7 +1841,7 @@ async function confirmApproveWinner() {
   const bankAccountId = selected?.value || null;
 
   const { error } = await db.from('recycler_matches')
-    .update({ status: 'accepted', accepted_at: new Date().toISOString(), is_read: false, dealer_bank_account_id: bankAccountId, contact_name: currentDealerInfo.name || null })
+    .update({ status: 'accepted', accepted_at: new Date().toISOString(), is_read: false, dealer_bank_account_id: bankAccountId, contact_name: currentDealerInfo.name || null, contact_phone: currentDealerInfo.phone || null, contact_line_id: currentDealerInfo.line_id || null })
     .eq('id', _approveMatchId);
   if (error) { showToast('核定失敗：' + error.message); btn.disabled = false; return; }
 
@@ -2584,7 +2600,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 確認帳號狀態與角色
   const { data: acctData } = await db.from('dealer_accounts')
-    .select('role,status')
+    .select('role,status,name,email,title,phone,line_id')
     .eq('id', session.user.id)
     .single();
 
@@ -2599,7 +2615,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   // status === 'approved'
   currentDealerRole = acctData.role || 'agent';
-  currentDealerInfo = { name: acctData.name, email: acctData.email || session.user.email, title: acctData.title, role: acctData.role };
+  currentDealerInfo = { name: acctData.name, email: acctData.email || session.user.email, title: acctData.title, role: acctData.role, phone: acctData.phone, line_id: acctData.line_id };
   updateNavForRole();
   goScreen('screen-equipment');
   loadAllBadges();

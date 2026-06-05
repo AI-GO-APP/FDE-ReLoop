@@ -1720,11 +1720,12 @@ async function renderMatchDetail(m) {
        ${m.bid_at ? `<div class="detail-info-row" style="color:var(--ink4)"><i class="ti ti-send"></i><div>出價時間：${new Date(m.bid_at).toLocaleString('zh-TW')}</div></div>` : ''}`
     : '';
 
-  const contactInfo = showFull && (m.contact_name || m.contact_phone)
+  const contactInfo = showFull && (m.contact_name || m.contact_phone || m.contact_line_id)
     ? `<div style="margin-top:16px;padding:12px 16px;background:#f0fdf4;border-radius:var(--r);border:1px solid #bbf7d0">
         <div style="font-size:12px;font-weight:600;color:#276749;margin-bottom:8px">業務聯絡資訊</div>
         ${m.contact_name ? `<div class="detail-info-row"><i class="ti ti-user" style="color:#276749"></i><div>${m.contact_name}</div></div>` : ''}
         ${m.contact_phone ? `<div class="detail-info-row"><i class="ti ti-phone" style="color:#276749"></i><div>${m.contact_phone}</div></div>` : ''}
+        ${m.contact_line_id ? `<div class="detail-info-row"><i class="ti ti-brand-line" style="color:#276749"></i><div>LINE：${m.contact_line_id}</div></div>` : ''}
       </div>`
     : '';
 
