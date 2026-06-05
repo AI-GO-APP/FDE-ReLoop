@@ -1647,7 +1647,7 @@ function showPaymentForm(id) {
       ${bankAccountHtml(m.dealer_bank_accounts)}
     </div>` : ''}
     <div class="field-label">您的匯款帳號後5碼<span class="req">*</span></div>
-    <div style="font-size:11px;color:var(--ink4);margin-bottom:8px">請填寫您匯款時使用的帳號後5碼（不可與盤商帳號相同）</div>
+    <div style="font-size:11px;color:var(--ink4);margin-bottom:8px">請填寫您匯款時使用的帳號後5碼</div>
     <input class="field-input" type="text" id="payment-last5-input" maxlength="5" placeholder="例：12345" inputmode="numeric" style="margin-bottom:12px;letter-spacing:.15em">
     <div style="display:flex;gap:10px">
       <button class="btn-main btn-outline" style="flex:1" onclick="renderMatchDetail(allMatchesCache.find(x=>x.id==='${id}'))">取消</button>
