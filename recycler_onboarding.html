@@ -1038,7 +1038,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-address-row{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:var(--ink2);margin-bottom:6px}
 .match-address-row i{margin-top:1px;color:var(--green);flex-shrink:0}
 .match-meta{font-size:11px;color:var(--ink4)}
-.match-countdown{font-size:11px;margin-top:5px;font-weight:500}
+.match-countdown{font-size:11px;margin-top:5px;font-weight:500;color:var(--ink2)}
 .match-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px;margin-left:4px;vertical-align:middle}
 .match-tabs-bar{display:flex;gap:0;margin-bottom:0;border-bottom:2px solid var(--paper3)}
 .match-tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
@@ -1610,7 +1610,7 @@ function startCardCountdowns() {
         const m = Math.floor((rem % 3600000) / 60000);
         const s = Math.floor((rem % 60000) / 1000);
         el.textContent = `出價截止：剩 ${h > 0 ? h+'h ' : ''}${m}m ${s}s`;
-        el.style.color = rem < 3600000 ? '#c53030' : 'var(--ink4)';
+        el.style.color = rem < 3600000 ? '#c53030' : 'var(--ink2)';
       }
     });
   }
