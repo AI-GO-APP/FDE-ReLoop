@@ -995,7 +995,7 @@ async function loadBidsList() {
 
   const { data } = await db
     .from('recycler_matches')
-    .select('*, recycler_onboarding_accounts(company_name, contact_name)')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone)')
     .eq('status', 'bidding')
     .order('bid_price_min', { ascending: false });
 
@@ -1074,7 +1074,7 @@ async function loadPaymentsList() {
 
   const { data } = await db
     .from('recycler_matches')
-    .select('*, recycler_onboarding_accounts(company_name, contact_name)')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone)')
     .in('status', ['accepted','payment_confirmed','received'])
     .order('created_at', { ascending: false });
 
@@ -1197,7 +1197,7 @@ async function loadMatchesList() {
 
   const { data: matches } = await db
     .from('recycler_matches')
-    .select('*, recycler_onboarding_accounts(company_name)')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone)')
     .in('equipment_listing_id', listings.map(l => l.id));
 
   document.getElementById('matches-loading').style.display = 'none';
@@ -1220,14 +1220,17 @@ async function loadMatchesList() {
       ${ms.length === 0
         ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
         : `<table class="data-table">
-          <thead><tr><th>回收商</th><th>狀態</th><th>出價</th><th>通知時間</th></tr></thead>
-          <tbody>${ms.map(m => `
-            <tr>
-              <td style="font-weight:600">${m.recycler_onboarding_accounts?.company_name || '—'}</td>
+          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th>通知時間</th></tr></thead>
+          <tbody>${ms.map(m => {
+            const acct = m.recycler_onboarding_accounts;
+            return `<tr>
+              <td style="font-weight:600">${acct?.company_name || '—'}</td>
+              <td>${acct?.contact_name || '—'}</td>
+              <td>${acct?.phone || '—'}</td>
               <td><span class="badge badge-${m.status}">${statusLabel[m.status]||m.status}</span></td>
               <td>${m.bid_price_min ? '$'+m.bid_price_min.toLocaleString() : '—'}</td>
               <td style="color:var(--ink3);font-size:12px">${new Date(m.created_at).toLocaleString('zh-TW')}</td>
-            </tr>`).join('')}
+            </tr>`;}).join('')}
           </tbody></table>`}
     </div>`;
   }).join('');
