@@ -1729,11 +1729,38 @@ async function renderMatchDetail(m) {
       </div>`
     : '';
 
+  // 進度節點
+  const MATCH_STEPS = [
+    { key:'pending',           label:'待出價' },
+    { key:'bidding',           label:'已出價' },
+    { key:'accepted',          label:'待付款' },
+    { key:'payment_confirmed', label:'已付款' },
+    { key:'received',          label:'已收貨' },
+  ];
+  const isFailed = s === 'outbid' || s === 'rejected';
+  const stepKeyMap = { pending:0, bidding:1, outbid:1, accepted:2, payment_confirmed:3, received:4, rejected:0 };
+  const currentStep = stepKeyMap[s] ?? 0;
+  const stepperHtml = `<div style="display:flex;align-items:flex-start;margin:12px 0 20px;position:relative">
+    ${MATCH_STEPS.map((step, i) => {
+      const isDone = !isFailed && currentStep > i;
+      const isCur  = currentStep === i;
+      const lineBg = isDone ? '#22c55e' : '#e2e8f0';
+      const dotBg  = isDone ? '#22c55e' : isCur ? (isFailed ? '#ef4444' : statusColor[s]) : '#e2e8f0';
+      const labelColor = isDone ? '#22c55e' : isCur ? (isFailed ? '#ef4444' : statusColor[s]) : '#94a3b8';
+      const icon = isDone ? '<i class="ti ti-check" style="font-size:10px"></i>'
+                 : isCur && isFailed ? '<i class="ti ti-x" style="font-size:10px"></i>'
+                 : isCur ? '<i class="ti ti-point-filled" style="font-size:8px"></i>' : '';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;position:relative">
+        ${i > 0 ? `<div style="position:absolute;top:10px;left:calc(-50% + 10px);right:calc(50% + 10px);height:2px;background:${lineBg}"></div>` : ''}
+        <div style="width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${dotBg};color:#fff;position:relative;z-index:1">${icon}</div>
+        <div style="font-size:10px;text-align:center;margin-top:4px;color:${labelColor};font-weight:${isCur?'700':'400'}">${step.label}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+
   document.getElementById('detail-content').innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px">
-      <div style="font-size:22px;font-weight:700;color:var(--ink);flex:1">${m.device_name}</div>
-      <div style="font-size:12px;font-weight:600;color:${statusColor[s]};white-space:nowrap;padding-top:4px">${statusLabel[s] || s}</div>
-    </div>
+    <div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px">${m.device_name}</div>
+    ${stepperHtml}
     <div class="match-cat-tag" style="margin-bottom:16px">${m.category_name}</div>
     <div class="detail-info-row"><i class="ti ti-map-pin"></i><div>${addrDisplay}</div></div>
     <div class="detail-info-row"><i class="ti ti-tool"></i><div>狀況 ${m.condition}・${condLabel[m.condition] || m.condition}</div></div>
