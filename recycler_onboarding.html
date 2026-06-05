@@ -1016,12 +1016,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <button class="match-tab-btn" id="orders-tab-btn-confirmed" onclick="switchOrdersSubTab('payment_confirmed')">完成付款<span id="orders-tab-cnt-confirmed" class="tab-cnt-text" style="display:none"></span></button>
         <button class="match-tab-btn" id="orders-tab-btn-received" onclick="switchOrdersSubTab('received')">已收貨<span id="orders-tab-cnt-received" class="tab-cnt-text" style="display:none"></span></button>
       </div>
-      <div id="orders-empty" style="text-align:center;padding:60px 0;display:none">
+      <div id="orders-empty" style="text-align:center;padding:60px 0;display:none;margin-top:16px">
         <svg style="width:48px;height:48px;color:var(--paper3);display:block;margin:0 auto 16px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <div id="orders-empty-title" style="font-size:15px;font-weight:600;color:var(--ink2)">尚無訂單</div>
         <div id="orders-empty-sub" style="font-size:12px;color:var(--ink4);margin-top:6px"></div>
       </div>
-      <div id="orders-list" style="display:none;flex-direction:column;gap:12px"></div>
+      <div id="orders-list" style="display:none;flex-direction:column;gap:12px;margin-top:16px"></div>
     </div>
   </div>
 </div>
@@ -1039,7 +1039,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-address-row i{margin-top:1px;color:var(--green);flex-shrink:0}
 .match-meta{font-size:11px;color:var(--ink4)}
 .match-countdown{font-size:11px;margin-top:5px;font-weight:500;color:var(--ink2)}
-.match-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px;margin-left:4px;vertical-align:middle}
+.match-badge,.orders-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px;margin-left:4px;vertical-align:middle}
 .match-tabs-bar{display:flex;gap:0;margin-bottom:0;border-bottom:2px solid var(--paper3)}
 .match-tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
 .match-tab-btn.act{color:var(--ink);border-bottom-color:var(--green);font-weight:600}
@@ -1491,7 +1491,7 @@ function updateAllTabCounts() {
   set('orders-tab-cnt-received',  c.orders_received);
   const ordersTotal = c.orders_pending + c.orders_confirmed + c.orders_received;
   document.querySelectorAll('.orders-badge').forEach(el => {
-    if (ordersTotal > 0) { el.textContent = ordersTotal; el.style.display = 'inline'; }
+    if (ordersTotal > 0) { el.textContent = ordersTotal; el.style.display = 'inline-flex'; }
     else { el.style.display = 'none'; }
   });
   updateMatchBadge(allMatchesCache.filter(m => !m.is_read && (m.status||'pending')==='pending' && !matchIsExpired(m)).length);
@@ -1762,7 +1762,7 @@ function renderMatchDetail(m) {
         <button class="btn-main btn-dark" onclick="showPaymentForm('${m.id}')" ${!m.dealer_bank_accounts ? 'disabled' : ''}>已完成匯款</button>`;
     }
   } else if (s === 'payment_confirmed') {
-    actEl.innerHTML = `<button class="btn-main btn-outline" onclick="receiveMatch('${m.id}')">確認收貨完成</button>`;
+    actEl.innerHTML = `<div style="background:var(--green-l);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--green);line-height:1.6;display:flex;align-items:flex-start;gap:10px"><i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0;margin-top:1px"></i><div>確認已完成付款，請與業務聯繫收貨交付時間。</div></div>`;
   } else {
     actEl.innerHTML = '';
   }
