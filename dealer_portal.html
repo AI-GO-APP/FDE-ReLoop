@@ -1642,24 +1642,26 @@ function renderPaymentsList() {
 
   const paged = paginateList(filtered, paymentsPage, PAGE_SIZE);
   const rows = paged.items.map(m => {
-    let actions = '';
-    if (currentPayTab === 'pending') {
-      actions = `<button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
-                 <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>`;
-    }
     const payEquipNo = m.equipment_listing_id ? m.equipment_listing_id.slice(0,8).toUpperCase() : '—';
+    const actionCol = currentPayTab === 'pending'
+      ? `<td><div class="td-actions">
+           <button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
+           <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>
+         </div></td>`
+      : '';
     return `<tr>
       <td style="font-weight:600">${m.device_name}<div style="font-size:11px;font-family:monospace;color:var(--ink4);margin-top:2px">${payEquipNo}</div></td>
       <td>${m.recycler_onboarding_accounts?.company_name || '—'}</td>
       <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
       <td><span style="font-family:monospace;font-size:13px;letter-spacing:.1em">${m.payment_last5 || '—'}</span></td>
       <td style="color:var(--ink3);font-size:12px">${m.payment_submitted_at ? new Date(m.payment_submitted_at).toLocaleString('zh-TW') : '—'}</td>
-      <td><div class="td-actions">${actions}</div></td>
+      ${actionCol}
     </tr>`;
   }).join('');
 
+  const actionHeader = currentPayTab === 'pending' ? '<th style="text-align:right">操作</th>' : '';
   listEl.innerHTML = `<table class="data-table">
-    <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th><th style="text-align:right">操作</th></tr></thead>
+    <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th>${actionHeader}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
   ${paginationHTML(paged, PAGE_SIZE, 'setPaymentsPage')}`;
