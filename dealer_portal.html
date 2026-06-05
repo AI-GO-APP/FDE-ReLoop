@@ -1698,6 +1698,15 @@ function deadlineText(m) {
 
 function setMatchesPage(p) { matchesPage = p; renderMatchesList(); }
 
+function toggleMatchCard(safeId) {
+  const body    = document.getElementById(`mc-body-${safeId}`);
+  const chevron = document.getElementById(`mc-chevron-${safeId}`);
+  if (!body) return;
+  const collapsed = body.style.display === 'none';
+  body.style.display    = collapsed ? '' : 'none';
+  if (chevron) chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
+}
+
 function renderMatchesList() {
   const q        = (document.getElementById('matches-search')?.value || '').toLowerCase().replace(/^#/, '');
   const dateFrom = document.getElementById('matches-date-from')?.value;
@@ -1748,19 +1757,23 @@ function renderMatchesList() {
     const reNotifyBtn = allExpired
       ? `<button class="btn btn-ghost btn-sm" onclick="reNotify('${l.id}')"><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`
       : '';
-    return `<div class="card">
-      <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+    const safeId = l.id.replace(/-/g,'');
+    return `<div class="card" style="padding:0;overflow:hidden">
+      <div onclick="toggleMatchCard('${safeId}')" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 20px;cursor:pointer;user-select:none">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <i class="ti ti-box"></i>
-          <span>${l.device_name}</span>
+          <i class="ti ti-box" style="color:var(--green)"></i>
+          <span style="font-weight:700;font-size:13px">${l.device_name}</span>
           <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.pickup_address || l.region}</span>
-          <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">#${equipNo}</span>
+          <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">${equipNo}</span>
+          ${ms.length > 0 ? `<span class="badge badge-active">${ms.length} 筆</span>` : ''}
         </div>
         <div style="display:flex;gap:6px;align-items:center">
           ${reNotifyBtn}
           <span style="font-size:11px;color:var(--ink4)">${createdAt}</span>
+          <i id="mc-chevron-${safeId}" class="ti ti-chevron-down" style="font-size:16px;color:var(--ink4);transition:transform .2s"></i>
         </div>
       </div>
+      <div id="mc-body-${safeId}" style="border-top:1px solid var(--paper2);padding:0 20px 16px">
       ${ms.length === 0
         ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
         : `<table class="data-table">
@@ -1787,6 +1800,7 @@ function renderMatchesList() {
               <td><div class="td-actions">${action}</div></td>
             </tr>`;}).join('')}
           </tbody></table>`}
+      </div>
     </div>`;
   }).join('') + paginationHTML(paged, MATCH_PAGE_SIZE, 'setMatchesPage');
 }
