@@ -1571,7 +1571,7 @@ function renderMatchList() {
       </div>
       <div class="match-cat-tag">${m.category_name}</div>
       <div class="match-address-row"><i class="ti ti-map-pin"></i>${displayAddress(m)}</div>
-      <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.note ? '・' + m.note : ''}</div>
+      <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.brand ? '・' + m.brand : ''}${[m.width_cm&&`W${m.width_cm}`,m.height_cm&&`H${m.height_cm}`,m.depth_cm&&`D${m.depth_cm}`].filter(Boolean).length?'・'+[m.width_cm&&`W${m.width_cm}`,m.height_cm&&`H${m.height_cm}`,m.depth_cm&&`D${m.depth_cm}`].filter(Boolean).join('×')+'cm':''}${m.weight_kg?'・'+m.weight_kg+'kg':''}${m.note ? '・' + m.note : ''}</div>
     </div>`;
   }).join('');
 }
@@ -2709,7 +2709,7 @@ function renderOrdersList() {
       </div>
       <div class="match-cat-tag">${m.category_name}</div>
       <div class="match-address-row"><i class="ti ti-map-pin"></i>${displayAddress(m)}</div>
-      <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.note ? '・' + m.note : ''}</div>
+      <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.brand ? '・' + m.brand : ''}${[m.width_cm&&`W${m.width_cm}`,m.height_cm&&`H${m.height_cm}`,m.depth_cm&&`D${m.depth_cm}`].filter(Boolean).length?'・'+[m.width_cm&&`W${m.width_cm}`,m.height_cm&&`H${m.height_cm}`,m.depth_cm&&`D${m.depth_cm}`].filter(Boolean).join('×')+'cm':''}${m.weight_kg?'・'+m.weight_kg+'kg':''}${m.note ? '・' + m.note : ''}</div>
     </div>`;
   }).join('');
 }
