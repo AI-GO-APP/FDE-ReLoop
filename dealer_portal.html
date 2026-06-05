@@ -1737,7 +1737,9 @@ function renderMatchesList() {
   const paged = paginateList(listings, matchesPage, MATCH_PAGE_SIZE);
 
   listEl.innerHTML = paged.items.map(l => {
-    const ms = matchMap[l.id] || [];
+    const allMs = matchMap[l.id] || [];
+    // 有搜尋廠商名稱時，只顯示符合的廠商列
+    const ms = q ? allMs.filter(m => (m.recycler_onboarding_accounts?.company_name || '').toLowerCase().includes(q)) : allMs;
     const equipNo = l.id.slice(0, 8).toUpperCase();
     const createdAt = new Date(l.created_at).toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
     // 再次通知：只在有 pending 且全部已截止時顯示，一次通知全部
