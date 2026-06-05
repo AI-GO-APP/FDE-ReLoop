@@ -305,6 +305,9 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
     </div>
     <div class="main-body">
+      <div class="search-row">
+        <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備名稱..." oninput="renderMatchesList()">
+      </div>
       <div id="matches-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
       <div id="matches-list"></div>
     </div>
@@ -1182,6 +1185,9 @@ async function confirmReceived(matchId) {
 // ════════════════════════════════════════════
 // 媒合管理（設備維度，看每筆設備的媒合狀況）
 // ════════════════════════════════════════════
+let matchesListingsCache = [];
+let matchesMatchCache = [];
+
 async function loadMatchesList() {
   const db = getSupabase();
   document.getElementById('matches-loading').style.display = 'block';
@@ -1206,15 +1212,29 @@ async function loadMatchesList() {
     .in('equipment_listing_id', listings.map(l => l.id));
 
   document.getElementById('matches-loading').style.display = 'none';
+  matchesListingsCache = listings;
+  matchesMatchCache = matches || [];
+  renderMatchesList();
+}
+
+function renderMatchesList() {
+  const q = (document.getElementById('matches-search')?.value || '').toLowerCase();
+  const statusLabel = { pending:'待回覆', bidding:'已出價', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
+  const condLabel = { A:'良好', B:'普通', C:'堪用' };
 
   const matchMap = {};
-  (matches || []).forEach(m => {
+  matchesMatchCache.forEach(m => {
     if (!matchMap[m.equipment_listing_id]) matchMap[m.equipment_listing_id] = [];
     matchMap[m.equipment_listing_id].push(m);
   });
 
-  const statusLabel = { pending:'待回覆', bidding:'已出價', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
-  const condLabel = { A:'良好', B:'普通', C:'堪用' };
+  let listings = matchesListingsCache;
+  if (q) listings = listings.filter(l => l.device_name.toLowerCase().includes(q));
+
+  if (listings.length === 0) {
+    document.getElementById('matches-list').innerHTML = '<div class="empty-state"><i class="ti ti-list-search"></i><p>沒有符合的設備</p></div>';
+    return;
+  }
 
   document.getElementById('matches-list').innerHTML = listings.map(l => {
     const ms = matchMap[l.id] || [];
