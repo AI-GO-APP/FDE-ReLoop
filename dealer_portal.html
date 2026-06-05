@@ -387,8 +387,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="main-body">
       <div class="match-tabs-bar" style="margin-bottom:16px">
         <button class="match-tab-btn act" id="staff-tab-pending"  onclick="switchStaffTab('pending')">待審核<span id="staff-cnt-pending" class="tab-cnt" style="display:none"></span></button>
-        <button class="match-tab-btn"     id="staff-tab-approved" onclick="switchStaffTab('approved')">現有成員</button>
-        <button class="match-tab-btn"     id="staff-tab-suspended" onclick="switchStaffTab('suspended')">已停用</button>
+        <button class="match-tab-btn"     id="staff-tab-approved" onclick="switchStaffTab('approved')">現有成員<span id="staff-cnt-approved" class="tab-cnt" style="display:none"></span></button>
+        <button class="match-tab-btn"     id="staff-tab-suspended" onclick="switchStaffTab('suspended')">已停用<span id="staff-cnt-suspended" class="tab-cnt" style="display:none"></span></button>
       </div>
       <div id="staff-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
       <div id="staff-list"></div>
@@ -1789,23 +1789,37 @@ async function loadStaffList() {
   const { data } = await db.from('dealer_accounts').select('*').order('created_at', { ascending: false });
   staffCache = data || [];
   document.getElementById('staff-loading').style.display = 'none';
-  // 更新待審核 badge
-  const pending = staffCache.filter(s => s.status === 'pending').length;
-  const cntEl = document.getElementById('staff-cnt-pending');
-  if (cntEl) { cntEl.textContent = pending || ''; cntEl.style.display = pending ? 'inline' : 'none'; }
   renderStaffList();
 }
 
 function setStaffPage(p) { staffPage = p; renderStaffList(); }
 
+function updateStaffTabCounts() {
+  const cntPending  = staffCache.filter(s => s.status === 'pending' || s.status === 'rejected').length;
+  const cntApproved = staffCache.filter(s => s.status === 'approved').length;
+  const cntSuspended= staffCache.filter(s => s.status === 'suspended').length;
+  [['staff-cnt-pending', cntPending], ['staff-cnt-approved', cntApproved], ['staff-cnt-suspended', cntSuspended]].forEach(([id, cnt]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = cnt;
+    el.style.display = cnt > 0 ? 'inline' : 'none';
+  });
+  // nav badge 只算真正待審核（pending）
+  const navPending = staffCache.filter(s => s.status === 'pending').length;
+  setBadge('staff', navPending);
+}
+
 function renderStaffList() {
   const el = document.getElementById('staff-list');
+  // 待審核 tab：pending + rejected 都顯示
   const filtered = staffCache.filter(s => {
-    if (currentStaffTab === 'pending')   return s.status === 'pending';
+    if (currentStaffTab === 'pending')   return s.status === 'pending' || s.status === 'rejected';
     if (currentStaffTab === 'approved')  return s.status === 'approved';
     if (currentStaffTab === 'suspended') return s.status === 'suspended';
     return true;
   });
+
+  updateStaffTabCounts();
 
   if (filtered.length === 0) {
     el.innerHTML = '<div class="empty-state"><i class="ti ti-users-group"></i><p>沒有符合的人員</p></div>';
@@ -1815,13 +1829,19 @@ function renderStaffList() {
   const paged = paginateList(filtered, staffPage, PAGE_SIZE);
   const roleLabel = { agent:'業務', manager:'主管', admin:'管理員' };
   el.innerHTML = `<table class="data-table">
-    <thead><tr><th>姓名</th><th>Email</th><th>職稱</th><th>角色</th><th>申請時間</th><th style="text-align:right">操作</th></tr></thead>
+    <thead><tr><th>姓名</th><th>Email</th><th>職稱</th><th>角色</th><th>申請時間</th><th>審核</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${paged.items.map(s => {
       let actions = '';
+      const statusBadge = s.status === 'rejected'
+        ? `<span class="badge badge-draft" style="background:var(--red-l);color:var(--red)">已拒絕</span>`
+        : `<span class="badge badge-pending">待審核</span>`;
       if (s.status === 'pending') {
         actions = `<button class="btn btn-green btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-check"></i> 核准</button>
                    <button class="btn btn-danger btn-sm" onclick="staffAction('${s.id}','reject')"><i class="ti ti-x"></i> 拒絕</button>`;
+      } else if (s.status === 'rejected') {
+        actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-rotate-clockwise"></i> 撤銷拒絕</button>`;
       } else if (s.status === 'approved') {
+        statusBadge; // not shown in approved tab
         actions = `<select class="field-input" style="width:90px;padding:5px 8px;font-size:12px" onchange="changeRole('${s.id}',this.value)">
                      <option value="agent"   ${s.role==='agent'   ? 'selected' : ''}>業務</option>
                      <option value="manager" ${s.role==='manager' ? 'selected' : ''}>主管</option>
@@ -1831,12 +1851,14 @@ function renderStaffList() {
       } else if (s.status === 'suspended') {
         actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-player-play"></i> 恢復</button>`;
       }
+      const showStatusCol = currentStaffTab === 'pending';
       return `<tr>
         <td style="font-weight:600">${s.name}</td>
         <td style="color:var(--ink3);font-size:12px">${s.email}</td>
         <td>${s.title || '—'}</td>
         <td><span class="badge badge-${s.role==='admin'?'payment_confirmed':s.role==='manager'?'bidding':'pending'}">${roleLabel[s.role]||s.role}</span></td>
         <td style="color:var(--ink3);font-size:12px">${new Date(s.created_at).toLocaleDateString('zh-TW')}</td>
+        <td>${showStatusCol ? (s.status === 'rejected' ? `<span class="badge" style="background:var(--red-l);color:var(--red)">已拒絕</span>` : `<span class="badge badge-pending">待審核</span>`) : '—'}</td>
         <td><div class="td-actions">${actions}</div></td>
       </tr>`;
     }).join('')}
