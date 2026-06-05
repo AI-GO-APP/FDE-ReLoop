@@ -1787,14 +1787,13 @@ function renderMatchesList() {
     const ms = q ? allMs.filter(m => (m.recycler_onboarding_accounts?.company_name || '').toLowerCase().includes(q)) : allMs;
     const equipNo = l.id.slice(0, 8).toUpperCase();
     const createdAt = new Date(l.created_at).toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
-    // 再次通知：只在有 pending 且全部已截止時顯示，一次通知全部
-    const pendingMs = ms.filter(m => m.status === 'pending');
-    const allExpired = pendingMs.length > 0 && pendingMs.every(m => matchDeadline(m) < Date.now());
-    const reNotifyBtn = allExpired
-      ? `<button class="btn btn-ghost btn-sm" onclick="reNotify('${l.id}')"><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`
-      : '';
     const safeId = l.id.replace(/-/g,'');
     const pendingMs = ms.filter(m => m.status === 'pending');
+    const allExpired = pendingMs.length > 0 && pendingMs.every(m => matchDeadline(m) < Date.now());
+    // 有 pending 就顯示按鈕；全部截止前 disabled（不可點），全部截止後才可點
+    const reNotifyBtn = pendingMs.length > 0
+      ? `<button class="btn btn-ghost btn-sm" ${!allExpired ? 'disabled title="截止日期未到，屆時可再次通知"' : `onclick="reNotify('${l.id}')"`}><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`
+      : '';
     const nearestDl = pendingMs.length
       ? pendingMs.reduce((min, m) => { const t = matchDeadline(m).getTime(); return t < min ? t : min; }, Infinity)
       : null;

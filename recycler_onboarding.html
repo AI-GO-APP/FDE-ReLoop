@@ -1773,7 +1773,8 @@ function renderMatchDetail(m) {
           <div style="font-size:12px;font-weight:600;color:#2b6cb0;margin-bottom:6px">盤商匯款帳號</div>
           ${bankAccountHtml(m.dealer_bank_accounts)}
         </div>
-        <button class="btn-main btn-dark" onclick="showPaymentForm('${m.id}')" ${!m.dealer_bank_accounts ? 'disabled' : ''}>已完成匯款</button>`;
+        <button class="btn-main btn-dark" onclick="showPaymentForm('${m.id}')" ${!m.dealer_bank_accounts ? 'disabled style="opacity:.45;cursor:not-allowed"' : ''}>已完成匯款</button>
+        ${!m.dealer_bank_accounts ? '<div style="text-align:center;font-size:12px;color:var(--ink4);margin-top:8px">請稍候盤商設定匯款帳號後即可操作</div>' : ''}`;
     }
   } else if (s === 'payment_confirmed') {
     actEl.innerHTML = `<div style="background:var(--green-l);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--green);line-height:1.6;display:flex;align-items:flex-start;gap:10px"><i class="ti ti-info-circle" style="font-size:18px;flex-shrink:0;margin-top:1px"></i><div>確認已完成付款，請與業務聯繫收貨交付時間。</div></div>`;
