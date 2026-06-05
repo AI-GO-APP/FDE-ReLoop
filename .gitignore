@@ -1,0 +1,17 @@
+# 環境變數
+.env
+.env.*
+.env.local
+
+# Markdown（內部文件，不推上 GitHub）
+*.md
+
+# 系統檔
+.DS_Store
+Thumbs.db
+
+# 日誌
+*.log
+
+# 編輯器
+.vscode/
