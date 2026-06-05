@@ -409,6 +409,45 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- 編輯人員資訊 Modal -->
+<div class="modal-overlay" id="modal-staff-edit">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">編輯人員資訊</div>
+      <button class="modal-close" onclick="closeStaffEdit()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label class="field-label">Email（唯讀）</label>
+      <input class="field-input" id="staff-edit-email" type="email" readonly style="background:var(--paper2);color:var(--ink3)">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">姓名</label>
+        <input class="field-input" id="staff-edit-name" type="text" placeholder="姓名">
+      </div>
+      <div class="field">
+        <label class="field-label">職稱</label>
+        <input class="field-input" id="staff-edit-title" type="text" placeholder="職稱">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">電話</label>
+        <input class="field-input" id="staff-edit-phone" type="tel" placeholder="09xx-xxxxxx">
+      </div>
+      <div class="field">
+        <label class="field-label">LINE ID</label>
+        <input class="field-input" id="staff-edit-line-id" type="text" placeholder="LINE ID">
+      </div>
+    </div>
+    <div id="staff-edit-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeStaffEdit()">取消</button>
+      <button class="btn btn-primary" id="staff-edit-save-btn" onclick="saveStaffEdit()"><i class="ti ti-device-floppy"></i> 儲存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════
      回收商管理（admin only）
 ══════════════════════════════════════════ -->
@@ -2435,6 +2474,7 @@ function renderStaffList() {
                      <option value="manager" ${s.role==='manager' ? 'selected' : ''}>主管</option>
                      <option value="admin"   ${s.role==='admin'   ? 'selected' : ''}>管理員</option>
                    </select>
+                   <button class="btn btn-ghost btn-sm" onclick="openStaffEdit('${s.id}')"><i class="ti ti-pencil"></i> 編輯</button>
                    <button class="btn btn-danger btn-sm" onclick="staffAction('${s.id}','suspend')"><i class="ti ti-ban"></i> 停用</button>`;
       } else if (s.status === 'suspended') {
         actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-player-play"></i> 恢復</button>`;
@@ -2452,6 +2492,50 @@ function renderStaffList() {
     }).join('')}
     </tbody></table>
     ${paginationHTML(paged, PAGE_SIZE, 'setStaffPage')}`;
+}
+
+let _staffEditId = null;
+
+function openStaffEdit(id) {
+  const s = staffCache.find(x => x.id === id);
+  if (!s) return;
+  _staffEditId = id;
+  document.getElementById('staff-edit-email').value   = s.email   || '';
+  document.getElementById('staff-edit-name').value    = s.name    || '';
+  document.getElementById('staff-edit-title').value   = s.title   || '';
+  document.getElementById('staff-edit-phone').value   = s.phone   || '';
+  document.getElementById('staff-edit-line-id').value = s.line_id || '';
+  document.getElementById('staff-edit-error').style.display = 'none';
+  document.getElementById('modal-staff-edit').classList.add('act');
+}
+
+function closeStaffEdit() {
+  document.getElementById('modal-staff-edit').classList.remove('act');
+  _staffEditId = null;
+}
+
+async function saveStaffEdit() {
+  const db = getSupabase();
+  if (!db || !_staffEditId) return;
+  const name    = document.getElementById('staff-edit-name').value.trim();
+  const title   = document.getElementById('staff-edit-title').value.trim();
+  const phone   = document.getElementById('staff-edit-phone').value.trim();
+  const line_id = document.getElementById('staff-edit-line-id').value.trim();
+  const errEl   = document.getElementById('staff-edit-error');
+  errEl.style.display = 'none';
+  if (!name) { errEl.textContent = '請填寫姓名'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('staff-edit-save-btn');
+  btn.disabled = true;
+  const { error } = await db.from('dealer_accounts')
+    .update({ name, title: title || null, phone: phone || null, line_id: line_id || null })
+    .eq('id', _staffEditId);
+  btn.disabled = false;
+  if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
+  const s = staffCache.find(x => x.id === _staffEditId);
+  if (s) { s.name = name; s.title = title || null; s.phone = phone || null; s.line_id = line_id || null; }
+  closeStaffEdit();
+  showToast('人員資訊已更新');
+  renderStaffList();
 }
 
 async function staffAction(id, action) {
