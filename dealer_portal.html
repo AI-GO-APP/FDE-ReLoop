@@ -1894,7 +1894,12 @@ function renderMatchesList() {
       const dlStr = new Date(nearestDl).toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
       headerDlHtml = `<span style="font-size:11px;color:var(--ink4)">截止日期：<span style="color:${dlColor};font-weight:600">${rem <= 0 ? '已截止' : dlStr}</span></span>`;
     }
-    return `<div class="card" style="padding:0;overflow:hidden">
+    const borderColor = allMs.some(m=>m.status==='pending') ? '#f97316'
+      : allMs.some(m=>m.status==='bidding') ? '#3b82f6'
+      : allMs.some(m=>m.status==='proposed') ? '#a855f7'
+      : allMs.some(m=>['accepted','payment_confirmed'].includes(m.status)) ? '#22c55e'
+      : 'transparent';
+    return `<div class="card" style="padding:0;overflow:hidden;border-left:4px solid ${borderColor}">
       <div onclick="toggleMatchCard('${safeId}')" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 20px;cursor:pointer;user-select:none">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <i class="ti ti-box" style="color:var(--green)"></i>
