@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReLoop — 盤商後台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{
+  --ink:#1A1A18;--ink2:#3D3D38;--ink3:#7A7A72;--ink4:#AEADA6;
+  --paper:#F7F6F2;--paper2:#EFEDE8;--paper3:#E4E2DB;--white:#fff;
+  --green:#1A7A5E;--green-l:#E2F4EE;--green-m:#5DCAA5;
+  --blue:#1A4F8A;--blue-l:#E2EBF8;--blue-m:#85B7EB;
+  --amber:#8A5A1A;--amber-l:#F8EEE2;--amber-m:#EF9F27;
+  --red:#8A1A1A;--red-l:#F8E2E2;--red-m:#E08F8F;
+  --r:10px;--r-lg:16px;--r-xl:24px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:0 4px 24px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+input,select,button,textarea{font-family:'DM Sans',sans-serif}
+
+/* ── 全頁佈局 ── */
+.screen{display:none;min-height:100vh}
+.screen.act{display:flex}
+
+/* ── 左側品牌欄 ── */
+.brand-col{width:240px;flex-shrink:0;background:var(--ink);padding:32px 24px;display:flex;flex-direction:column;justify-content:space-between}
+@media(max-width:768px){.brand-col{display:none}}
+.brand-logo{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px;margin-bottom:8px}
+.brand-logo span{color:#9FD9C6}
+.brand-role{font-size:11px;color:rgba(255,255,255,.35);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:40px}
+.brand-nav{display:flex;flex-direction:column;gap:6px}
+.brand-nav-item{width:100%;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.55);padding:10px 12px;border-radius:var(--r);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;text-align:left;cursor:pointer;transition:all .15s}
+.brand-nav-item i{font-size:17px;flex-shrink:0}
+.brand-nav-item:hover{border-color:rgba(255,255,255,.28);color:#fff}
+.brand-nav-item.act{background:#fff;border-color:#fff;color:var(--ink)}
+.brand-footer{font-size:11px;color:rgba(255,255,255,.25)}
+.nav-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px;margin-left:auto}
+
+/* ── 右側主內容 ── */
+.main-col{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main-header{padding:24px 32px 0;border-bottom:1px solid var(--paper3);background:var(--white);position:sticky;top:0;z-index:10}
+.main-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.main-title{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.4px}
+.main-body{padding:24px 32px;flex:1}
+
+/* ── 按鈕 ── */
+.btn{padding:9px 16px;border-radius:var(--r);border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--ink2)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{opacity:.9}
+.btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid var(--paper3)}
+.btn-ghost:hover{background:var(--paper2)}
+.btn-danger{background:var(--red-l);color:var(--red);border:1.5px solid var(--red-m)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-full{width:100%;justify-content:center}
+
+/* ── 欄位 ── */
+.field{margin-bottom:16px}
+.field-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px}
+.field-input{width:100%;padding:10px 13px;font-size:14px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--white);color:var(--ink);outline:none;transition:border-color .15s}
+.field-input:focus{border-color:var(--ink)}
+.field-textarea{resize:vertical;min-height:80px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ── 卡片 ── */
+.card{background:var(--white);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card-title{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--green)}
+
+/* ── 表格 ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--paper3);white-space:nowrap}
+.data-table td{padding:12px;border-bottom:1px solid var(--paper2);color:var(--ink2);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--paper)}
+.data-table .td-actions{display:flex;gap:6px;justify-content:flex-end}
+
+/* ── 狀態徽章 ── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-draft{background:var(--paper2);color:var(--ink3)}
+.badge-active{background:var(--green-l);color:var(--green)}
+.badge-pending{background:var(--paper2);color:var(--ink3)}
+.badge-bidding{background:var(--amber-l);color:var(--amber)}
+.badge-accepted{background:var(--blue-l);color:var(--blue)}
+.badge-payment_confirmed{background:var(--green-l);color:var(--green)}
+.badge-received{background:var(--paper2);color:var(--ink3)}
+.badge-matched{background:var(--blue-l);color:var(--blue)}
+.badge-completed{background:var(--green-l);color:var(--green)}
+
+/* ── 空狀態 ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--ink4)}
+.empty-state i{font-size:40px;display:block;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ── 搜尋列 ── */
+.search-row{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+.search-input{flex:1;padding:9px 13px;font-size:13px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--white);outline:none}
+.search-input:focus{border-color:var(--ink)}
+
+/* ── Modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.act{display:flex}
+.modal{background:var(--white);border-radius:var(--r-xl);padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-size:17px;font-weight:700;color:var(--ink)}
+.modal-close{background:none;border:none;font-size:20px;color:var(--ink3);cursor:pointer;padding:4px}
+.modal-close:hover{color:var(--ink)}
+.modal-actions{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+
+/* ── 登入 ── */
+.login-wrap{width:100%;max-width:400px;padding:48px 32px}
+.login-logo{font-size:28px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.login-logo span{color:var(--green)}
+.login-role{font-size:12px;color:var(--ink4);margin-bottom:40px}
+.login-title{font-size:20px;font-weight:700;margin-bottom:24px}
+
+/* ── 照片上傳 ── */
+.photo-upload-zone{border:2px dashed var(--paper3);border-radius:var(--r-lg);padding:24px;text-align:center;cursor:pointer;transition:border-color .15s}
+.photo-upload-zone:hover{border-color:var(--ink3)}
+.photo-upload-zone i{font-size:28px;color:var(--ink4);display:block;margin-bottom:8px}
+.photo-upload-zone p{font-size:12px;color:var(--ink4)}
+.photo-preview-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.photo-preview-item{position:relative;width:80px;height:80px}
+.photo-preview-item img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.photo-preview-remove{position:absolute;top:-6px;right:-6px;background:#e53e3e;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* ── 分隔線標題 ── */
+.section-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;margin-top:24px}
+.section-label:first-child{margin-top:0}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     登入
+══════════════════════════════════════════ -->
+<div class="screen act" id="screen-login" style="align-items:center;justify-content:center;background:var(--paper)">
+  <div class="login-wrap">
+    <div class="login-logo">Re<span>Loop</span></div>
+    <div class="login-role">盤商後台管理系統</div>
+    <div class="login-title">登入</div>
+    <div class="field">
+      <label class="field-label">Email</label>
+      <input class="field-input" type="email" id="login-email" placeholder="dealer@reloop.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label class="field-label">密碼</label>
+      <input class="field-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:4px">登入</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     設備建檔
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-equipment">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item act" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments" style="display:none"></span></button>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
+      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">設備建檔</div>
+        <button class="btn btn-primary" onclick="openEquipmentForm()"><i class="ti ti-plus"></i> 新增設備</button>
+      </div>
+    </div>
+    <div class="main-body">
+      <div class="search-row">
+        <input class="search-input" id="equipment-search" type="text" placeholder="搜尋設備名稱..." oninput="renderEquipmentList()">
+        <select class="field-input" id="equipment-status-filter" onchange="renderEquipmentList()" style="width:120px;flex:none">
+          <option value="">全部狀態</option>
+          <option value="draft">草稿</option>
+          <option value="active">媒合中</option>
+          <option value="matched">已媒合</option>
+          <option value="completed">已完成</option>
+          <option value="cancelled">已取消</option>
+        </select>
+      </div>
+      <div id="equipment-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
+      <div id="equipment-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     媒合管理
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-matches">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches2" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids2" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments2" style="display:none"></span></button>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
+      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">媒合管理</div>
+      </div>
+    </div>
+    <div class="main-body">
+      <div id="matches-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
+      <div id="matches-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     出價管理
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-bids">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches3" style="display:none"></span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids3" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments3" style="display:none"></span></button>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
+      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">出價管理</div>
+      </div>
+    </div>
+    <div class="main-body">
+      <div id="bids-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
+      <div id="bids-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     款項確認
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-payments">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備建檔</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>媒合管理</span><span class="nav-badge" id="nav-badge-matches4" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-bids')"><i class="ti ti-gavel"></i><span>出價管理</span><span class="nav-badge" id="nav-badge-bids4" style="display:none"></span></button>
+        <button class="brand-nav-item act" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項確認</span><span class="nav-badge" id="nav-badge-payments4" style="display:none"></span></button>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-ghost btn-full btn-sm" onclick="doLogout()" style="color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.12);margin-bottom:12px"><i class="ti ti-logout"></i> 登出</button>
+      <div class="brand-footer">ReLoop · 設備回收交易平台</div>
+    </div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div class="main-title">款項確認</div>
+      </div>
+    </div>
+    <div class="main-body">
+      <div id="payments-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
+      <div id="payments-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Modal：設備建檔表單
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-equipment">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="equipment-form-title">新增設備</div>
+      <button class="modal-close" onclick="closeEquipmentForm()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="section-label">基本資訊</div>
+    <div class="field">
+      <label class="field-label">設備名稱 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" id="eq-device-name" type="text" placeholder="例：展示冰箱（玻璃門）">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">分類 <span style="color:var(--red)">*</span></label>
+        <select class="field-input" id="eq-category">
+          <option value="">請選擇</option>
+          <option>冷藏冷凍設備</option>
+          <option>烹調加熱設備</option>
+          <option>飲料吧設備</option>
+          <option>清潔衛生設備</option>
+          <option>辦公店務設備</option>
+          <option>洗衣家電</option>
+          <option>桌椅類</option>
+          <option>吧台工作台</option>
+          <option>收納櫃類</option>
+          <option>食材處理設備</option>
+          <option>包裝封口</option>
+          <option>衛浴設備</option>
+          <option>水電配管</option>
+          <option>門窗隔間</option>
+          <option>廚房用具</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">狀況等級 <span style="color:var(--red)">*</span></label>
+        <select class="field-input" id="eq-condition">
+          <option value="">請選擇</option>
+          <option value="A">A — 良好</option>
+          <option value="B">B — 普通</option>
+          <option value="C">C — 堪用</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">品牌</label>
+        <input class="field-input" id="eq-brand" type="text" placeholder="例：台灣三洋">
+      </div>
+      <div class="field">
+        <label class="field-label">縣市 <span style="color:var(--red)">*</span></label>
+        <select class="field-input" id="eq-region">
+          <option value="">請選擇</option>
+          <option>台北市</option><option>新北市</option><option>桃園市</option>
+          <option>台中市</option><option>台南市</option><option>高雄市</option>
+          <option>基隆市</option><option>新竹市</option><option>嘉義市</option>
+          <option>新竹縣</option><option>苗栗縣</option><option>彰化縣</option>
+          <option>南投縣</option><option>雲林縣</option><option>嘉義縣</option>
+          <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+          <option>台東縣</option><option>澎湖縣</option><option>金門縣</option><option>連江縣</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">詳細地址 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" id="eq-address" type="text" placeholder="例：台北市大安區復興南路一段100號">
+    </div>
+
+    <div class="section-label">規格尺寸</div>
+    <div class="field-row-3">
+      <div class="field">
+        <label class="field-label">寬 (cm)</label>
+        <input class="field-input" id="eq-width" type="number" placeholder="60">
+      </div>
+      <div class="field">
+        <label class="field-label">高 (cm)</label>
+        <input class="field-input" id="eq-height" type="number" placeholder="180">
+      </div>
+      <div class="field">
+        <label class="field-label">深 (cm)</label>
+        <input class="field-input" id="eq-depth" type="number" placeholder="70">
+      </div>
+    </div>
+    <div class="field" style="max-width:180px">
+      <label class="field-label">重量 (kg)</label>
+      <input class="field-input" id="eq-weight" type="number" placeholder="85">
+    </div>
+
+    <div class="section-label">備註與照片</div>
+    <div class="field">
+      <label class="field-label">備註說明</label>
+      <textarea class="field-input field-textarea" id="eq-note" placeholder="設備狀況說明、搬運注意事項等..."></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">設備照片</label>
+      <div class="photo-upload-zone" onclick="document.getElementById('eq-photo-input').click()">
+        <i class="ti ti-photo-plus"></i>
+        <p>點擊上傳照片（可多張）</p>
+      </div>
+      <input type="file" id="eq-photo-input" multiple accept="image/*" style="display:none" onchange="handlePhotoSelect(this)">
+      <div class="photo-preview-grid" id="eq-photo-preview"></div>
+    </div>
+
+    <div id="equipment-form-error" style="font-size:12px;color:var(--red);margin-top:8px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEquipmentForm()">取消</button>
+      <button class="btn btn-primary" id="equipment-save-btn" onclick="saveEquipment()"><i class="ti ti-device-floppy"></i> 儲存草稿</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Modal：媒合推薦名單
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-match-list">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="match-list-title">確認推薦名單</div>
+      <button class="modal-close" onclick="closeMatchList()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:var(--ink3);margin-bottom:16px">以下是系統依照回收商偏好推薦的名單，確認後送出通知。</div>
+    <div id="match-list-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeMatchList()">取消</button>
+      <button class="btn btn-green" id="confirm-notify-btn" onclick="confirmAndNotify()"><i class="ti ti-send"></i> 確認送出通知</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Modal：選得標廠商
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-select-winner">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="winner-modal-title">選定得標廠商</div>
+      <button class="modal-close" onclick="closeWinnerModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:var(--ink3);margin-bottom:16px">選擇得標廠商後，系統會通知該廠商並更新狀態。</div>
+    <div id="winner-modal-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeWinnerModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// Supabase 初始化
+// ════════════════════════════════════════════
+function getSupabase() {
+  if (window._sb) return window._sb;
+  const url = window.__SUPABASE_URL__;
+  const key = window.__SUPABASE_ANON_KEY__;
+  if (!url || !key || url.includes('__SUPABASE')) return null;
+  window._sb = supabase.createClient(url, key);
+  return window._sb;
+}
+
+// ════════════════════════════════════════════
+// 畫面切換
+// ════════════════════════════════════════════
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('act'));
+  document.getElementById(id)?.classList.add('act');
+  window.scrollTo(0, 0);
+  if (id === 'screen-equipment') loadEquipmentList();
+  if (id === 'screen-matches')   loadMatchesList();
+  if (id === 'screen-bids')      loadBidsList();
+  if (id === 'screen-payments')  loadPaymentsList();
+}
+
+// ════════════════════════════════════════════
+// Toast
+// ════════════════════════════════════════════
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════════════
+// 登入 / 登出
+// ════════════════════════════════════════════
+async function doLogin() {
+  const db = getSupabase();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!db) {
+    // 開發模式：無 Supabase 時直接進入
+    goScreen('screen-equipment');
+    return;
+  }
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = '帳號或密碼錯誤';
+    errEl.style.display = 'block';
+    return;
+  }
+  goScreen('screen-equipment');
+  loadAllBadges();
+}
+
+async function doLogout() {
+  const db = getSupabase();
+  if (db) await db.auth.signOut();
+  goScreen('screen-login');
+}
+
+// ════════════════════════════════════════════
+// Badge 更新
+// ════════════════════════════════════════════
+async function loadAllBadges() {
+  const db = getSupabase();
+  if (!db) return;
+  const { data } = await db.from('recycler_matches').select('status, payment_last5');
+  if (!data) return;
+  const bids     = data.filter(m => m.status === 'bidding').length;
+  const payments = data.filter(m => m.status === 'accepted' && m.payment_last5).length;
+  setBadge('bids',     bids);
+  setBadge('payments', payments);
+}
+
+function setBadge(key, count) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById(`nav-badge-${key}${i > 1 ? i : ''}`);
+    if (!el) return;
+    el.textContent = count;
+    el.style.display = count > 0 ? 'inline-flex' : 'none';
+  });
+}
+
+// ════════════════════════════════════════════
+// 設備建檔
+// ════════════════════════════════════════════
+let equipmentCache = [];
+let editingEquipmentId = null;
+let pendingPhotoFiles = [];
+
+async function loadEquipmentList() {
+  const db = getSupabase();
+  document.getElementById('equipment-loading').style.display = 'block';
+  document.getElementById('equipment-list').innerHTML = '';
+  if (!db) {
+    document.getElementById('equipment-loading').style.display = 'none';
+    document.getElementById('equipment-list').innerHTML = '<div class="empty-state"><i class="ti ti-database-off"></i><p>請連接 Supabase</p></div>';
+    return;
+  }
+  const { data } = await db.from('equipment_listings').select('*').order('created_at', { ascending: false });
+  equipmentCache = data || [];
+  document.getElementById('equipment-loading').style.display = 'none';
+  renderEquipmentList();
+}
+
+function renderEquipmentList() {
+  const q      = (document.getElementById('equipment-search')?.value || '').toLowerCase();
+  const status = document.getElementById('equipment-status-filter')?.value || '';
+  let list = equipmentCache;
+  if (q)      list = list.filter(e => e.device_name.toLowerCase().includes(q));
+  if (status) list = list.filter(e => e.status === status);
+
+  const el = document.getElementById('equipment-list');
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state"><i class="ti ti-box-off"></i><p>沒有符合的設備</p></div>';
+    return;
+  }
+
+  const statusLabel = { draft:'草稿', active:'媒合中', matched:'已媒合', completed:'已完成', cancelled:'已取消' };
+  el.innerHTML = `<table class="data-table">
+    <thead><tr>
+      <th>設備名稱</th><th>分類</th><th>狀況</th><th>品牌</th><th>地區</th><th>狀態</th><th style="text-align:right">操作</th>
+    </tr></thead>
+    <tbody>${list.map(e => `
+    <tr>
+      <td style="font-weight:600">${e.device_name}</td>
+      <td>${e.category_name}</td>
+      <td>${e.condition || '—'}</td>
+      <td>${e.brand || '—'}</td>
+      <td>${e.region}</td>
+      <td><span class="badge badge-${e.status}">${statusLabel[e.status] || e.status}</span></td>
+      <td><div class="td-actions">
+        ${e.status === 'draft' ? `<button class="btn btn-green btn-sm" onclick="openMatchListModal('${e.id}')"><i class="ti ti-send"></i> 發送通知</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="openEquipmentForm('${e.id}')"><i class="ti ti-edit"></i></button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function openEquipmentForm(id) {
+  editingEquipmentId = id || null;
+  pendingPhotoFiles = [];
+  document.getElementById('equipment-form-title').textContent = id ? '編輯設備' : '新增設備';
+  document.getElementById('equipment-form-error').style.display = 'none';
+  document.getElementById('eq-photo-preview').innerHTML = '';
+
+  if (id) {
+    const e = equipmentCache.find(x => x.id === id);
+    if (e) {
+      document.getElementById('eq-device-name').value = e.device_name || '';
+      document.getElementById('eq-category').value    = e.category_name || '';
+      document.getElementById('eq-condition').value   = e.condition || '';
+      document.getElementById('eq-brand').value       = e.brand || '';
+      document.getElementById('eq-region').value      = e.region || '';
+      document.getElementById('eq-address').value     = e.pickup_address || '';
+      document.getElementById('eq-width').value       = e.width_cm || '';
+      document.getElementById('eq-height').value      = e.height_cm || '';
+      document.getElementById('eq-depth').value       = e.depth_cm || '';
+      document.getElementById('eq-weight').value      = e.weight_kg || '';
+      document.getElementById('eq-note').value        = e.note || '';
+      if (e.photo_urls?.length) renderExistingPhotos(e.photo_urls);
+    }
+  } else {
+    ['eq-device-name','eq-brand','eq-address','eq-note'].forEach(id => document.getElementById(id).value = '');
+    ['eq-category','eq-condition','eq-region'].forEach(id => document.getElementById(id).value = '');
+    ['eq-width','eq-height','eq-depth','eq-weight'].forEach(id => document.getElementById(id).value = '');
+  }
+  document.getElementById('modal-equipment').classList.add('act');
+}
+
+function renderExistingPhotos(urls) {
+  const grid = document.getElementById('eq-photo-preview');
+  grid.innerHTML = urls.map((url, i) => `
+    <div class="photo-preview-item" id="photo-item-${i}">
+      <img src="${url}">
+      <button class="photo-preview-remove" onclick="removeExistingPhoto(${i})">×</button>
+    </div>`).join('');
+  grid._existingUrls = [...urls];
+}
+
+function removeExistingPhoto(i) {
+  const grid = document.getElementById('eq-photo-preview');
+  grid._existingUrls.splice(i, 1);
+  renderExistingPhotos(grid._existingUrls);
+}
+
+function handlePhotoSelect(input) {
+  pendingPhotoFiles = [...pendingPhotoFiles, ...Array.from(input.files)];
+  const grid = document.getElementById('eq-photo-preview');
+  const existing = grid._existingUrls || [];
+  const newPreviews = pendingPhotoFiles.map((f, i) => `
+    <div class="photo-preview-item">
+      <img src="${URL.createObjectURL(f)}">
+      <button class="photo-preview-remove" onclick="removePendingPhoto(${i})">×</button>
+    </div>`).join('');
+  grid.innerHTML = existing.map((url, i) => `
+    <div class="photo-preview-item">
+      <img src="${url}">
+      <button class="photo-preview-remove" onclick="removeExistingPhoto(${i})">×</button>
+    </div>`).join('') + newPreviews;
+  grid._existingUrls = existing;
+  input.value = '';
+}
+
+function removePendingPhoto(i) {
+  pendingPhotoFiles.splice(i, 1);
+  handlePhotoSelect({ files: [] });
+}
+
+function closeEquipmentForm() {
+  document.getElementById('modal-equipment').classList.remove('act');
+}
+
+async function saveEquipment() {
+  const db = getSupabase();
+  const errEl = document.getElementById('equipment-form-error');
+  errEl.style.display = 'none';
+
+  const deviceName  = document.getElementById('eq-device-name').value.trim();
+  const category    = document.getElementById('eq-category').value;
+  const condition   = document.getElementById('eq-condition').value;
+  const region      = document.getElementById('eq-region').value;
+  const address     = document.getElementById('eq-address').value.trim();
+
+  if (!deviceName || !category || !condition || !region || !address) {
+    errEl.textContent = '請填寫所有必填欄位';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('equipment-save-btn');
+  btn.disabled = true;
+  btn.textContent = '儲存中...';
+
+  // 上傳照片
+  const grid = document.getElementById('eq-photo-preview');
+  let photoUrls = grid._existingUrls ? [...grid._existingUrls] : [];
+
+  if (db && pendingPhotoFiles.length > 0) {
+    const equipId = editingEquipmentId || crypto.randomUUID();
+    for (let i = 0; i < pendingPhotoFiles.length; i++) {
+      const file = pendingPhotoFiles[i];
+      const ext  = file.name.split('.').pop();
+      const path = `equipment-photos/${equipId}/${Date.now()}_${i}.${ext}`;
+      const { data: uploadData, error: uploadErr } = await db.storage
+        .from('equipment-photos').upload(path, file, { upsert: true });
+      if (!uploadErr) {
+        const { data: urlData } = db.storage.from('equipment-photos').getPublicUrl(path);
+        photoUrls.push(urlData.publicUrl);
+      }
+    }
+  }
+
+  const payload = {
+    device_name:    deviceName,
+    category_name:  category,
+    condition,
+    region,
+    pickup_address: address,
+    brand:          document.getElementById('eq-brand').value.trim() || null,
+    width_cm:       parseFloat(document.getElementById('eq-width').value) || null,
+    height_cm:      parseFloat(document.getElementById('eq-height').value) || null,
+    depth_cm:       parseFloat(document.getElementById('eq-depth').value) || null,
+    weight_kg:      parseFloat(document.getElementById('eq-weight').value) || null,
+    note:           document.getElementById('eq-note').value.trim() || null,
+    photo_urls:     photoUrls,
+  };
+
+  let error;
+  if (db) {
+    if (editingEquipmentId) {
+      ({ error } = await db.from('equipment_listings').update(payload).eq('id', editingEquipmentId));
+    } else {
+      ({ error } = await db.from('equipment_listings').insert({ ...payload, status: 'draft' }));
+    }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-device-floppy"></i> 儲存草稿';
+
+  if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
+  closeEquipmentForm();
+  showToast(editingEquipmentId ? '設備資料已更新' : '設備已建檔（草稿）');
+  loadEquipmentList();
+}
+
+// ════════════════════════════════════════════
+// 媒合推薦名單
+// ════════════════════════════════════════════
+let currentNotifyEquipmentId = null;
+
+async function openMatchListModal(equipmentId) {
+  currentNotifyEquipmentId = equipmentId;
+  const eq = equipmentCache.find(e => e.id === equipmentId);
+  document.getElementById('match-list-title').textContent = `推薦名單：${eq?.device_name || ''}`;
+  document.getElementById('match-list-content').innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink4)">查詢中...</div>';
+  document.getElementById('modal-match-list').classList.add('act');
+
+  const db = getSupabase();
+  if (!db) { document.getElementById('match-list-content').innerHTML = '<div class="empty-state"><i class="ti ti-database-off"></i><p>請連接 Supabase</p></div>'; return; }
+
+  // 找符合條件的回收商
+  const { data: prefs } = await db
+    .from('recycler_onboarding_preferences')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name, service_areas)')
+    .eq('subcategory_name', eq.category_name);
+
+  const matched = (prefs || []).filter(p => {
+    const acct = p.recycler_onboarding_accounts;
+    if (!acct?.service_areas?.includes(eq.region)) return false;
+    if (!eq.condition) return true;
+    return (p.accepted_conditions?.[eq.condition.toLowerCase()] === true);
+  });
+
+  if (matched.length === 0) {
+    document.getElementById('match-list-content').innerHTML = '<div class="empty-state"><i class="ti ti-user-off"></i><p>目前沒有符合條件的回收商</p></div>';
+    document.getElementById('confirm-notify-btn').disabled = true;
+    return;
+  }
+
+  document.getElementById('confirm-notify-btn').disabled = false;
+  document.getElementById('match-list-content').innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>公司名稱</th><th>聯絡人</th><th>服務地區</th><th>偏好分類</th></tr></thead>
+      <tbody>${matched.map(p => `
+        <tr>
+          <td style="font-weight:600">${p.recycler_onboarding_accounts?.company_name || '—'}</td>
+          <td>${p.recycler_onboarding_accounts?.contact_name || '—'}</td>
+          <td>${(p.recycler_onboarding_accounts?.service_areas || []).join('、')}</td>
+          <td>${p.subcategory_name}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function closeMatchList() {
+  document.getElementById('modal-match-list').classList.remove('act');
+  currentNotifyEquipmentId = null;
+}
+
+async function confirmAndNotify() {
+  const db = getSupabase();
+  if (!db || !currentNotifyEquipmentId) return;
+  const btn = document.getElementById('confirm-notify-btn');
+  btn.disabled = true;
+  btn.textContent = '送出中...';
+
+  const { error } = await db.from('equipment_listings')
+    .update({ status: 'active' }).eq('id', currentNotifyEquipmentId);
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-send"></i> 確認送出通知';
+
+  if (error) { showToast('送出失敗：' + error.message); return; }
+
+  const eq = equipmentCache.find(e => e.id === currentNotifyEquipmentId);
+  if (eq) eq.status = 'active';
+  closeMatchList();
+  showToast('通知已送出，回收商將收到媒合通知');
+  renderEquipmentList();
+}
+
+// ════════════════════════════════════════════
+// 出價管理
+// ════════════════════════════════════════════
+let bidsCache = [];
+
+async function loadBidsList() {
+  const db = getSupabase();
+  document.getElementById('bids-loading').style.display = 'block';
+  document.getElementById('bids-list').innerHTML = '';
+  if (!db) { document.getElementById('bids-loading').style.display = 'none'; return; }
+
+  const { data } = await db
+    .from('recycler_matches')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name)')
+    .eq('status', 'bidding')
+    .order('bid_price_min', { ascending: false });
+
+  bidsCache = data || [];
+  document.getElementById('bids-loading').style.display = 'none';
+
+  if (bidsCache.length === 0) {
+    document.getElementById('bids-list').innerHTML = '<div class="empty-state"><i class="ti ti-gavel"></i><p>目前沒有待審出價</p></div>';
+    return;
+  }
+
+  // 依設備分組
+  const grouped = {};
+  bidsCache.forEach(m => {
+    if (!grouped[m.device_name]) grouped[m.device_name] = [];
+    grouped[m.device_name].push(m);
+  });
+
+  document.getElementById('bids-list').innerHTML = Object.entries(grouped).map(([device, bids]) => `
+    <div class="card">
+      <div class="card-title"><i class="ti ti-box"></i>${device}</div>
+      <table class="data-table">
+        <thead><tr><th>回收商</th><th>出價</th><th>出價時間</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody>${bids.sort((a,b) => b.bid_price_min - a.bid_price_min).map(m => `
+          <tr>
+            <td style="font-weight:600">${m.recycler_onboarding_accounts?.company_name || '—'}</td>
+            <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
+            <td style="color:var(--ink3);font-size:12px">${m.bid_at ? new Date(m.bid_at).toLocaleString('zh-TW') : '—'}</td>
+            <td><div class="td-actions">
+              <button class="btn btn-green btn-sm" onclick="selectWinner('${m.id}')"><i class="ti ti-trophy"></i> 選為得標</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`).join('');
+}
+
+async function selectWinner(matchId) {
+  const db = getSupabase();
+  if (!db) return;
+  const match = bidsCache.find(m => m.id === matchId);
+  if (!confirm(`確認選定「${match?.recycler_onboarding_accounts?.company_name}」為得標廠商？`)) return;
+
+  // 同一設備的其他出價設為 outbid
+  const sameDevice = bidsCache.filter(m => m.device_name === match.device_name && m.id !== matchId);
+  for (const m of sameDevice) {
+    await db.from('recycler_matches').update({ status: 'outbid' }).eq('id', m.id);
+  }
+  // 得標者改為 accepted
+  const { error } = await db.from('recycler_matches').update({ status: 'accepted', accepted_at: new Date().toISOString() }).eq('id', matchId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+
+  showToast('得標廠商已確認，回收商將收到通知');
+  loadBidsList();
+  loadAllBadges();
+}
+
+// ════════════════════════════════════════════
+// 款項確認
+// ════════════════════════════════════════════
+let paymentsCache = [];
+
+async function loadPaymentsList() {
+  const db = getSupabase();
+  document.getElementById('payments-loading').style.display = 'block';
+  document.getElementById('payments-list').innerHTML = '';
+  if (!db) { document.getElementById('payments-loading').style.display = 'none'; return; }
+
+  const { data } = await db
+    .from('recycler_matches')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name)')
+    .eq('status', 'accepted')
+    .not('payment_last5', 'is', null)
+    .order('payment_submitted_at', { ascending: true });
+
+  paymentsCache = data || [];
+  document.getElementById('payments-loading').style.display = 'none';
+
+  if (paymentsCache.length === 0) {
+    document.getElementById('payments-list').innerHTML = '<div class="empty-state"><i class="ti ti-credit-card-off"></i><p>目前沒有待確認款項</p></div>';
+    return;
+  }
+
+  document.getElementById('payments-list').innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th><th style="text-align:right">操作</th></tr></thead>
+      <tbody>${paymentsCache.map(m => `
+        <tr>
+          <td style="font-weight:600">${m.device_name}</td>
+          <td>${m.recycler_onboarding_accounts?.company_name || '—'}</td>
+          <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
+          <td><span style="font-family:monospace;font-size:13px;letter-spacing:.1em">${m.payment_last5 || '—'}</span></td>
+          <td style="color:var(--ink3);font-size:12px">${m.payment_submitted_at ? new Date(m.payment_submitted_at).toLocaleString('zh-TW') : '—'}</td>
+          <td><div class="td-actions">
+            <button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>
+          </div></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function confirmPayment(matchId) {
+  const db = getSupabase();
+  if (!db) return;
+  const { error } = await db.from('recycler_matches')
+    .update({ status: 'payment_confirmed', payment_confirmed_at: new Date().toISOString() })
+    .eq('id', matchId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+  showToast('款項已確認，回收商可查看地址與業務資訊');
+  loadPaymentsList();
+  loadAllBadges();
+}
+
+async function rejectPayment(matchId) {
+  const db = getSupabase();
+  if (!db) return;
+  if (!confirm('確認退回此款項資訊？回收商需重新填寫。')) return;
+  const { error } = await db.from('recycler_matches')
+    .update({ payment_last5: null, payment_submitted_at: null })
+    .eq('id', matchId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+  showToast('已退回，回收商需重新填寫匯款資訊');
+  loadPaymentsList();
+}
+
+// ════════════════════════════════════════════
+// 媒合管理（設備維度，看每筆設備的媒合狀況）
+// ════════════════════════════════════════════
+async function loadMatchesList() {
+  const db = getSupabase();
+  document.getElementById('matches-loading').style.display = 'block';
+  document.getElementById('matches-list').innerHTML = '';
+  if (!db) { document.getElementById('matches-loading').style.display = 'none'; return; }
+
+  const { data: listings } = await db
+    .from('equipment_listings')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+
+  if (!listings || listings.length === 0) {
+    document.getElementById('matches-loading').style.display = 'none';
+    document.getElementById('matches-list').innerHTML = '<div class="empty-state"><i class="ti ti-list-search"></i><p>目前沒有媒合中的設備</p></div>';
+    return;
+  }
+
+  const { data: matches } = await db
+    .from('recycler_matches')
+    .select('*, recycler_onboarding_accounts(company_name)')
+    .in('equipment_listing_id', listings.map(l => l.id));
+
+  document.getElementById('matches-loading').style.display = 'none';
+
+  const matchMap = {};
+  (matches || []).forEach(m => {
+    if (!matchMap[m.equipment_listing_id]) matchMap[m.equipment_listing_id] = [];
+    matchMap[m.equipment_listing_id].push(m);
+  });
+
+  const statusLabel = { pending:'待回覆', bidding:'已出價', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
+  const condLabel = { A:'良好', B:'普通', C:'堪用' };
+
+  document.getElementById('matches-list').innerHTML = listings.map(l => {
+    const ms = matchMap[l.id] || [];
+    return `<div class="card">
+      <div class="card-title"><i class="ti ti-box"></i>${l.device_name}
+        <span style="font-size:11px;font-weight:400;color:var(--ink3);margin-left:4px">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''}</span>
+      </div>
+      ${ms.length === 0
+        ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
+        : `<table class="data-table">
+          <thead><tr><th>回收商</th><th>狀態</th><th>出價</th><th>通知時間</th></tr></thead>
+          <tbody>${ms.map(m => `
+            <tr>
+              <td style="font-weight:600">${m.recycler_onboarding_accounts?.company_name || '—'}</td>
+              <td><span class="badge badge-${m.status}">${statusLabel[m.status]||m.status}</span></td>
+              <td>${m.bid_price_min ? '$'+m.bid_price_min.toLocaleString() : '—'}</td>
+              <td style="color:var(--ink3);font-size:12px">${new Date(m.created_at).toLocaleString('zh-TW')}</td>
+            </tr>`).join('')}
+          </tbody></table>`}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+// 初始化
+// ════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  const db = getSupabase();
+  if (!db) return; // 開發模式不做 auth check
+  const { data: { session } } = await db.auth.getSession();
+  if (session) {
+    goScreen('screen-equipment');
+    loadAllBadges();
+  }
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>
