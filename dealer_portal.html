@@ -606,9 +606,20 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="modal-title" id="pricing-modal-title">記錄評估總包價</div>
       <button class="modal-close" onclick="document.getElementById('modal-case-pricing').classList.remove('act')"><i class="ti ti-x"></i></button>
     </div>
-    <div class="field">
+    <div id="pricing-range-row" style="display:none;gap:8px;align-items:center">
+      <div class="field" style="flex:1;margin-bottom:0">
+        <label class="field-label">最低（元）</label>
+        <input class="field-input" id="case-price-input" type="number" min="0" placeholder="0">
+      </div>
+      <div style="padding-top:20px;color:var(--ink4)">～</div>
+      <div class="field" style="flex:1;margin-bottom:0">
+        <label class="field-label">最高（元）</label>
+        <input class="field-input" id="case-price-max-input" type="number" min="0" placeholder="0（可留空）">
+      </div>
+    </div>
+    <div class="field" id="pricing-single-row">
       <label class="field-label" id="pricing-label">評估總包價（元）</label>
-      <input class="field-input" id="case-price-input" type="number" min="0" placeholder="0">
+      <input class="field-input" id="case-price-single-input" type="number" min="0" placeholder="0">
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="document.getElementById('modal-case-pricing').classList.remove('act')">取消</button>
@@ -3164,7 +3175,7 @@ function renderCasesList() {
           ${client.contact_name ? `<div><span style="color:var(--ink4);font-size:11px">聯絡人</span><div>${client.contact_name}</div></div>` : ''}
           ${client.contact_phone ? `<div><span style="color:var(--ink4);font-size:11px">電話</span><div>${client.contact_phone}</div></div>` : ''}
           ${c.survey_date ? `<div><span style="color:var(--ink4);font-size:11px">場勘時間</span><div>${new Date(c.survey_date).toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}</div></div>` : ''}
-          ${c.estimate_price != null ? `<div><span style="color:var(--ink4);font-size:11px">評估總包價</span><div style="font-weight:700;color:var(--green)">$${Number(c.estimate_price).toLocaleString()}</div></div>` : ''}
+          ${c.estimate_price != null ? `<div><span style="color:var(--ink4);font-size:11px">評估總包價</span><div style="font-weight:700;color:var(--green)">${c.estimate_price_max ? `$${Number(c.estimate_price).toLocaleString()} ～ $${Number(c.estimate_price_max).toLocaleString()}` : `$${Number(c.estimate_price).toLocaleString()}`}</div></div>` : ''}
           ${c.formal_price != null ? `<div><span style="color:var(--ink4);font-size:11px">正式報價</span><div style="font-weight:700;color:var(--green)">$${Number(c.formal_price).toLocaleString()}</div></div>` : ''}
           ${c.mandate_signed_at ? `<div><span style="color:var(--ink4);font-size:11px">委任書簽署</span><div style="color:#276749"><i class="ti ti-circle-check"></i> ${new Date(c.mandate_signed_at).toLocaleDateString('zh-TW')}</div></div>` : ''}
           ${c.formal_signed_at ? `<div><span style="color:var(--ink4);font-size:11px">正式合約</span><div style="color:#276749"><i class="ti ti-circle-check"></i> ${new Date(c.formal_signed_at).toLocaleDateString('zh-TW')}</div></div>` : ''}
@@ -3318,22 +3329,39 @@ function openCasePricing(caseId, type) {
   _pricingCaseId = caseId; _pricingType = type;
   const isEstimate = type === 'estimate';
   document.getElementById('pricing-modal-title').textContent = isEstimate ? '記錄評估總包價' : '提出正式報價';
-  document.getElementById('pricing-label').textContent = isEstimate ? '評估總包價（元）' : '正式報價（元）';
   const c = casesCache.find(x => x.id === caseId);
-  document.getElementById('case-price-input').value = isEstimate ? (c?.estimate_price||'') : (c?.formal_price||'');
+  // 評估總包價：顯示範圍欄位；正式報價：單一欄位
+  document.getElementById('pricing-range-row').style.display = isEstimate ? 'flex' : 'none';
+  document.getElementById('pricing-single-row').style.display = isEstimate ? 'none' : '';
+  if (isEstimate) {
+    document.getElementById('case-price-input').value = c?.estimate_price || '';
+    document.getElementById('case-price-max-input').value = c?.estimate_price_max || '';
+  } else {
+    document.getElementById('pricing-label').textContent = '正式報價（元）';
+    document.getElementById('case-price-single-input').value = c?.formal_price || '';
+  }
   document.getElementById('modal-case-pricing').classList.add('act');
 }
 
 async function saveCasePricing() {
   const db = getSupabase();
   if (!db || !_pricingCaseId) return;
-  const val = Number(document.getElementById('case-price-input').value);
-  if (!val || val < 0) { showToast('請輸入有效金額'); return; }
+  const isEst = _pricingType === 'estimate';
+  let payload, valid;
+  if (isEst) {
+    const min = Number(document.getElementById('case-price-input').value);
+    const maxRaw = document.getElementById('case-price-max-input').value;
+    const max = maxRaw ? Number(maxRaw) : null;
+    if (!min || min < 0) { showToast('請輸入有效最低金額'); return; }
+    if (max !== null && max < min) { showToast('最高金額不可低於最低金額'); return; }
+    payload = { estimate_price: min, estimate_price_max: max, status: 'pending_mandate' };
+  } else {
+    const val = Number(document.getElementById('case-price-single-input').value);
+    if (!val || val < 0) { showToast('請輸入有效金額'); return; }
+    payload = { formal_price: val, status: 'offer_sent' };
+  }
   const btn = document.getElementById('case-pricing-save-btn');
   btn.disabled = true;
-  const isEst = _pricingType === 'estimate';
-  const nextStatus = isEst ? 'pending_mandate' : 'offer_sent';
-  const payload = isEst ? { estimate_price: val, status: nextStatus } : { formal_price: val, status: nextStatus };
   const { error } = await db.from('cases').update(payload).eq('id', _pricingCaseId);
   btn.disabled = false;
   if (error) { showToast('儲存失敗：' + error.message); return; }
@@ -3450,7 +3478,9 @@ function openCaseSign(caseId, type) {
   const c = casesCache.find(x => x.id === caseId);
   if (isMandate) {
     const priceStr = c?.estimate_price != null
-      ? `新台幣 <strong>${Number(c.estimate_price).toLocaleString()}</strong> 元整（評估總包價）`
+      ? (c.estimate_price_max
+          ? `新台幣 <strong>${Number(c.estimate_price).toLocaleString()} ～ ${Number(c.estimate_price_max).toLocaleString()}</strong> 元（評估總包價範圍）`
+          : `新台幣 <strong>${Number(c.estimate_price).toLocaleString()}</strong> 元整（評估總包價）`)
       : '（待評估）';
     contractBody.innerHTML = `<p>立書人：退場商家（以下稱「委任人」）委任<strong>秧秧空間設計有限公司</strong>（以下稱「受託人」）進行設備評估、媒合與交付等相關事宜，雙方協議如下：</p>
       <p><strong>一、委任範圍</strong><br>委任人同意授權受託人就本案件所列設備，進行市場評估、向回收商媒合出售及後續交付作業。</p>
