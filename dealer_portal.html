@@ -304,8 +304,11 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
     </div>
     <div class="main-body">
-      <div class="search-row">
-        <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備名稱..." oninput="renderMatchesList()">
+      <div class="search-row" style="flex-wrap:wrap;gap:8px">
+        <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備名稱..." oninput="renderMatchesList()" style="min-width:180px">
+        <input class="field-input" id="matches-date-from" type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知開始日期">
+        <input class="field-input" id="matches-date-to"   type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知結束日期">
+        <button class="btn btn-ghost btn-sm" onclick="clearMatchesFilter()">清除</button>
       </div>
       <div id="matches-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
       <div id="matches-list"></div>
@@ -1147,8 +1150,30 @@ async function loadMatchesList() {
   renderMatchesList();
 }
 
+function clearMatchesFilter() {
+  document.getElementById('matches-search').value = '';
+  document.getElementById('matches-date-from').value = '';
+  document.getElementById('matches-date-to').value = '';
+  renderMatchesList();
+}
+
+function matchDeadline(m) {
+  return m.bid_deadline ? new Date(m.bid_deadline) : new Date(new Date(m.created_at).getTime() + 86400000);
+}
+
+function deadlineText(m) {
+  const rem = matchDeadline(m) - Date.now();
+  if (rem <= 0) return '<span style="color:var(--red);font-size:11px">已截止</span>';
+  const h = Math.floor(rem / 3600000);
+  const min = Math.floor((rem % 3600000) / 60000);
+  const color = rem < 3600000 ? 'var(--red)' : rem < 7200000 ? 'var(--amber)' : 'var(--ink3)';
+  return `<span style="font-size:11px;color:${color}">${h > 0 ? h+'h ' : ''}${min}m</span>`;
+}
+
 function renderMatchesList() {
-  const q = (document.getElementById('matches-search')?.value || '').toLowerCase();
+  const q        = (document.getElementById('matches-search')?.value || '').toLowerCase();
+  const dateFrom = document.getElementById('matches-date-from')?.value;
+  const dateTo   = document.getElementById('matches-date-to')?.value;
   const statusLabel = { pending:'待回覆', bidding:'已出價', proposed:'建議得標', accepted:'已得標', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
   const condLabel = { A:'良好', B:'普通', C:'堪用' };
 
@@ -1160,6 +1185,8 @@ function renderMatchesList() {
 
   let listings = matchesListingsCache;
   if (q) listings = listings.filter(l => l.device_name.toLowerCase().includes(q));
+  if (dateFrom) listings = listings.filter(l => new Date(l.created_at) >= new Date(dateFrom));
+  if (dateTo)   listings = listings.filter(l => new Date(l.created_at) <= new Date(dateTo + 'T23:59:59'));
 
   if (listings.length === 0) {
     document.getElementById('matches-list').innerHTML = '<div class="empty-state"><i class="ti ti-list-search"></i><p>沒有符合的設備</p></div>';
@@ -1168,20 +1195,35 @@ function renderMatchesList() {
 
   document.getElementById('matches-list').innerHTML = listings.map(l => {
     const ms = matchMap[l.id] || [];
+    const equipNo = l.id.slice(0, 8).toUpperCase();
+    const photosBtn = l.photo_urls?.length
+      ? `<button class="btn btn-ghost btn-sm" onclick="window.open('${l.photo_urls[0]}','_blank')"><i class="ti ti-photo"></i> 照片(${l.photo_urls.length})</button>`
+      : '';
     return `<div class="card">
-      <div class="card-title"><i class="ti ti-box"></i>${l.device_name}
-        <span style="font-size:11px;font-weight:400;color:var(--ink3);margin-left:4px">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''}</span>
+      <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <i class="ti ti-box"></i>
+          <span>${l.device_name}</span>
+          <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.region}</span>
+          <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">#${equipNo}</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${photosBtn}
+          <span style="font-size:11px;color:var(--ink4)">${new Date(l.created_at).toLocaleDateString('zh-TW')}</span>
+        </div>
       </div>
       ${ms.length === 0
         ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
         : `<table class="data-table">
-          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th style="text-align:right">操作</th></tr></thead>
+          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th>截止</th><th style="text-align:right">操作</th></tr></thead>
           <tbody>${ms.sort((a,b)=>(b.bid_price_min||0)-(a.bid_price_min||0)).map(m => {
             const acct = m.recycler_onboarding_accounts;
             const isAgent   = currentDealerRole === 'agent';
             const isManager = ['manager','admin'].includes(currentDealerRole);
             let action = '';
-            if (m.status === 'bidding') {
+            if (m.status === 'pending') {
+              action = `<button class="btn btn-ghost btn-sm" onclick="reNotify('${m.id}')"><i class="ti ti-bell"></i> 再次通知</button>`;
+            } else if (m.status === 'bidding') {
               if (isAgent)   action = `<button class="btn btn-ghost btn-sm" onclick="proposeWinner('${m.id}')"><i class="ti ti-thumb-up"></i> 建議得標</button>`;
               if (isManager) action = `<button class="btn btn-green btn-sm" onclick="approveWinner('${m.id}')"><i class="ti ti-trophy"></i> 核定得標</button>`;
             } else if (m.status === 'proposed') {
@@ -1194,11 +1236,28 @@ function renderMatchesList() {
               <td>${acct?.phone || '—'}</td>
               <td><span class="badge badge-${m.status}">${statusLabel[m.status]||m.status}</span></td>
               <td style="font-weight:${m.bid_price_min?'700':'400'};color:${m.bid_price_min?'var(--green)':'var(--ink4)'}">${m.bid_price_min ? '$'+m.bid_price_min.toLocaleString() : '—'}</td>
+              <td>${m.status === 'pending' ? deadlineText(m) : '—'}</td>
               <td><div class="td-actions">${action}</div></td>
             </tr>`;}).join('')}
           </tbody></table>`}
     </div>`;
   }).join('');
+}
+
+async function reNotify(matchId) {
+  const db = getSupabase();
+  if (!db) return;
+  const m = matchesMatchCache.find(x => x.id === matchId);
+  if (!confirm(`確認再次通知「${m?.recycler_onboarding_accounts?.company_name}」？`)) return;
+  // 重設出價截止時間為現在起 24 小時後
+  const newDeadline = new Date(Date.now() + 86400000).toISOString();
+  const { error } = await db.from('recycler_matches')
+    .update({ bid_deadline: newDeadline, is_read: false })
+    .eq('id', matchId);
+  if (error) { showToast('操作失敗：' + error.message); return; }
+  if (m) m.bid_deadline = newDeadline;
+  showToast('已再次通知，出價期限重設為 24 小時');
+  renderMatchesList();
 }
 
 // ════════════════════════════════════════════
