@@ -1038,6 +1038,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .match-address-row{display:flex;align-items:flex-start;gap:6px;font-size:13px;color:var(--ink2);margin-bottom:6px}
 .match-address-row i{margin-top:1px;color:var(--green);flex-shrink:0}
 .match-meta{font-size:11px;color:var(--ink4)}
+.match-countdown{font-size:11px;margin-top:5px;font-weight:500}
 .match-badge{display:inline-flex;align-items:center;justify-content:center;background:#e53e3e;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;padding:0 4px;margin-left:4px;vertical-align:middle}
 .match-tabs-bar{display:flex;gap:0;margin-bottom:0;border-bottom:2px solid var(--paper3)}
 .match-tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:8px 16px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
@@ -1590,8 +1591,31 @@ function renderMatchList() {
       <div class="match-cat-tag">${m.category_name}</div>
       <div class="match-address-row"><i class="ti ti-map-pin"></i>${displayAddress(m)}</div>
       <div class="match-meta">狀況 ${m.condition}・${condLabel[m.condition] || m.condition}${m.brand ? '・' + m.brand : ''}${[m.width_cm&&`W${m.width_cm}`,m.height_cm&&`H${m.height_cm}`,m.depth_cm&&`D${m.depth_cm}`].filter(Boolean).length?'・'+[m.width_cm&&`W${m.width_cm}`,m.height_cm&&`H${m.height_cm}`,m.depth_cm&&`D${m.depth_cm}`].filter(Boolean).join('×')+'cm':''}${m.weight_kg?'・'+m.weight_kg+'kg':''}${m.note ? '・' + m.note : ''}</div>
+      ${s === 'pending' ? `<div class="match-countdown" data-deadline="${m.bid_deadline || new Date(new Date(m.created_at).getTime()+86400000).toISOString()}"></div>` : ''}
     </div>`;
   }).join('');
+  startCardCountdowns();
+}
+
+function startCardCountdowns() {
+  if (window._cardCountdownTimer) clearInterval(window._cardCountdownTimer);
+  function tick() {
+    document.querySelectorAll('.match-countdown[data-deadline]').forEach(el => {
+      const rem = new Date(el.dataset.deadline) - Date.now();
+      if (rem <= 0) {
+        el.textContent = '出價已截止';
+        el.style.color = '#c53030';
+      } else {
+        const h = Math.floor(rem / 3600000);
+        const m = Math.floor((rem % 3600000) / 60000);
+        const s = Math.floor((rem % 60000) / 1000);
+        el.textContent = `出價截止：剩 ${h > 0 ? h+'h ' : ''}${m}m ${s}s`;
+        el.style.color = rem < 3600000 ? '#c53030' : 'var(--ink4)';
+      }
+    });
+  }
+  tick();
+  window._cardCountdownTimer = setInterval(tick, 1000);
 }
 
 function switchMainTab(tab) {
