@@ -1894,7 +1894,7 @@ function renderMatchesList() {
       ${ms.length === 0
         ? '<div style="font-size:13px;color:var(--ink4);padding:8px 0">尚無回收商回覆</div>'
         : `<table class="data-table">
-          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th>截止日期</th><th style="text-align:right">操作</th></tr></thead>
+          <thead><tr><th>回收商</th><th>聯絡人</th><th>電話</th><th>狀態</th><th>出價</th><th style="text-align:right">操作</th></tr></thead>
           <tbody>${ms.sort((a, b) => {
               // pending 按截止日升冪排最前，其他按出價降冪
               if (a.status === 'pending' && b.status !== 'pending') return -1;
@@ -1920,7 +1920,6 @@ function renderMatchesList() {
               <td>${acct?.phone || '—'}</td>
               <td><span class="badge badge-${m.status}">${statusLabel[m.status]||m.status}</span></td>
               <td style="font-weight:${m.bid_price_min?'700':'400'};color:${m.bid_price_min?'var(--green)':'var(--ink4)'}">${m.bid_price_min ? '$'+m.bid_price_min.toLocaleString() : '—'}</td>
-              <td>${m.status === 'pending' ? deadlineText(m) : '—'}</td>
               <td><div class="td-actions">${action}</div></td>
             </tr>`;}).join('')}
           </tbody></table>`}
