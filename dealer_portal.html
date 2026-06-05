@@ -2228,6 +2228,12 @@ async function confirmDelivery() {
 
   btn.disabled = false;
   if (error) { showToast('完成交貨失敗：' + error.message); return; }
+
+  // 同步把設備狀態改為 matched
+  const m = matchesMatchCache.find(x => x.id === _deliveryMatchId);
+  if (m?.equipment_listing_id) {
+    await db.from('equipment_listings').update({ status: 'matched' }).eq('id', m.equipment_listing_id);
+  }
   closeDeliveryProcess();
   showToast('交貨完成！案件已結案');
   loadMatchesList();
