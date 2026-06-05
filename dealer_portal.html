@@ -1862,7 +1862,9 @@ function renderMatchesList() {
     const allExpired = pendingMs.length > 0 && pendingMs.every(m => matchDeadline(m) < Date.now());
     // 有 pending 就顯示按鈕；全部截止前 disabled（不可點），全部截止後才可點
     const reNotifyBtn = pendingMs.length > 0
-      ? `<button class="btn btn-ghost btn-sm" ${!allExpired ? 'disabled title="截止日期未到，屆時可再次通知"' : `onclick="reNotify('${l.id}')"`}><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`
+      ? (!allExpired
+          ? `<button class="btn btn-ghost btn-sm" disabled style="opacity:.35;cursor:not-allowed;filter:grayscale(1)" title="截止日期未到，屆時可再次通知"><i class="ti ti-bell-off"></i> 再次通知 (${pendingMs.length})</button>`
+          : `<button class="btn btn-ghost btn-sm" onclick="reNotify('${l.id}')"><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`)
       : '';
     const nearestDl = pendingMs.length
       ? pendingMs.reduce((min, m) => { const t = matchDeadline(m).getTime(); return t < min ? t : min; }, Infinity)
