@@ -1524,9 +1524,18 @@ function renderMatchList() {
   function matchesStarred(m) {
     return starredPrefs.some(p => {
       if (p.device !== m.device_name) return false;
+      // 品牌
       const hasBrandFilter = p.brands && p.brands.length > 0 && !p.brands.includes('不限品牌');
-      if (!hasBrandFilter) return true;
-      return m.brand && p.brands.includes(m.brand);
+      if (hasBrandFilter && (!m.brand || !p.brands.includes(m.brand))) return false;
+      // 狀況
+      const hasCondFilter = p.conds && Object.values(p.conds).some(v => v);
+      if (hasCondFilter && m.condition && !p.conds[m.condition.toLowerCase()]) return false;
+      // 尺寸上限
+      if (p.maxW && m.width_cm  && m.width_cm  > p.maxW)      return false;
+      if (p.maxH && m.height_cm && m.height_cm > p.maxH)      return false;
+      if (p.maxD && m.depth_cm  && m.depth_cm  > p.maxD)      return false;
+      if (p.maxWeight && m.weight_kg && m.weight_kg > p.maxWeight) return false;
+      return true;
     });
   }
   if (starredPrefs.length > 0) {
