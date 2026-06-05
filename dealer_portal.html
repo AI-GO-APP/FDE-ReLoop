@@ -817,14 +817,27 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="delivery-step-ind" id="dstep-ind-2" style="flex:1;text-align:center;font-size:12px;padding:6px;border-bottom:2px solid var(--paper2);color:var(--ink4)">② 交貨照片</div>
       <div class="delivery-step-ind" id="dstep-ind-3" style="flex:1;text-align:center;font-size:12px;padding:6px;border-bottom:2px solid var(--paper2);color:var(--ink4)">③ 確認完成</div>
     </div>
-    <!-- Step 1: 簽名 -->
+    <!-- Step 1: 合約 + 簽名 -->
     <div id="delivery-step-1">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">業務簽名</div>
-      <canvas id="delivery-agent-canvas" style="width:100%;height:120px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
-      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearDeliverySig('agent')"><i class="ti ti-eraser"></i> 清除</button>
-      <div style="font-size:13px;font-weight:600;margin:16px 0 8px">司機簽名</div>
-      <canvas id="delivery-driver-canvas" style="width:100%;height:120px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
-      <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearDeliverySig('driver')"><i class="ti ti-eraser"></i> 清除</button>
+      <div style="font-size:12px;color:var(--ink4);margin-bottom:6px">請閱讀以下合約，捲動至底部後方可簽名</div>
+      <div id="delivery-contract-scroll" onscroll="checkDeliveryContractScroll()" style="height:200px;overflow-y:auto;background:var(--paper);border:1px solid var(--paper2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:1.8;color:var(--ink3)">
+        <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;text-align:center">設備交付確認書</div>
+        <p>立書人：<strong>秧秧空間設計有限公司</strong>（以下稱「甲方」）與回收商（以下稱「乙方」），就本次設備回收交付作業達成如下協議：</p>
+        <p><strong>一、交付設備</strong><br>設備名稱及狀況依系統媒合記錄為準，雙方均已確認設備資訊無誤。交付前如發現設備與描述明顯不符，乙方應立即向甲方反映，並依雙方協商結果處理。</p>
+        <p><strong>二、甲方責任</strong><br>1. 確保設備置於約定地址，可正常取用，不阻礙回收作業。<br>2. 配合乙方取件人員完成設備交付。<br>3. 交付完成後，甲方對該設備之保管責任即告解除。</p>
+        <p><strong>三、乙方責任</strong><br>1. 依約定時間派員至指定地址取件。<br>2. 取件後負責設備之安全運輸及妥善處理。<br>3. 乙方不得就設備現況（含已知瑕疵）提出追加索賠。<br>4. 設備取走後如有毀損，乙方自行承擔後果。</p>
+        <p><strong>四、交付確認</strong><br>本確認書由甲乙雙方代表人（業務人員及司機）親自簽名後生效，簽名完成即視為設備交付完成，甲方不再負保管之責。</p>
+        <p><strong>五、爭議處理</strong><br>如有任何爭議，雙方同意依中華民國法律及相關規定處理，並以台灣台北地方法院為第一審管轄法院。</p>
+        <p style="text-align:center;margin-top:16px;color:var(--ink4);font-size:11px">── 已閱讀全文，簽名欄位將於此處解鎖 ──</p>
+      </div>
+      <div id="delivery-sig-section" style="display:none">
+        <div style="font-size:13px;font-weight:600;margin:16px 0 8px">業務簽名</div>
+        <canvas id="delivery-agent-canvas" style="width:100%;height:120px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
+        <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearDeliverySig('agent')"><i class="ti ti-eraser"></i> 清除</button>
+        <div style="font-size:13px;font-weight:600;margin:16px 0 8px">司機簽名</div>
+        <canvas id="delivery-driver-canvas" style="width:100%;height:120px;border:1.5px solid var(--paper2);border-radius:var(--r);touch-action:none;background:#fff"></canvas>
+        <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="clearDeliverySig('driver')"><i class="ti ti-eraser"></i> 清除</button>
+      </div>
     </div>
     <!-- Step 2: 照片 -->
     <div id="delivery-step-2" style="display:none">
@@ -1644,14 +1657,20 @@ async function saveDeliverySchedule() {
   loadMatchesList();
 }
 
+let _deliverySigInited = false;
 function openDeliveryProcess(matchId) {
   _deliveryMatchId = matchId;
-  _deliveryStep = 1;
   _deliveryPhotoFiles = [];
+  _deliverySigInited = false;
   document.getElementById('delivery-photo-preview').innerHTML = '';
-  goDeliveryStep(1);
   document.getElementById('modal-delivery-process').classList.add('act');
-  setTimeout(initDeliverySigPads, 100);
+  const m = matchesMatchCache.find(x => x.id === matchId);
+  if (m && m.delivery_agent_signature) {
+    goDeliveryStep(2);
+  } else {
+    document.getElementById('delivery-sig-section').style.display = 'none';
+    goDeliveryStep(1);
+  }
 }
 
 function closeDeliveryProcess() {
@@ -1689,7 +1708,10 @@ function goDeliveryStep(step) {
   });
   document.getElementById('delivery-back-btn').style.display = step > 1 ? '' : 'none';
   const nextBtn = document.getElementById('delivery-next-btn');
-  if (step === 3) {
+  if (step === 1) {
+    nextBtn.innerHTML = '<i class="ti ti-device-floppy"></i> 儲存合約';
+    nextBtn.className = 'btn btn-primary';
+  } else if (step === 3) {
     nextBtn.innerHTML = '<i class="ti ti-check"></i> 確認完成';
     nextBtn.className = 'btn btn-green';
   } else {
@@ -1698,18 +1720,50 @@ function goDeliveryStep(step) {
   }
 }
 
+function checkDeliveryContractScroll() {
+  const el = document.getElementById('delivery-contract-scroll');
+  const sig = document.getElementById('delivery-sig-section');
+  if (!el || !sig || sig.style.display !== 'none') return;
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 20) {
+    sig.style.display = '';
+    if (!_deliverySigInited) {
+      _deliverySigInited = true;
+      setTimeout(initDeliverySigPads, 100);
+    }
+  }
+}
+
 function deliveryStepBack() { if (_deliveryStep > 1) goDeliveryStep(_deliveryStep - 1); }
 
 async function deliveryStepNext() {
   if (_deliveryStep === 1) {
+    if (document.getElementById('delivery-sig-section').style.display === 'none') { showToast('請先閱讀合約至底部'); return; }
     if (_deliveryAgentSigPad?.isEmpty()) { showToast('請填寫業務簽名'); return; }
     if (_deliveryDriverSigPad?.isEmpty()) { showToast('請填寫司機簽名'); return; }
-    goDeliveryStep(2);
+    await saveDeliverySignatures();
   } else if (_deliveryStep === 2) {
     goDeliveryStep(3);
   } else {
     await confirmDelivery();
   }
+}
+
+async function saveDeliverySignatures() {
+  const db = getSupabase();
+  if (!db || !_deliveryMatchId) return;
+  const btn = document.getElementById('delivery-next-btn');
+  btn.disabled = true;
+  const agentSig  = _deliveryAgentSigPad?.toDataURL('image/png') || null;
+  const driverSig = _deliveryDriverSigPad?.toDataURL('image/png') || null;
+  const { error } = await db.from('recycler_matches').update({
+    delivery_agent_signature: agentSig,
+    delivery_driver_signature: driverSig,
+  }).eq('id', _deliveryMatchId);
+  btn.disabled = false;
+  if (error) { showToast('儲存失敗：' + error.message); return; }
+  closeDeliveryProcess();
+  showToast('合約已儲存，請拍照後於系統上傳交貨照片');
+  loadMatchesList();
 }
 
 function handleDeliveryPhotos(input) {
@@ -1734,9 +1788,6 @@ async function confirmDelivery() {
   const btn = document.getElementById('delivery-next-btn');
   btn.disabled = true;
 
-  const agentSig  = _deliveryAgentSigPad?.toDataURL('image/png') || null;
-  const driverSig = _deliveryDriverSigPad?.toDataURL('image/png') || null;
-
   // 上傳照片
   const photoUrls = [];
   for (let i = 0; i < _deliveryPhotoFiles.length; i++) {
@@ -1752,8 +1803,6 @@ async function confirmDelivery() {
   const { error } = await db.from('recycler_matches').update({
     status: 'received',
     received_at: new Date().toISOString(),
-    delivery_agent_signature: agentSig,
-    delivery_driver_signature: driverSig,
     delivery_photo_urls: photoUrls,
   }).eq('id', _deliveryMatchId);
 
@@ -2187,10 +2236,18 @@ function renderMatchesList() {
                 action = `<button class="btn btn-primary btn-sm" onclick="openScheduleDelivery('${m.id}')"><i class="ti ti-calendar"></i> 安排交貨</button>`;
               } else {
                 const schStr = new Date(m.delivery_scheduled_at).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
-                action = `<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
-                  <span style="font-size:11px;color:var(--ink4)"><i class="ti ti-calendar"></i> ${schStr}</span>
-                  <button class="btn btn-green btn-sm" onclick="openDeliveryProcess('${m.id}')"><i class="ti ti-truck"></i> 執行交貨</button>
-                </div>`;
+                if (!m.delivery_agent_signature) {
+                  action = `<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+                    <span style="font-size:11px;color:var(--ink4)"><i class="ti ti-calendar"></i> ${schStr}</span>
+                    <button class="btn btn-green btn-sm" onclick="openDeliveryProcess('${m.id}')"><i class="ti ti-writing-sign"></i> 執行交貨</button>
+                  </div>`;
+                } else {
+                  action = `<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+                    <span style="font-size:11px;color:var(--ink4)"><i class="ti ti-calendar"></i> ${schStr}</span>
+                    <span style="font-size:10px;color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> 合約已簽</span>
+                    <button class="btn btn-primary btn-sm" onclick="openDeliveryProcess('${m.id}')"><i class="ti ti-camera"></i> 上傳交貨照片</button>
+                  </div>`;
+                }
               }
             }
             return `<tr>
