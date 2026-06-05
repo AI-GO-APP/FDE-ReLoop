@@ -504,13 +504,20 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div class="field-row">
       <div class="field">
-        <label class="field-label">公司名稱 *</label>
-        <input class="field-input" id="client-company" type="text" placeholder="公司名稱">
+        <label class="field-label">公司名稱</label>
+        <input class="field-input" id="client-company" type="text" placeholder="公司名稱（選填）">
       </div>
+      <div class="field">
+        <label class="field-label">統編 <span id="client-business-id-required" style="color:var(--red);display:none">*</span></label>
+        <input class="field-input" id="client-business-id" type="text" placeholder="統一編號（填公司名稱時必填）" oninput="void 0" maxlength="8">
+      </div>
+    </div>
+    <div class="field-row">
       <div class="field">
         <label class="field-label">產業別</label>
         <input class="field-input" id="client-industry" type="text" placeholder="餐飲、零售…">
       </div>
+      <div class="field"></div>
     </div>
     <div class="field-row">
       <div class="field">
@@ -612,39 +619,92 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 
 <!-- 新增設備（案件內）Modal -->
 <div class="modal-overlay" id="modal-case-equipment">
-  <div class="modal" style="max-width:480px">
+  <div class="modal">
     <div class="modal-header">
       <div class="modal-title">新增設備</div>
       <button class="modal-close" onclick="document.getElementById('modal-case-equipment').classList.remove('act')"><i class="ti ti-x"></i></button>
     </div>
+    <div class="section-label">基本資訊</div>
+    <div class="field">
+      <label class="field-label">設備名稱 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" id="ce-device" type="text" placeholder="例：展示冰箱（玻璃門）">
+    </div>
     <div class="field-row">
       <div class="field">
-        <label class="field-label">設備名稱 *</label>
-        <input class="field-input" id="ce-device" type="text" placeholder="設備名稱">
+        <label class="field-label">分類 <span style="color:var(--red)">*</span></label>
+        <select class="field-input" id="ce-category">
+          <option value="">請選擇</option>
+          <option>冷藏冷凍設備</option><option>烹調加熱設備</option><option>飲料吧設備</option>
+          <option>清潔衛生設備</option><option>辦公店務設備</option><option>洗衣家電</option>
+          <option>桌椅類</option><option>吧台工作台</option><option>收納櫃類</option>
+          <option>食材處理設備</option><option>包裝封口</option><option>衛浴設備</option>
+          <option>水電配管</option><option>門窗隔間</option><option>廚房用具</option>
+        </select>
       </div>
       <div class="field">
-        <label class="field-label">類別 *</label>
-        <input class="field-input" id="ce-category" type="text" placeholder="類別">
+        <label class="field-label">狀況等級 <span style="color:var(--red)">*</span></label>
+        <select class="field-input" id="ce-condition">
+          <option value="">請選擇</option>
+          <option value="A">A — 良好</option>
+          <option value="B">B — 普通</option>
+          <option value="C">C — 堪用</option>
+        </select>
       </div>
     </div>
     <div class="field-row">
       <div class="field">
         <label class="field-label">品牌</label>
-        <input class="field-input" id="ce-brand" type="text" placeholder="品牌">
+        <input class="field-input" id="ce-brand" type="text" placeholder="例：台灣三洋">
       </div>
       <div class="field">
-        <label class="field-label">狀況</label>
-        <select class="field-input" id="ce-condition">
-          <option value="A">A・良好</option>
-          <option value="B">B・普通</option>
-          <option value="C">C・堪用</option>
-          <option value="D">D・待修</option>
+        <label class="field-label">縣市 <span style="color:var(--red)">*</span></label>
+        <select class="field-input" id="ce-region">
+          <option value="">請選擇</option>
+          <option>台北市</option><option>新北市</option><option>桃園市</option>
+          <option>台中市</option><option>台南市</option><option>高雄市</option>
+          <option>基隆市</option><option>新竹市</option><option>嘉義市</option>
+          <option>新竹縣</option><option>苗栗縣</option><option>彰化縣</option>
+          <option>南投縣</option><option>雲林縣</option><option>嘉義縣</option>
+          <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+          <option>台東縣</option><option>澎湖縣</option><option>金門縣</option><option>連江縣</option>
         </select>
       </div>
     </div>
     <div class="field">
-      <label class="field-label">備註</label>
-      <textarea class="field-input field-textarea" id="ce-note" placeholder="備註" style="min-height:56px"></textarea>
+      <label class="field-label">詳細地址 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" id="ce-address" type="text" placeholder="例：台北市大安區復興南路一段100號">
+    </div>
+    <div class="section-label">規格尺寸</div>
+    <div class="field-row-3">
+      <div class="field">
+        <label class="field-label">寬 (cm)</label>
+        <input class="field-input" id="ce-width" type="number" placeholder="60">
+      </div>
+      <div class="field">
+        <label class="field-label">高 (cm)</label>
+        <input class="field-input" id="ce-height" type="number" placeholder="180">
+      </div>
+      <div class="field">
+        <label class="field-label">深 (cm)</label>
+        <input class="field-input" id="ce-depth" type="number" placeholder="70">
+      </div>
+    </div>
+    <div class="field" style="max-width:180px">
+      <label class="field-label">重量 (kg)</label>
+      <input class="field-input" id="ce-weight" type="number" placeholder="85">
+    </div>
+    <div class="section-label">備註與照片</div>
+    <div class="field">
+      <label class="field-label">備註說明</label>
+      <textarea class="field-input field-textarea" id="ce-note" placeholder="設備狀況說明、搬運注意事項等..."></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label">設備照片</label>
+      <div class="photo-upload-zone" onclick="document.getElementById('ce-photo-input').click()">
+        <i class="ti ti-photo-plus"></i><p>點擊上傳照片（可多張）</p>
+      </div>
+      <input type="file" id="ce-photo-input" multiple accept="image/*" style="display:none" onchange="handleCePhotoSelect(this)">
+      <div class="photo-preview-grid" id="ce-photo-preview"></div>
     </div>
     <div id="case-equip-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
     <div class="modal-actions">
@@ -2889,9 +2949,10 @@ function renderClientsList() {
   }
   const paged = paginateList(list, clientsPage, PAGE_SIZE);
   el.innerHTML = `<table class="data-table">
-    <thead><tr><th>公司名稱</th><th>聯絡人</th><th>電話</th><th>LINE ID</th><th>地址</th><th>建立日期</th><th style="text-align:right">操作</th></tr></thead>
+    <thead><tr><th>公司名稱</th><th>統編</th><th>聯絡人</th><th>電話</th><th>地址</th><th>建立日期</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${paged.items.map(c => `<tr>
-      <td style="font-weight:600">${c.company_name}</td>
+      <td style="font-weight:600">${c.company_name||'—'}</td>
+      <td style="font-size:12px;color:var(--ink3)">${c.business_id||'—'}</td>
       <td>${c.contact_name||'—'}</td>
       <td>${c.contact_phone||'—'}</td>
       <td>${c.contact_line_id||'—'}</td>
@@ -2908,14 +2969,18 @@ function renderClientsList() {
 
 function setClientsPage(p) { clientsPage = p; renderClientsList(); }
 
+function _resetClientForm() {
+  ['client-company','client-business-id','client-industry','client-contact','client-phone','client-line','client-address','client-note'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('client-business-id-required').style.display = 'none';
+  document.getElementById('client-form-error').style.display = 'none';
+}
+
 function openCreateClient() {
   _editClientId = null;
   document.getElementById('client-form-title').textContent = '新增客戶';
-  ['client-company','client-industry','client-contact','client-phone','client-line','client-address','client-note'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  document.getElementById('client-form-error').style.display = 'none';
+  _resetClientForm();
   document.getElementById('modal-client-form').classList.add('act');
 }
 
@@ -2924,14 +2989,16 @@ function openEditClient(id) {
   if (!c) return;
   _editClientId = id;
   document.getElementById('client-form-title').textContent = '編輯客戶';
-  document.getElementById('client-company').value  = c.company_name    || '';
-  document.getElementById('client-industry').value = c.industry        || '';
-  document.getElementById('client-contact').value  = c.contact_name    || '';
-  document.getElementById('client-phone').value    = c.contact_phone   || '';
-  document.getElementById('client-line').value     = c.contact_line_id || '';
-  document.getElementById('client-address').value  = c.address         || '';
-  document.getElementById('client-note').value     = c.note            || '';
-  document.getElementById('client-form-error').style.display = 'none';
+  _resetClientForm();
+  document.getElementById('client-company').value      = c.company_name    || '';
+  document.getElementById('client-business-id').value  = c.business_id     || '';
+  document.getElementById('client-industry').value     = c.industry        || '';
+  document.getElementById('client-contact').value      = c.contact_name    || '';
+  document.getElementById('client-phone').value        = c.contact_phone   || '';
+  document.getElementById('client-line').value         = c.contact_line_id || '';
+  document.getElementById('client-address').value      = c.address         || '';
+  document.getElementById('client-note').value         = c.note            || '';
+  if (c.company_name) document.getElementById('client-business-id-required').style.display = 'inline';
   document.getElementById('modal-client-form').classList.add('act');
 }
 
@@ -2944,6 +3011,7 @@ async function saveClient() {
   const db = getSupabase();
   if (!db) return;
   const company_name    = document.getElementById('client-company').value.trim();
+  const business_id     = document.getElementById('client-business-id').value.trim();
   const industry        = document.getElementById('client-industry').value.trim();
   const contact_name    = document.getElementById('client-contact').value.trim();
   const contact_phone   = document.getElementById('client-phone').value.trim();
@@ -2952,10 +3020,11 @@ async function saveClient() {
   const note            = document.getElementById('client-note').value.trim();
   const errEl = document.getElementById('client-form-error');
   errEl.style.display = 'none';
-  if (!company_name) { errEl.textContent = '請填寫公司名稱'; errEl.style.display = 'block'; return; }
+  if (company_name && !business_id) { errEl.textContent = '填寫公司名稱時，統編為必填'; errEl.style.display = 'block'; return; }
+  if (!company_name && !contact_name) { errEl.textContent = '請至少填寫公司名稱或聯絡人'; errEl.style.display = 'block'; return; }
   const btn = document.getElementById('client-form-save-btn');
   btn.disabled = true;
-  const payload = { company_name, industry: industry||null, contact_name: contact_name||null, contact_phone: contact_phone||null, contact_line_id: contact_line_id||null, address: address||null, note: note||null };
+  const payload = { company_name: company_name||null, business_id: business_id||null, industry: industry||null, contact_name: contact_name||null, contact_phone: contact_phone||null, contact_line_id: contact_line_id||null, address: address||null, note: note||null };
   let error;
   if (_editClientId) {
     ({ error } = await db.from('clients').update(payload).eq('id', _editClientId));
@@ -3279,10 +3348,37 @@ async function advanceCaseStatus(caseId, nextStatus) {
   renderCasesList();
 }
 
+let cePendingPhotoFiles = [];
+
+function handleCePhotoSelect(input) {
+  cePendingPhotoFiles = [...cePendingPhotoFiles, ...Array.from(input.files)];
+  const grid = document.getElementById('ce-photo-preview');
+  grid.innerHTML = cePendingPhotoFiles.map((f, i) => `
+    <div class="photo-preview-item">
+      <img src="${URL.createObjectURL(f)}">
+      <button class="photo-preview-remove" onclick="removeCePendingPhoto(${i})">×</button>
+    </div>`).join('');
+  input.value = '';
+}
+
+function removeCePendingPhoto(i) {
+  cePendingPhotoFiles.splice(i, 1);
+  handleCePhotoSelect({ files: [] });
+}
+
 function openAddCaseEquipment(caseId) {
   _addEquipCaseId = caseId;
-  ['ce-device','ce-category','ce-brand','ce-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('ce-condition').value = 'B';
+  cePendingPhotoFiles = [];
+  ['ce-device','ce-brand','ce-note','ce-width','ce-height','ce-depth','ce-weight'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('ce-category').value = '';
+  document.getElementById('ce-condition').value = '';
+  document.getElementById('ce-region').value = '';
+  document.getElementById('ce-photo-preview').innerHTML = '';
+  // 從案件的客戶地址自動填入
+  const c = casesCache.find(x => x.id === caseId);
+  document.getElementById('ce-address').value = c?.clients?.address || '';
   document.getElementById('case-equip-error').style.display = 'none';
   document.getElementById('modal-case-equipment').classList.add('act');
 }
@@ -3291,21 +3387,43 @@ async function saveCaseEquipment() {
   const db = getSupabase();
   if (!db || !_addEquipCaseId) return;
   const device_name   = document.getElementById('ce-device').value.trim();
-  const category_name = document.getElementById('ce-category').value.trim();
-  const brand         = document.getElementById('ce-brand').value.trim();
+  const category_name = document.getElementById('ce-category').value;
   const condition     = document.getElementById('ce-condition').value;
+  const region        = document.getElementById('ce-region').value;
+  const address       = document.getElementById('ce-address').value.trim();
+  const brand         = document.getElementById('ce-brand').value.trim();
+  const width_cm      = Number(document.getElementById('ce-width').value) || null;
+  const height_cm     = Number(document.getElementById('ce-height').value) || null;
+  const depth_cm      = Number(document.getElementById('ce-depth').value) || null;
+  const weight_kg     = Number(document.getElementById('ce-weight').value) || null;
   const note          = document.getElementById('ce-note').value.trim();
   const errEl = document.getElementById('case-equip-error');
-  if (!device_name) { errEl.textContent = '請填寫設備名稱'; errEl.style.display = 'block'; return; }
-  if (!category_name) { errEl.textContent = '請填寫類別'; errEl.style.display = 'block'; return; }
+  if (!device_name || !category_name || !condition || !region || !address) {
+    errEl.textContent = '請填寫所有必填欄位';
+    errEl.style.display = 'block';
+    return;
+  }
   errEl.style.display = 'none';
-  const c = casesCache.find(x => x.id === _addEquipCaseId);
-  const pickup_address = c?.clients?.address || '';
   const btn = document.getElementById('case-equip-save-btn');
   btn.disabled = true;
+  // 上傳照片
+  let photoUrls = [];
+  if (cePendingPhotoFiles.length > 0) {
+    const equipId = crypto.randomUUID();
+    for (let i = 0; i < cePendingPhotoFiles.length; i++) {
+      const file = cePendingPhotoFiles[i];
+      const ext = file.name.split('.').pop();
+      const path = `${equipId}/${Date.now()}_${i}.${ext}`;
+      const { error: upErr } = await db.storage.from('equipment-photos').upload(path, file, { upsert: true });
+      if (upErr) { showToast(`照片 ${file.name} 上傳失敗，略過`); continue; }
+      const { data: urlData } = db.storage.from('equipment-photos').getPublicUrl(path);
+      photoUrls.push(urlData.publicUrl);
+    }
+  }
   const { error } = await db.from('equipment_listings').insert({
-    device_name, category_name, brand: brand||null, condition, note: note||null,
-    pickup_address, status: 'draft', photo_urls: [], case_id: _addEquipCaseId
+    device_name, category_name, brand: brand||null, condition, region,
+    pickup_address: address, width_cm, height_cm, depth_cm, weight_kg,
+    note: note||null, status: 'draft', photo_urls: photoUrls, case_id: _addEquipCaseId
   });
   btn.disabled = false;
   if (error) { errEl.textContent = '新增失敗：' + error.message; errEl.style.display = 'block'; return; }
