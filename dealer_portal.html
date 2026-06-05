@@ -161,6 +161,59 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div id="login-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
     <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:4px">登入</button>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink3)">
+      還沒有帳號？<button onclick="goScreen('screen-register')" style="background:none;border:none;color:var(--green);font-weight:600;cursor:pointer;font-size:13px;padding:0">申請加入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     註冊申請
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-register" style="align-items:center;justify-content:center;background:var(--paper)">
+  <div class="login-wrap" style="max-width:460px">
+    <div class="login-logo">Re<span>Loop</span></div>
+    <div class="login-role">盤商後台管理系統</div>
+    <div class="login-title">申請加入</div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">姓名 <span style="color:var(--red)">*</span></label>
+        <input class="field-input" type="text" id="reg-name" placeholder="王業務">
+      </div>
+      <div class="field">
+        <label class="field-label">職稱</label>
+        <input class="field-input" type="text" id="reg-title" placeholder="業務、主管...">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Email <span style="color:var(--red)">*</span></label>
+      <input class="field-input" type="email" id="reg-email" placeholder="your@email.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label class="field-label">密碼 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" type="password" id="reg-password" placeholder="至少 8 個字元">
+    </div>
+    <div class="field">
+      <label class="field-label">確認密碼 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" type="password" id="reg-password2" placeholder="再輸入一次">
+    </div>
+    <div id="reg-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <button class="btn btn-primary btn-full" onclick="doRegister()" style="margin-top:4px">送出申請</button>
+    <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink3)">
+      已有帳號？<button onclick="goScreen('screen-login')" style="background:none;border:none;color:var(--green);font-weight:600;cursor:pointer;font-size:13px;padding:0">返回登入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     申請送出完成
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-pending" style="align-items:center;justify-content:center;background:var(--paper)">
+  <div style="text-align:center;padding:48px 32px;max-width:400px">
+    <div style="font-size:48px;margin-bottom:16px">✉️</div>
+    <div style="font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px">申請已送出</div>
+    <div style="font-size:14px;color:var(--ink3);line-height:1.7;margin-bottom:32px">管理員審核通過後，您將可以使用相同帳號密碼登入後台。</div>
+    <button class="btn btn-ghost" onclick="goScreen('screen-login')">返回登入</button>
   </div>
 </div>
 
@@ -508,7 +561,6 @@ async function doLogin() {
   errEl.style.display = 'none';
 
   if (!db) {
-    // 開發模式：無 Supabase 時直接進入
     goScreen('screen-equipment');
     return;
   }
@@ -519,8 +571,78 @@ async function doLogin() {
     errEl.style.display = 'block';
     return;
   }
+
+  // 確認帳號審核狀態
+  const { data: acct } = await db.from('dealer_accounts').select('status').single();
+  if (!acct || acct.status === 'pending') {
+    await db.auth.signOut();
+    errEl.textContent = '帳號審核中，請等待管理員核准後再登入。';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (acct.status === 'rejected') {
+    await db.auth.signOut();
+    errEl.textContent = '帳號未通過審核，請聯繫管理員。';
+    errEl.style.display = 'block';
+    return;
+  }
+
   goScreen('screen-equipment');
   loadAllBadges();
+}
+
+async function doRegister() {
+  const db = getSupabase();
+  const name      = document.getElementById('reg-name').value.trim();
+  const title     = document.getElementById('reg-title').value.trim();
+  const email     = document.getElementById('reg-email').value.trim();
+  const password  = document.getElementById('reg-password').value;
+  const password2 = document.getElementById('reg-password2').value;
+  const errEl     = document.getElementById('reg-error');
+  errEl.style.display = 'none';
+
+  if (!name || !email || !password) {
+    errEl.textContent = '請填寫所有必填欄位';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (password.length < 8) {
+    errEl.textContent = '密碼至少需要 8 個字元';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (password !== password2) {
+    errEl.textContent = '兩次密碼不一致';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!db) {
+    goScreen('screen-pending');
+    return;
+  }
+
+  const { data, error } = await db.auth.signUp({ email, password });
+  if (error) {
+    errEl.textContent = '註冊失敗：' + error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // 寫入 dealer_accounts（status 預設 pending）
+  const { error: insertErr } = await db.from('dealer_accounts').insert({
+    id: data.user.id,
+    name,
+    title: title || null,
+    email,
+  });
+  if (insertErr) {
+    errEl.textContent = '申請寫入失敗：' + insertErr.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  await db.auth.signOut();
+  goScreen('screen-pending');
 }
 
 async function doLogout() {
