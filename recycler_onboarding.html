@@ -1317,7 +1317,7 @@ async function loadMatches() {
 
   const { data, error } = await db
     .from('recycler_matches')
-    .select('*')
+    .select('*, dealer_bank_accounts(account_name, bank_name, bank_code, account_number)')
     .eq('recycler_id', currentRecyclerId)
     .order('created_at', { ascending: false });
 
@@ -1564,9 +1564,9 @@ function renderMatchDetail(m) {
         <div style="text-align:center;color:#c53030;font-size:13px;font-weight:600;padding:8px 0 12px">恭喜得標，請進行款項支付</div>
         <div style="padding:12px 16px;background:#ebf4ff;border-radius:var(--r);border:1px solid #bee3f8;margin-bottom:12px">
           <div style="font-size:12px;font-weight:600;color:#2b6cb0;margin-bottom:6px">盤商匯款帳號</div>
-          <div style="font-size:14px;color:var(--ink);letter-spacing:.05em">${m.bank_account_info || '盤商尚未填寫匯款資訊，請稍候...'}</div>
+          ${bankAccountHtml(m.dealer_bank_accounts)}
         </div>
-        <button class="btn-main btn-dark" onclick="showPaymentForm('${m.id}')" ${!m.bank_account_info ? 'disabled' : ''}>已完成匯款</button>`;
+        <button class="btn-main btn-dark" onclick="showPaymentForm('${m.id}')" ${!m.dealer_bank_accounts ? 'disabled' : ''}>已完成匯款</button>`;
     }
   } else if (s === 'payment_confirmed') {
     actEl.innerHTML = `<button class="btn-main btn-outline" onclick="receiveMatch('${m.id}')">確認收貨完成</button>`;
@@ -1629,13 +1629,22 @@ async function submitBid() {
   if (m) renderMatchDetail(m);
 }
 
+function bankAccountHtml(ba) {
+  if (!ba) return '<div style="color:var(--ink4);font-size:13px">盤商尚未設定匯款帳號，請稍候...</div>';
+  return `<div style="font-size:13px;line-height:2">
+    <div><span style="color:var(--ink4)">戶名</span>　${ba.account_name}</div>
+    <div><span style="color:var(--ink4)">銀行</span>　${ba.bank_name}（${ba.bank_code}）</div>
+    <div><span style="color:var(--ink4)">帳號</span>　${ba.account_number}</div>
+  </div>`;
+}
+
 function showPaymentForm(id) {
   const m = allMatchesCache.find(x => x.id === id);
   const actEl = document.getElementById('detail-actions');
   actEl.innerHTML = `
-    ${m?.bank_account_info ? `<div style="padding:12px 16px;background:#ebf4ff;border-radius:var(--r);border:1px solid #bee3f8;margin-bottom:12px">
+    ${m?.dealer_bank_accounts ? `<div style="padding:12px 16px;background:#ebf4ff;border-radius:var(--r);border:1px solid #bee3f8;margin-bottom:12px">
       <div style="font-size:12px;font-weight:600;color:#2b6cb0;margin-bottom:6px">盤商匯款帳號</div>
-      <div style="font-size:14px;color:var(--ink);letter-spacing:.05em">${m.bank_account_info}</div>
+      ${bankAccountHtml(m.dealer_bank_accounts)}
     </div>` : ''}
     <div class="field-label">您的匯款帳號後5碼<span class="req">*</span></div>
     <div style="font-size:11px;color:var(--ink4);margin-bottom:8px">請填寫您匯款時使用的帳號後5碼（不可與盤商帳號相同）</div>
@@ -1653,7 +1662,8 @@ async function submitPaymentLast5(id) {
   const val = (document.getElementById('payment-last5-input')?.value || '').trim();
   if (!/^\d{5}$/.test(val)) { showToast('請輸入5位數字'); return; }
   const m = allMatchesCache.find(x => x.id === id);
-  if (m?.bank_account_last5 && val === m.bank_account_last5) {
+  const dealerLast5 = m?.dealer_bank_accounts?.account_number?.slice(-5);
+  if (dealerLast5 && val === dealerLast5) {
     showToast('不能填入盤商的匯款帳號後5碼'); return;
   }
   const btn = document.querySelector('#detail-actions .btn-dark');
