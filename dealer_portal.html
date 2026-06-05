@@ -1169,11 +1169,12 @@ function renderEquipmentList() {
   const statusLabel = { draft:'草稿', active:'媒合中', matched:'已媒合', completed:'已完成', cancelled:'已取消' };
   el.innerHTML = `<table class="data-table">
     <thead><tr>
-      <th>設備名稱</th><th>分類</th><th>狀況</th><th>品牌</th><th>地區</th><th>狀態</th><th style="text-align:right">操作</th>
+      <th>設備名稱</th><th>設備ID</th><th>分類</th><th>狀況</th><th>品牌</th><th>地區</th><th>狀態</th><th style="text-align:right">操作</th>
     </tr></thead>
     <tbody>${paged.items.map(e => `
     <tr>
-      <td><div style="font-weight:600">${e.device_name}</div><div style="font-size:10px;color:var(--ink4);font-family:monospace">#${e.id.slice(0,8).toUpperCase()}</div></td>
+      <td style="font-weight:600">${e.device_name}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--ink4)">${e.id.slice(0,8).toUpperCase()}</td>
       <td>${e.category_name}</td>
       <td>${e.condition || '—'}</td>
       <td>${e.brand || '—'}</td>
