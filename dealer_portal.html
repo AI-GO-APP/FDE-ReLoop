@@ -308,8 +308,9 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
     </div>
     <div class="main-body">
+      <div id="matches-category-tabs" class="match-tabs-bar" style="margin-bottom:16px;flex-wrap:wrap"></div>
       <div class="search-row" style="flex-wrap:wrap;gap:8px">
-        <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備名稱..." oninput="renderMatchesList()" style="min-width:180px">
+        <input class="search-input" id="matches-search" type="text" placeholder="搜尋設備/廠商/設備ID..." oninput="renderMatchesList()" style="min-width:180px">
         <input class="field-input" id="matches-date-from" type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知開始日期">
         <input class="field-input" id="matches-date-to"   type="date" onchange="renderMatchesList()" style="width:145px;flex:none" title="通知結束日期">
         <button class="btn btn-ghost btn-sm" onclick="clearMatchesFilter()">清除</button>
@@ -418,11 +419,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="main-header">
       <div class="main-header-top">
         <div class="main-title">回收商管理</div>
+        <button class="btn btn-primary" onclick="document.getElementById('modal-invite-recycler').classList.add('act')"><i class="ti ti-send"></i> 送出邀請</button>
       </div>
     </div>
     <div class="main-body">
       <div class="search-row">
-        <input class="search-input" id="recyclers-search" type="text" placeholder="搜尋公司名稱..." oninput="renderRecyclersList()">
+        <input class="search-input" id="recyclers-search" type="text" placeholder="搜尋公司/統編/電話..." oninput="renderRecyclersList()">
         <select class="field-input" id="recyclers-status-filter" onchange="renderRecyclersList()" style="width:120px;flex:none">
           <option value="">全部</option>
           <option value="active">啟用中</option>
@@ -670,6 +672,50 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
   </div>
 </div>
 
+<!-- Modal：邀請回收商 -->
+<div class="modal-overlay" id="modal-invite-recycler">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">新增回收商（送出邀請）</div>
+      <button class="modal-close" onclick="closeInviteModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:var(--ink3);margin-bottom:16px">系統會產生一組邀請連結，回收商點開後公司名稱與統編會自動帶入，完成註冊流程（含簽約）後才會啟用。</div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">公司名稱 <span style="color:var(--red)">*</span></label>
+        <input class="field-input" type="text" id="invite-company" placeholder="環保家電回收行">
+      </div>
+      <div class="field">
+        <label class="field-label">統一編號 <span style="color:var(--red)">*</span></label>
+        <input class="field-input" type="text" id="invite-bizid" placeholder="12345678" maxlength="8">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">連結有效期限</label>
+      <select class="field-input" id="invite-expiry">
+        <option value="1">1 天</option>
+        <option value="3" selected>3 天（預設）</option>
+        <option value="7">7 天</option>
+        <option value="30">30 天</option>
+      </select>
+    </div>
+    <div id="invite-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <!-- 產生的連結顯示區 -->
+    <div id="invite-link-section" style="display:none;margin-bottom:16px">
+      <label class="field-label">邀請連結</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="field-input" type="text" id="invite-link-value" readonly style="font-size:12px;font-family:monospace">
+        <button class="btn btn-ghost btn-sm" onclick="copyInviteLink()"><i class="ti ti-copy"></i></button>
+      </div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:6px" id="invite-expiry-note"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeInviteModal()">關閉</button>
+      <button class="btn btn-primary" id="invite-submit-btn" onclick="createRecyclerInvite()"><i class="ti ti-send"></i> 產生邀請連結</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal：新增成員 -->
 <div class="modal-overlay" id="modal-create-staff">
   <div class="modal" style="max-width:480px">
@@ -850,8 +896,8 @@ async function doRegister() {
   const errEl     = document.getElementById('reg-error');
   errEl.style.display = 'none';
 
-  if (!name || !email || !password) {
-    errEl.textContent = '請填寫所有必填欄位';
+  if (!name || !title || !email || !password) {
+    errEl.textContent = '請填寫所有必填欄位（職稱為必填）';
     errEl.style.display = 'block';
     return;
   }
@@ -941,6 +987,57 @@ async function changePassword() {
   document.getElementById('new-password').value  = '';
   document.getElementById('new-password2').value = '';
   showToast('密碼已更新');
+}
+
+// ════════════════════════════════════════════
+// 回收商邀請連結
+// ════════════════════════════════════════════
+function closeInviteModal() {
+  document.getElementById('modal-invite-recycler').classList.remove('act');
+  document.getElementById('invite-link-section').style.display = 'none';
+  document.getElementById('invite-error').style.display = 'none';
+  ['invite-company','invite-bizid'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('invite-expiry').value = '3';
+  document.getElementById('invite-submit-btn').innerHTML = '<i class="ti ti-send"></i> 產生邀請連結';
+  document.getElementById('invite-submit-btn').disabled = false;
+}
+
+async function createRecyclerInvite() {
+  const db = getSupabase();
+  if (!db) return;
+  const company_name = document.getElementById('invite-company').value.trim();
+  const business_id  = document.getElementById('invite-bizid').value.trim();
+  const days         = parseInt(document.getElementById('invite-expiry').value, 10);
+  const errEl        = document.getElementById('invite-error');
+  errEl.style.display = 'none';
+  if (!company_name || !business_id) { errEl.textContent = '請填寫公司名稱與統一編號'; errEl.style.display = 'block'; return; }
+  if (!/^\d{8}$/.test(business_id))  { errEl.textContent = '統一編號須為 8 位數字'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('invite-submit-btn');
+  btn.disabled = true; btn.textContent = '處理中...';
+
+  const expires_at = new Date(Date.now() + days * 86400000).toISOString();
+  const { data: inv, error } = await db.from('recycler_invites')
+    .insert({ company_name, business_id, expires_at })
+    .select('id')
+    .single();
+  if (error || !inv) {
+    errEl.textContent = '建立失敗：' + (error?.message || '未知錯誤');
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-send"></i> 產生邀請連結';
+    return;
+  }
+  const link = `${window.location.origin}/recycler_onboarding.html?invite=${inv.id}`;
+  document.getElementById('invite-link-value').value = link;
+  document.getElementById('invite-link-section').style.display = 'block';
+  document.getElementById('invite-expiry-note').textContent = `連結有效期限：${days} 天（至 ${new Date(expires_at).toLocaleDateString('zh-TW')}）`;
+  btn.innerHTML = '<i class="ti ti-refresh"></i> 重新產生';
+  btn.disabled = false;
+}
+
+function copyInviteLink() {
+  const val = document.getElementById('invite-link-value').value;
+  navigator.clipboard.writeText(val).then(() => showToast('連結已複製'));
 }
 
 // ════════════════════════════════════════════
@@ -1483,6 +1580,7 @@ async function confirmReceived(matchId) {
 // ════════════════════════════════════════════
 let matchesListingsCache = [];
 let matchesMatchCache = [];
+let matchesCategory = '';
 
 async function loadMatchesList() {
   const db = getSupabase();
@@ -1510,6 +1608,23 @@ async function loadMatchesList() {
   document.getElementById('matches-loading').style.display = 'none';
   matchesListingsCache = listings;
   matchesMatchCache = matches || [];
+  buildMatchCategoryTabs();
+  renderMatchesList();
+}
+
+function buildMatchCategoryTabs() {
+  const cats = ['全部', ...new Set(matchesListingsCache.map(l => l.category_name).filter(Boolean))];
+  const tabEl = document.getElementById('matches-category-tabs');
+  if (!tabEl) return;
+  tabEl.innerHTML = cats.map(c =>
+    `<button class="match-tab-btn ${c === (matchesCategory||'全部') ? 'act' : ''}" onclick="switchMatchCategory('${c}')">${c}</button>`
+  ).join('');
+}
+
+function switchMatchCategory(cat) {
+  matchesCategory = cat === '全部' ? '' : cat;
+  matchesPage = 1;
+  buildMatchCategoryTabs();
   renderMatchesList();
 }
 
@@ -1517,6 +1632,8 @@ function clearMatchesFilter() {
   document.getElementById('matches-search').value = '';
   document.getElementById('matches-date-from').value = '';
   document.getElementById('matches-date-to').value = '';
+  matchesCategory = '';
+  buildMatchCategoryTabs();
   renderMatchesList();
 }
 
@@ -1549,6 +1666,7 @@ function renderMatchesList() {
   });
 
   let listings = matchesListingsCache;
+  if (matchesCategory) listings = listings.filter(l => l.category_name === matchesCategory);
   if (q) {
     const matchingEquipIds = new Set(
       matchesMatchCache
@@ -1587,7 +1705,7 @@ function renderMatchesList() {
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <i class="ti ti-box"></i>
           <span>${l.device_name}</span>
-          <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.region}</span>
+          <span style="font-size:11px;font-weight:400;color:var(--ink3)">${l.category_name} · 狀況${l.condition} ${condLabel[l.condition]||''} · ${l.pickup_address || l.region}</span>
           <span style="font-size:10px;font-weight:500;color:var(--ink4);font-family:monospace;background:var(--paper2);padding:2px 6px;border-radius:4px">#${equipNo}</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -1768,7 +1886,12 @@ function renderRecyclersList() {
   const q      = (document.getElementById('recyclers-search')?.value || '').toLowerCase();
   const filter = document.getElementById('recyclers-status-filter')?.value;
   let list = recyclersCache;
-  if (q) list = list.filter(r => (r.company_name||'').toLowerCase().includes(q) || (r.contact_name||'').toLowerCase().includes(q));
+  if (q) list = list.filter(r =>
+    (r.company_name||'').toLowerCase().includes(q) ||
+    (r.contact_name||'').toLowerCase().includes(q) ||
+    (r.business_id||'').includes(q) ||
+    (r.phone||'').includes(q)
+  );
   if (filter === 'active')   list = list.filter(r => r.is_active !== false);
   if (filter === 'inactive') list = list.filter(r => r.is_active === false);
 
@@ -1780,13 +1903,13 @@ function renderRecyclersList() {
 
   const paged = paginateList(list, recyclersPage, PAGE_SIZE);
   el.innerHTML = `<table class="data-table">
-    <thead><tr><th>公司名稱</th><th>聯絡人</th><th>電話</th><th>服務地區</th><th>偏好分類數</th><th>狀態</th><th style="text-align:right">操作</th></tr></thead>
+    <thead><tr><th>公司名稱</th><th>統編</th><th>電話</th><th>服務地區</th><th>偏好分類數</th><th>狀態</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${paged.items.map(r => {
       const prefCount = (r.recycler_onboarding_preferences||[]).length;
       const isActive = r.is_active !== false;
       return `<tr>
-        <td style="font-weight:600">${r.company_name || '—'}</td>
-        <td>${r.contact_name || '—'}</td>
+        <td style="font-weight:600;color:var(--green);cursor:pointer" onclick="openRecyclerDetail('${r.id}')">${r.company_name || '—'}</td>
+        <td style="font-family:monospace;font-size:12px">${r.business_id || '—'}</td>
         <td>${r.phone || '—'}</td>
         <td style="font-size:12px;color:var(--ink3)">${(r.service_areas||[]).slice(0,3).join('、')}${(r.service_areas||[]).length>3?'…':''}</td>
         <td style="text-align:center">${prefCount}</td>
@@ -1837,11 +1960,24 @@ async function openRecyclerDetail(id) {
   document.getElementById('recycler-detail-content').innerHTML = `
     <div class="section-label">基本資料</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px">
-      <div><span style="color:var(--ink3)">統一編號：</span>${r.tax_id||'—'}</div>
+      <div><span style="color:var(--ink3)">統一編號：</span><b>${r.business_id||'—'}</b></div>
       <div><span style="color:var(--ink3)">電話：</span>${r.phone||'—'}</div>
       <div><span style="color:var(--ink3)">Email：</span>${r.email||'—'}</div>
       <div><span style="color:var(--ink3)">加入時間：</span>${new Date(r.created_at).toLocaleDateString('zh-TW')}</div>
     </div>
+    <div class="section-label">編輯資料</div>
+    <div class="field-row" style="margin-bottom:8px">
+      <div class="field">
+        <label class="field-label">聯絡人</label>
+        <input class="field-input" id="edit-recycler-contact" type="text" value="${r.contact_name||''}">
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" id="edit-recycler-email" type="email" value="${r.email||''}">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveRecyclerEdit('${r.id}')"><i class="ti ti-device-floppy"></i> 儲存</button>
+    <div id="edit-recycler-error" style="font-size:12px;color:var(--red);margin-top:6px;display:none"></div>
     <div class="section-label">服務地區</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
       ${(r.service_areas||[]).map(a=>`<span class="badge badge-active">${a}</span>`).join('') || '—'}
@@ -1855,7 +1991,9 @@ async function openRecyclerDetail(id) {
           return `<tr><td>${p.subcategory_name||'—'}</td><td>${conds||'—'}</td></tr>`;
         }).join('')}</tbody>
       </table>`}
-    <div class="section-label">最近媒合記錄</div>
+    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between">
+      最近媒合記錄（近 10 筆）
+    </div>
     ${!matches||matches.length===0 ? '<div style="font-size:13px;color:var(--ink4)">尚無媒合記錄</div>' :
       `<table class="data-table">
         <thead><tr><th>設備</th><th>狀態</th><th>出價</th><th>通知時間</th></tr></thead>
@@ -1866,6 +2004,22 @@ async function openRecyclerDetail(id) {
           <td style="font-size:12px;color:var(--ink3)">${new Date(m.created_at).toLocaleDateString('zh-TW')}</td>
         </tr>`).join('')}</tbody>
       </table>`}`;
+}
+
+async function saveRecyclerEdit(id) {
+  const db = getSupabase();
+  if (!db) return;
+  const contact_name = document.getElementById('edit-recycler-contact').value.trim();
+  const email        = document.getElementById('edit-recycler-email').value.trim();
+  const errEl        = document.getElementById('edit-recycler-error');
+  errEl.style.display = 'none';
+  const { error } = await db.from('recycler_onboarding_accounts')
+    .update({ contact_name, email })
+    .eq('id', id);
+  if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
+  const r = recyclersCache.find(x => x.id === id);
+  if (r) { r.contact_name = contact_name; r.email = email; }
+  showToast('已更新');
 }
 
 // ════════════════════════════════════════════

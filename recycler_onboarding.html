@@ -2033,6 +2033,11 @@ async function submitRegister() {
 
   await saveContractSignature(regSigPad.toDataURL('image/png'));
 
+  // 若為邀請連結來源，標記已使用
+  if (window._inviteId && db) {
+    await db.from('recycler_invites').update({ used_at: new Date().toISOString() }).eq('id', window._inviteId);
+  }
+
   document.getElementById('reg-company').value     = company;
   document.getElementById('reg-name').value         = name;
   document.getElementById('reg-phone').value        = phone;
@@ -3329,5 +3334,39 @@ async function forceAddNotifPref() {
   </div>
 </div>
 </div>
+<script>
+// ── 邀請連結處理 ──
+(async function() {
+  const params   = new URLSearchParams(window.location.search);
+  const inviteId = params.get('invite');
+  if (!inviteId) return;
+
+  const db = supabaseDb || (supabaseReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null);
+  if (!db) return;
+
+  const { data: inv } = await db.from('recycler_invites')
+    .select('company_name, business_id, expires_at, used_at')
+    .eq('id', inviteId)
+    .single();
+
+  if (!inv) { showToast('邀請連結無效或已過期'); return; }
+  if (inv.used_at) { showToast('此邀請連結已被使用'); return; }
+  if (new Date(inv.expires_at) < new Date()) { showToast('邀請連結已過期'); return; }
+
+  window._inviteId = inviteId;
+
+  // 帶入公司名稱與統編，並鎖定欄位
+  const companyEl = document.getElementById('signup-company');
+  const bizEl     = document.getElementById('signup-business-id');
+  if (companyEl) { companyEl.value = inv.company_name; companyEl.readOnly = true; companyEl.style.background = 'var(--paper2)'; }
+  if (bizEl)     { bizEl.value = inv.business_id;      bizEl.readOnly = true;     bizEl.style.background = 'var(--paper2)'; }
+
+  // 顯示提示橫幅
+  const banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#1A7A5E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:500;z-index:999';
+  banner.textContent = `您已透過邀請連結進入：${inv.company_name}（統編 ${inv.business_id}）`;
+  document.body.prepend(banner);
+})();
+</script>
 </body>
 </html>
