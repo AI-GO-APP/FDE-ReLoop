@@ -1878,21 +1878,23 @@ function renderMatchesList() {
     const safeId = l.id.replace(/-/g,'');
     const pendingMs = ms.filter(m => m.status === 'pending');
     const allExpired = pendingMs.length > 0 && pendingMs.every(m => matchDeadline(m) < Date.now());
-    // 有 pending 就顯示按鈕；全部截止前 disabled（不可點），全部截止後才可點
-    const reNotifyBtn = pendingMs.length > 0
-      ? (!allExpired
-          ? `<button class="btn btn-ghost btn-sm" disabled style="opacity:.35;cursor:not-allowed;filter:grayscale(1)" title="截止日期未到，屆時可再次通知"><i class="ti ti-bell-off"></i> 再次通知 (${pendingMs.length})</button>`
+    const canReNotify = allExpired;
+    const reNotifyBtn = ms.length > 0
+      ? (!canReNotify
+          ? `<button class="btn btn-ghost btn-sm" disabled style="opacity:.35;cursor:not-allowed;filter:grayscale(1)" title="${pendingMs.length === 0 ? '目前無待回覆廠商' : '截止日期未到，屆時可再次通知'}"><i class="ti ti-bell-off"></i> 再次通知${pendingMs.length > 0 ? ` (${pendingMs.length})` : ''}</button>`
           : `<button class="btn btn-ghost btn-sm" onclick="reNotify('${l.id}')"><i class="ti ti-bell"></i> 再次通知 (${pendingMs.length})</button>`)
       : '';
-    const nearestDl = pendingMs.length
-      ? pendingMs.reduce((min, m) => { const t = matchDeadline(m).getTime(); return t < min ? t : min; }, Infinity)
+    // 截止日期：優先取 pending，沒有則取所有媒合中最近的
+    const dlSource = pendingMs.length ? pendingMs : ms;
+    const nearestDl = dlSource.length
+      ? dlSource.reduce((min, m) => { const t = matchDeadline(m).getTime(); return t < min ? t : min; }, Infinity)
       : null;
     let headerDlHtml = '';
     if (nearestDl && nearestDl !== Infinity) {
       const rem = nearestDl - Date.now();
-      const dlColor = rem <= 0 ? 'var(--red)' : rem < 3600000 ? 'var(--red)' : rem < 7200000 ? 'var(--amber)' : 'var(--ink3)';
+      const dlColor = rem <= 0 ? 'var(--ink4)' : rem < 3600000 ? 'var(--red)' : rem < 7200000 ? 'var(--amber)' : 'var(--ink3)';
       const dlStr = new Date(nearestDl).toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
-      headerDlHtml = `<span style="font-size:11px;color:var(--ink4)">截止日期：<span style="color:${dlColor};font-weight:600">${rem <= 0 ? '已截止' : dlStr}</span></span>`;
+      headerDlHtml = `<span style="font-size:11px;color:var(--ink4)">截止日期：<span style="color:${dlColor};font-weight:600">${dlStr}</span></span>`;
     }
     const borderColor = allMs.some(m=>m.status==='pending') ? '#f97316'
       : allMs.some(m=>m.status==='bidding') ? '#3b82f6'
