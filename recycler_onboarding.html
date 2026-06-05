@@ -1513,7 +1513,10 @@ function renderMatchList() {
     const matchStatusMap = { interested:'bidding', outbid:'outbid', rejected:'rejected' };
     filtered = allMatchesCache.filter(m => m.status === matchStatusMap[currentMatchesSubTab]);
   }
-  if (q) filtered = filtered.filter(m => (m.device_name || '').toLowerCase().includes(q));
+  if (q) filtered = filtered.filter(m =>
+    (m.category_name    || '').toLowerCase().includes(q) ||
+    (m.subcategory_name || '').toLowerCase().includes(q) ||
+    (m.device_name      || '').toLowerCase().includes(q));
 
   // 愛心追蹤偏好排序：符合 starred 偏好的媒合排在最前面
   const starredDevices = prefs.filter(p => p.isStarred).map(p => p.device);
@@ -2579,8 +2582,9 @@ function renderPrefList() {
   const q = (document.getElementById('prefs-search')?.value || '').toLowerCase();
   const displayPrefs = q
     ? prefs.filter(p =>
-        (p.device || '').toLowerCase().includes(q) ||
+        (p.l1name || '').toLowerCase().includes(q) ||
         (p.l2name || '').toLowerCase().includes(q) ||
+        (p.device || '').toLowerCase().includes(q) ||
         (p.brands || []).some(b => b.toLowerCase().includes(q)))
     : prefs;
 
@@ -2663,7 +2667,10 @@ function renderOrdersList() {
   const q = (document.getElementById('orders-search')?.value || '').toLowerCase();
   const orderMap = { pending_payment:'accepted', payment_confirmed:'payment_confirmed', received:'received' };
   let filtered = allMatchesCache.filter(m => m.status === orderMap[currentOrdersSubTab]);
-  if (q) filtered = filtered.filter(m => (m.device_name || '').toLowerCase().includes(q));
+  if (q) filtered = filtered.filter(m =>
+    (m.category_name    || '').toLowerCase().includes(q) ||
+    (m.subcategory_name || '').toLowerCase().includes(q) ||
+    (m.device_name      || '').toLowerCase().includes(q));
 
   const emptyMessages = {
     pending_payment:   ['尚無待付款訂單', '得標後請盡快完成匯款'],
