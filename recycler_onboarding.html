@@ -1813,27 +1813,14 @@ async function submitRegister() {
   const { data: signUpData, error: signUpError } = await db.auth.signUp({ email: authEmail, password: pw });
 
   if (signUpError || !signUpData.session) {
-    // Auth 帳號已存在（上次 DB 寫入失敗的孤立帳號），嘗試用相同密碼登入後補建 DB 記錄
-    const { data: signInData, error: signInError } = await db.auth.signInWithPassword({ email: authEmail, password: pw });
-    if (signInError || !signInData.session) {
-      btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
-      showToast('此統編 + 電話已有帳號，請直接登入；若為本人操作請使用相同密碼');
-      return;
-    }
-    // 登入成功，確認 DB 是否已有資料
-    const { data: existing } = await db.from('recycler_onboarding_accounts')
-      .select('id').eq('id', signInData.user.id).single();
-    if (existing) {
-      // 已完成註冊，直接帶進平台
-      currentRecyclerId = signInData.user.id;
-      subscribeMatches();
-      goScreen('screen-matches');
-      return;
-    }
-    userId = signInData.user.id;
-  } else {
-    userId = signUpData.user.id;
+    btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
+    const isAlreadyExists = signUpError?.message?.includes('User already registered')
+      || signUpError?.code === 'user_already_exists';
+    showToast(isAlreadyExists ? '統編及電話重複，已有帳號，請前往登入' : '註冊失敗，請稍後再試');
+    return;
   }
+
+  userId = signUpData.user.id;
 
   currentRecyclerId = userId;
 
@@ -1894,7 +1881,8 @@ async function onLoginBusinessIdInput(val) {
     const card = document.createElement('div');
     card.className = 'login-account-card';
     card.dataset.phone = acc.phone;
-    card.innerHTML = `<div class="lac-company">${acc.company_name}</div><div class="lac-contact">${acc.contact_name}</div>`;
+    const masked = acc.phone ? acc.phone.slice(0,4) + '****' + acc.phone.slice(-2) : '';
+    card.innerHTML = `<div class="lac-company">${acc.company_name}</div><div class="lac-contact">${acc.contact_name}　${masked}</div>`;
     card.onclick = () => {
       document.querySelectorAll('.login-account-card').forEach(c => c.classList.remove('sel'));
       card.classList.add('sel');
@@ -1963,6 +1951,18 @@ async function submitLogin() {
   }
 
   currentRecyclerId = data.user.id;
+
+  const { data: contract } = await db.from('contracts')
+    .select('id').eq('signer_id', currentRecyclerId).single();
+  if (!contract) {
+    await db.auth.signOut();
+    currentRecyclerId = null;
+    btn.disabled = false;
+    btn.innerHTML = '登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
+    showToast('此帳號尚未完成合作協議書簽署，請重新走註冊流程');
+    return;
+  }
+
   subscribeMatches();
   goScreen('screen-matches');
 }
