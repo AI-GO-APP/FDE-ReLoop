@@ -1295,6 +1295,19 @@ const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
 let currentDealerRole = 'agent'; // agent | manager | admin
 let currentDealerInfo = {};
 
+async function logActivity(action, entityType, entityId, fromValue, toValue, note) {
+  const db = getSupabase();
+  if (!db) return;
+  try {
+    await db.from('activity_logs').insert({
+      actor_name:  currentDealerInfo?.name  || null,
+      actor_role:  currentDealerInfo?.role  || currentDealerRole || null,
+      action, entity_type: entityType, entity_id: entityId,
+      from_value: fromValue || null, to_value: toValue || null, note: note || null,
+    });
+  } catch(e) { console.warn('logActivity failed', e); }
+}
+
 function getSupabase() {
   if (window._sb) return window._sb;
   if (!SUPABASE_URL || SUPABASE_URL.includes('__SUPABASE')) return null;
@@ -2193,6 +2206,7 @@ async function saveDeliverySignatures() {
   }).eq('id', _deliveryMatchId);
   btn.disabled = false;
   if (error) { showToast('儲存失敗：' + error.message); return; }
+  logActivity('delivery_contract_signed', 'match', _deliveryMatchId);
   closeDeliveryProcess();
   showToast('合約已儲存，請拍照後於系統上傳交貨照片');
   loadMatchesList();
@@ -2246,6 +2260,8 @@ async function confirmDelivery() {
   if (m?.equipment_listing_id) {
     await db.from('equipment_listings').update({ status: 'matched' }).eq('id', m.equipment_listing_id);
   }
+  logActivity('delivery_completed', 'match', _deliveryMatchId, null, 'received',
+    m ? `設備：${m.device_name}` : null);
   closeDeliveryProcess();
   showToast('交貨完成！案件已結案');
   loadMatchesList();
@@ -2277,6 +2293,8 @@ async function confirmApproveWinner() {
     if (e2) console.warn('outbid 更新失敗', x.id, e2.message);
   }
 
+  logActivity('bid_approved', 'match', _approveMatchId, null, 'accepted',
+    m ? `設備：${m.device_name}，得標商：${m.recycler_onboarding_accounts?.company_name || m.recycler_id}` : null);
   closeApproveModal();
   showToast('已核定得標，回收商將收到通知');
   loadMatchesList();
@@ -2381,6 +2399,7 @@ async function confirmPayment(matchId) {
     .update({ status: 'payment_confirmed', payment_confirmed_at: new Date().toISOString() })
     .eq('id', matchId);
   if (error) { showToast('操作失敗：' + error.message); return; }
+  logActivity('payment_confirmed', 'match', matchId, 'accepted', 'payment_confirmed');
   showToast('款項已確認，回收商可查看地址與業務資訊');
   loadPaymentsList();
   loadAllBadges();
@@ -3370,6 +3389,8 @@ async function saveCasePricing() {
   const c = casesCache.find(x => x.id === _pricingCaseId);
   if (c) Object.assign(c, payload);
   document.getElementById('modal-case-pricing').classList.remove('act');
+  logActivity('case_pricing_saved', 'case', _pricingCaseId, null,
+    isEst ? `評估總包價 ${payload.estimate_price}${payload.estimate_price_max ? '～'+payload.estimate_price_max : ''}` : `正式報價 ${payload.formal_price}`);
   showToast(isEst ? '評估總包價已記錄' : '正式報價已提出');
   renderCasesList();
 }
@@ -3377,10 +3398,12 @@ async function saveCasePricing() {
 async function advanceCaseStatus(caseId, nextStatus) {
   const db = getSupabase();
   if (!db) return;
+  const c = casesCache.find(x => x.id === caseId);
+  const prevStatus = c?.status;
   const { error } = await db.from('cases').update({ status: nextStatus }).eq('id', caseId);
   if (error) { showToast('操作失敗：' + error.message); return; }
-  const c = casesCache.find(x => x.id === caseId);
   if (c) c.status = nextStatus;
+  logActivity('case_status_changed', 'case', caseId, prevStatus, nextStatus);
   showToast('案件狀態已更新');
   renderCasesList();
 }
@@ -3560,6 +3583,7 @@ async function saveCaseSign() {
   if (error) { showToast('儲存失敗：' + error.message); return; }
   const c = casesCache.find(x => x.id === _signCaseId);
   if (c) Object.assign(c, payload);
+  logActivity('contract_signed', 'case', _signCaseId, null, isMandate ? 'mandate' : 'formal');
   closeCaseSign();
   showToast(isMandate ? '委任同意書已簽署，案件進入媒合中' : '正式合約已簽署，案件已結案');
   updateCasesTabCounts();
