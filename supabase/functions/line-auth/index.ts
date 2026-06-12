@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { code, redirect_uri } = await req.json()
+    const { code, redirect_uri, action } = await req.json()
     if (!code || !redirect_uri) {
       return new Response(JSON.stringify({ error: 'Missing code or redirect_uri' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -51,7 +51,14 @@ Deno.serve(async (req) => {
     const displayName   = profile.displayName
     const pictureUrl    = profile.pictureUrl || null
 
-    // 3. 查 recycler_onboarding_accounts 有無此 line_user_id
+    // 3. bind 模式：只回傳 LINE user_id，不需建 session
+    if (action === 'bind') {
+      return new Response(JSON.stringify({ line_user_id: lineUserId, display_name: displayName }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // 4. 查 recycler_onboarding_accounts 有無此 line_user_id
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
