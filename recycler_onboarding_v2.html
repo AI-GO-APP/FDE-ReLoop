@@ -1999,9 +1999,10 @@ async function handleLineCallback(code, state) {
       body: JSON.stringify({ code, redirect_uri: LINE_CALLBACK_URL, action }),
     });
     const data = await res.json();
+    console.log('[LINE debug] Edge Function response:', JSON.stringify(data));
 
-    if (data.error) {
-      showToast((action === 'bind' ? 'LINE 綁定失敗：' : 'LINE 登入失敗：') + data.error);
+    if (!res.ok || data.error || data.message) {
+      showToast((action === 'bind' ? 'LINE 綁定失敗：' : 'LINE 登入失敗：') + (data.error || data.message || res.status));
       goScreen(action === 'bind' ? 'screen-done' : 'screen-login');
       return;
     }
