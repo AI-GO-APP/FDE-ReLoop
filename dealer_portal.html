@@ -973,30 +973,29 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="section-label">基本資訊</div>
     <div class="field">
       <label class="field-label">設備名稱 <span style="color:var(--red)">*</span></label>
-      <input class="field-input" id="eq-device-name" type="text" placeholder="例：展示冰箱（玻璃門）">
+      <input class="field-input" id="eq-device-name" type="text" list="eq-device-list"
+        placeholder="輸入或搜尋設備名稱..." autocomplete="off">
+      <datalist id="eq-device-list"></datalist>
     </div>
     <div class="field-row">
       <div class="field">
-        <label class="field-label">分類 <span style="color:var(--red)">*</span></label>
-        <select class="field-input" id="eq-category">
-          <option value="">請選擇</option>
-          <option>冷藏冷凍設備</option>
-          <option>烹調加熱設備</option>
-          <option>飲料吧設備</option>
-          <option>清潔衛生設備</option>
-          <option>辦公店務設備</option>
-          <option>洗衣家電</option>
-          <option>桌椅類</option>
-          <option>吧台工作台</option>
-          <option>收納櫃類</option>
-          <option>食材處理設備</option>
-          <option>包裝封口</option>
-          <option>衛浴設備</option>
-          <option>水電配管</option>
-          <option>門窗隔間</option>
-          <option>廚房用具</option>
+        <label class="field-label">大分類</label>
+        <select class="field-input" id="eq-main-category" onchange="onEquipMainCatChange()">
+          <option value="">全部（不篩選）</option>
+          <option>家電類</option>
+          <option>家具類</option>
+          <option>雜項</option>
+          <option>建材類</option>
         </select>
       </div>
+      <div class="field">
+        <label class="field-label">細項 <span style="color:var(--red)">*</span></label>
+        <input class="field-input" id="eq-subcategory" type="text" list="eq-subcategory-list"
+          placeholder="搜尋細項分類..." autocomplete="off" onchange="onEquipSubCatChange()">
+        <datalist id="eq-subcategory-list"></datalist>
+      </div>
+    </div>
+    <div class="field-row">
       <div class="field">
         <label class="field-label">狀況等級 <span style="color:var(--red)">*</span></label>
         <select class="field-input" id="eq-condition">
@@ -1006,25 +1005,24 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
           <option value="C">C — 堪用</option>
         </select>
       </div>
-    </div>
-    <div class="field-row">
       <div class="field">
         <label class="field-label">品牌</label>
         <input class="field-input" id="eq-brand" type="text" placeholder="例：台灣三洋">
       </div>
-      <div class="field">
-        <label class="field-label">縣市 <span style="color:var(--red)">*</span></label>
-        <select class="field-input" id="eq-region">
-          <option value="">請選擇</option>
-          <option>台北市</option><option>新北市</option><option>桃園市</option>
-          <option>台中市</option><option>台南市</option><option>高雄市</option>
-          <option>基隆市</option><option>新竹市</option><option>嘉義市</option>
-          <option>新竹縣</option><option>苗栗縣</option><option>彰化縣</option>
-          <option>南投縣</option><option>雲林縣</option><option>嘉義縣</option>
-          <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
-          <option>台東縣</option><option>澎湖縣</option><option>金門縣</option><option>連江縣</option>
-        </select>
-      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">縣市 <span style="color:var(--red)">*</span></label>
+      <input class="field-input" id="eq-region" type="text" list="eq-region-list"
+        placeholder="輸入或搜尋縣市..." autocomplete="off">
+      <datalist id="eq-region-list">
+        <option>台北市</option><option>新北市</option><option>桃園市</option>
+        <option>台中市</option><option>台南市</option><option>高雄市</option>
+        <option>基隆市</option><option>新竹市</option><option>嘉義市</option>
+        <option>新竹縣</option><option>苗栗縣</option><option>彰化縣</option>
+        <option>南投縣</option><option>雲林縣</option><option>嘉義縣</option>
+        <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
+        <option>台東縣</option><option>澎湖縣</option><option>金門縣</option><option>連江縣</option>
+      </datalist>
     </div>
     <div class="field">
       <label class="field-label">詳細地址 <span style="color:var(--red)">*</span></label>
@@ -1811,23 +1809,28 @@ function openEquipmentForm(id) {
   if (id) {
     const e = equipmentCache.find(x => x.id === id);
     if (e) {
-      document.getElementById('eq-device-name').value = e.device_name || '';
-      document.getElementById('eq-category').value    = e.category_name || '';
-      document.getElementById('eq-condition').value   = e.condition || '';
-      document.getElementById('eq-brand').value       = e.brand || '';
-      document.getElementById('eq-region').value      = e.region || '';
-      document.getElementById('eq-address').value     = e.pickup_address || '';
-      document.getElementById('eq-width').value       = e.width_cm || '';
-      document.getElementById('eq-height').value      = e.height_cm || '';
-      document.getElementById('eq-depth').value       = e.depth_cm || '';
-      document.getElementById('eq-weight').value      = e.weight_kg || '';
-      document.getElementById('eq-note').value        = e.note || '';
+      const mainCat = MATCH_MAIN_CAT_MAP[e.category_name] || '';
+      document.getElementById('eq-device-name').value   = e.device_name || '';
+      document.getElementById('eq-main-category').value = mainCat;
+      document.getElementById('eq-subcategory').value   = e.category_name || '';
+      document.getElementById('eq-condition').value     = e.condition || '';
+      document.getElementById('eq-brand').value         = e.brand || '';
+      document.getElementById('eq-region').value        = e.region || '';
+      document.getElementById('eq-address').value       = e.pickup_address || '';
+      document.getElementById('eq-width').value         = e.width_cm || '';
+      document.getElementById('eq-height').value        = e.height_cm || '';
+      document.getElementById('eq-depth').value         = e.depth_cm || '';
+      document.getElementById('eq-weight').value        = e.weight_kg || '';
+      document.getElementById('eq-note').value          = e.note || '';
+      _buildEquipSubcatList(mainCat || null);
+      _buildEquipDeviceList(e.category_name);
       if (e.photo_urls?.length) renderExistingPhotos(e.photo_urls);
     }
   } else {
-    ['eq-device-name','eq-brand','eq-address','eq-note'].forEach(id => document.getElementById(id).value = '');
-    ['eq-category','eq-condition','eq-region'].forEach(id => document.getElementById(id).value = '');
+    ['eq-device-name','eq-brand','eq-address','eq-note','eq-subcategory','eq-region'].forEach(id => document.getElementById(id).value = '');
+    ['eq-main-category','eq-condition'].forEach(id => document.getElementById(id).value = '');
     ['eq-width','eq-height','eq-depth','eq-weight'].forEach(id => document.getElementById(id).value = '');
+    _buildEquipSubcatList(null);
   }
   document.getElementById('modal-equipment').classList.add('act');
 }
@@ -1875,15 +1878,67 @@ function closeEquipmentForm() {
   document.getElementById('modal-equipment').classList.remove('act');
 }
 
+function _buildEquipSubcatList(l1name) {
+  const subcatDl = document.getElementById('eq-subcategory-list');
+  const devDl    = document.getElementById('eq-device-list');
+  subcatDl.innerHTML = '';
+  devDl.innerHTML    = '';
+  if (l1name && EQUIP_CATS[l1name]) {
+    Object.keys(EQUIP_CATS[l1name]).forEach(sub => {
+      subcatDl.innerHTML += `<option value="${sub}">`;
+    });
+  } else {
+    // 顯示所有細項
+    Object.values(EQUIP_CATS).forEach(cat => {
+      Object.keys(cat).forEach(sub => {
+        subcatDl.innerHTML += `<option value="${sub}">`;
+      });
+    });
+    // 顯示所有設備
+    Object.values(EQUIP_CATS).forEach(cat => {
+      Object.values(cat).forEach(devs => {
+        devs.forEach(d => { devDl.innerHTML += `<option value="${d}">`; });
+      });
+    });
+  }
+}
+
+function _buildEquipDeviceList(subcatName) {
+  const devDl = document.getElementById('eq-device-list');
+  devDl.innerHTML = '';
+  if (!subcatName) return;
+  const mainCat = MATCH_MAIN_CAT_MAP[subcatName];
+  if (mainCat && EQUIP_CATS[mainCat]?.[subcatName]) {
+    EQUIP_CATS[mainCat][subcatName].forEach(d => { devDl.innerHTML += `<option value="${d}">`; });
+  }
+}
+
+function onEquipMainCatChange() {
+  const l1 = document.getElementById('eq-main-category').value;
+  document.getElementById('eq-subcategory').value = '';
+  document.getElementById('eq-device-name').value = '';
+  _buildEquipSubcatList(l1 || null);
+}
+
+function onEquipSubCatChange() {
+  const sub = document.getElementById('eq-subcategory').value;
+  const mainCat = MATCH_MAIN_CAT_MAP[sub];
+  if (mainCat && !document.getElementById('eq-main-category').value) {
+    document.getElementById('eq-main-category').value = mainCat;
+    _buildEquipSubcatList(mainCat);
+  }
+  _buildEquipDeviceList(sub);
+}
+
 async function saveEquipment() {
   const db = getSupabase();
   const errEl = document.getElementById('equipment-form-error');
   errEl.style.display = 'none';
 
   const deviceName  = document.getElementById('eq-device-name').value.trim();
-  const category    = document.getElementById('eq-category').value;
+  const category    = document.getElementById('eq-subcategory').value.trim();
   const condition   = document.getElementById('eq-condition').value;
-  const region      = document.getElementById('eq-region').value;
+  const region      = document.getElementById('eq-region').value.trim();
   const address     = document.getElementById('eq-address').value.trim();
 
   if (!deviceName || !category || !condition || !region || !address) {
@@ -2484,6 +2539,13 @@ const MATCH_MAIN_CAT_MAP = {
   '桌椅類':'家具類', '吧台工作台':'家具類', '收納櫃類':'家具類', '床寢類':'家具類',
   '廚房用具':'雜項', '餐具容器':'雜項', '包裝封口':'雜項', '攤車推車':'雜項', '食材處理設備':'雜項',
   '衛浴設備':'建材類', '水電配管':'建材類', '門窗隔間':'建材類', '地板牆面':'建材類',
+};
+
+const EQUIP_CATS = {
+  '家電類': { '冷藏冷凍設備':['營業用冰箱','展示冰箱（玻璃門）','工作台冰箱','臥式冷凍櫃','冷藏展示櫃','製冰機','蛋糕冷藏櫃'], '烹調加熱設備':['快炒爐','電磁爐','炒台','煎台','油炸爐','旋風烤箱','蒸烤箱','蒸箱','煮麵機','高湯爐'], '飲料吧設備':['半自動咖啡機','全自動咖啡機','萃茶機','封杯機','果糖機','吧台製冰機','開水機'], '食材處理設備':['攪拌機','切肉機','切菜機','絞肉機','壓麵機','豆漿機','真空包裝機'], '清潔衛生設備':['輸送帶洗碗機','掀蓋式洗碗機','抽屜式洗碗機','消毒櫃','烘碗機'], '辦公店務設備':['POS收銀主機','收銀機','液晶顯示螢幕','商用電視','分離式冷氣','窗型冷氣'], '洗衣家電':['直立式洗衣機','滾筒洗衣機','商用洗衣機','烘衣機','乾衣機'] },
+  '家具類': { '桌椅類':['餐桌','餐椅','吧台椅','折疊桌','折疊椅','辦公桌','辦公椅','會議桌','沙發','茶几'], '收納櫃類':['層架','置物架','展示架','更衣櫃','儲物櫃','鞋櫃','酒櫃'], '吧台工作台':['吧台','不鏽鋼工作台','調理台','備料台','水槽工作台'], '床寢類':['單人床架','雙人床架','加大床架','床墊','彈簧床','乳膠床墊','衣櫃'] },
+  '雜項':   { '廚房用具':['炒鍋（中式）','湯鍋','蒸籠','不鏽鋼鍋','鑄鐵鍋','油煙罩','抽油煙機'], '餐具容器':['瓷碗盤組','玻璃杯組','不鏽鋼托盤','餐盒','砧板','刀具組'], '包裝封口':['封口機','熱縮膜機','真空包裝機','標籤機'], '攤車推車':['攤車','餐車','備餐推車','手推車','貨梯推車'] },
+  '建材類': { '衛浴設備':['馬桶','洗手台','浴缸','淋浴拉門','電熱水器','瓦斯熱水器'], '門窗隔間':['鋁門','鋁窗','玻璃隔間','辦公室隔間','鐵捲門'], '地板牆面':['瓷磚','木地板','PVC塑膠地板','壁板','矽酸鈣板'], '水電配管':['LED燈具','吸頂燈','崁燈','配電箱','漏電斷路器'] },
 };
 const MATCH_MAIN_CATS = ['全部', '家電類', '家具類', '雜項', '建材類'];
 

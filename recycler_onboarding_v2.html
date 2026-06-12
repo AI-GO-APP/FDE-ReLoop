@@ -2543,10 +2543,13 @@ function closeModal() {
 
 function resetForm() {
   document.getElementById('sel-l1').value = '';
-  document.getElementById('sel-l2').innerHTML = '<option value="">請先選擇大分類</option>';
-  document.getElementById('sel-l2').disabled = true;
-  document.getElementById('sel-dev').innerHTML = '<option value="">請先選擇細項分類</option>';
-  document.getElementById('sel-dev').disabled = true;
+  document.getElementById('sel-l2-text').value    = '';
+  document.getElementById('sel-l2-text').disabled = true;
+  document.getElementById('sel-l2').value          = '';
+  document.getElementById('sel-dev').value         = '';
+  document.getElementById('sel-dev').disabled      = true;
+  document.getElementById('sel-l2-list').innerHTML = '';
+  document.getElementById('sel-dev-list').innerHTML = '';
   document.getElementById('dev-add-row').style.display = 'none';
   ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
     document.getElementById(id).style.display = 'none';
@@ -2564,10 +2567,12 @@ function loadPrefToForm(pref) {
   document.getElementById('sel-l1').value = pref.l1id;
   onL1Change();
   setTimeout(() => {
-    document.getElementById('sel-l2').value = pref.l2id;
+    document.getElementById('sel-l2').value      = pref.l2id || '';
+    document.getElementById('sel-l2-text').value = pref.l2name || '';
+    document.getElementById('sel-l2-text').disabled = !pref.l2id;
     onL2Change();
     setTimeout(() => {
-      document.getElementById('sel-dev').value = pref.device;
+      document.getElementById('sel-dev').value = pref.device || '';
       onDevChange();
       setTimeout(() => {
         document.querySelectorAll('#brand-chips .chip').forEach(c => {
@@ -2591,29 +2596,46 @@ function loadPrefToForm(pref) {
 }
 
 function onL1Change() {
-  const l1id = document.getElementById('sel-l1').value;
-  const l2sel = document.getElementById('sel-l2');
-  const devsel = document.getElementById('sel-dev');
-  l2sel.innerHTML = '<option value="">請選擇細項分類...</option>';
-  devsel.innerHTML = '<option value="">請先選擇細項分類</option>';
-  l2sel.disabled = !l1id;
-  devsel.disabled = true;
+  const l1id   = document.getElementById('sel-l1').value;
+  const l2text = document.getElementById('sel-l2-text');
+  const l2hid  = document.getElementById('sel-l2');
+  const l2list = document.getElementById('sel-l2-list');
+  const devInp = document.getElementById('sel-dev');
+  const devList = document.getElementById('sel-dev-list');
+  l2text.value  = '';
+  l2hid.value   = '';
+  l2text.disabled = !l1id;
+  devInp.value  = '';
+  devInp.disabled = true;
+  l2list.innerHTML = '';
+  devList.innerHTML = '';
   document.getElementById('dev-add-row').style.display = 'none';
   ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
   if (!l1id) return;
-  Object.entries(CATS[l1id].subs).forEach(([id, sub]) => {
-    l2sel.innerHTML += '<option value="' + id + '">' + sub.name + '</option>';
+  Object.values(CATS[l1id].subs).forEach(sub => {
+    l2list.innerHTML += `<option value="${sub.name}">`;
   });
 }
 
+function onL2TextChange() {
+  const text  = document.getElementById('sel-l2-text').value;
+  const l1id  = document.getElementById('sel-l1').value;
+  if (!l1id) return;
+  const match = Object.entries(CATS[l1id].subs).find(([, sub]) => sub.name === text);
+  document.getElementById('sel-l2').value = match ? match[0] : '';
+  if (match) onL2Change();
+}
+
 function onL2Change() {
-  const l1id = document.getElementById('sel-l1').value;
-  const l2id = document.getElementById('sel-l2').value;
-  const devsel = document.getElementById('sel-dev');
-  devsel.innerHTML = '<option value="">請選擇設備...</option>';
-  devsel.disabled = !l2id;
+  const l1id  = document.getElementById('sel-l1').value;
+  const l2id  = document.getElementById('sel-l2').value;
+  const devInp = document.getElementById('sel-dev');
+  const devList = document.getElementById('sel-dev-list');
+  devInp.value  = '';
+  devInp.disabled = !l2id;
+  devList.innerHTML = '';
   document.getElementById('dev-add-row').style.display = 'none';
   ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
     document.getElementById(id).style.display = 'none';
@@ -2621,7 +2643,7 @@ function onL2Change() {
   if (!l2id) return;
   const sub = CATS[l1id].subs[l2id];
   sub.devices.forEach(dev => {
-    devsel.innerHTML += '<option value="' + dev + '">' + dev + '</option>';
+    devList.innerHTML += `<option value="${dev}">`;
   });
   document.getElementById('dev-add-row').style.display = 'flex';
 }
@@ -3409,15 +3431,18 @@ async function forceAddNotifPref() {
         </div>
         <div class="chain-step">
           <span class="chain-label">細項</span>
-          <select class="chain-select" id="sel-l2" onchange="onL2Change()" disabled>
-            <option value="">請先選擇大分類</option>
-          </select>
+          <input class="chain-select" id="sel-l2-text" list="sel-l2-list"
+            placeholder="請先選擇大分類" disabled autocomplete="off"
+            onchange="onL2TextChange()">
+          <datalist id="sel-l2-list"></datalist>
+          <input type="hidden" id="sel-l2">
         </div>
         <div class="chain-step">
           <span class="chain-label">設備</span>
-          <select class="chain-select" id="sel-dev" onchange="onDevChange()" disabled>
-            <option value="">請先選擇細項分類</option>
-          </select>
+          <input class="chain-select" id="sel-dev" list="sel-dev-list"
+            placeholder="請先選擇細項分類" disabled autocomplete="off"
+            onchange="onDevChange()">
+          <datalist id="sel-dev-list"></datalist>
         </div>
         <div id="dev-added-hint" style="display:none;padding:5px 0 0 56px;font-size:11px;color:var(--green);display:none;align-items:center;gap:4px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="13"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
