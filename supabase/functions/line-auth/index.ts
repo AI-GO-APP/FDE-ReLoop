@@ -126,14 +126,20 @@ Deno.serve(async (req) => {
       type: 'magiclink',
       email: authUserData.user.email!,
     })
-    if (linkErr || !linkData.properties?.hashed_token) {
-      return new Response(JSON.stringify({ error: '登入 token 產生失敗：' + (linkErr?.message || '') }), {
+    if (linkErr || !linkData?.properties?.action_link) {
+      return new Response(JSON.stringify({ error: '登入 token 產生失敗：' + (linkErr?.message || JSON.stringify(linkData)) }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // 從 action_link URL 取出 token（hashed_token 欄位版本不一致，直接從 URL 解析最可靠）
+    const actionUrl  = new URL(linkData.properties.action_link)
+    const tokenValue = actionUrl.searchParams.get('token') || linkData.properties.hashed_token || ''
+    const userEmail  = authUserData.user.email!
+
     return new Response(JSON.stringify({
-      token_hash: linkData.properties.hashed_token,
+      token_hash: tokenValue,
+      email:      userEmail,
       account: {
         id:           account.id,
         company_name: account.company_name,

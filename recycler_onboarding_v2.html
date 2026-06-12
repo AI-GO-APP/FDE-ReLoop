@@ -2046,8 +2046,9 @@ async function handleLineCallback(code, state) {
 
     const db = requireSupabase();
     const { error } = await db.auth.verifyOtp({
-      token_hash: data.token_hash,
-      type: 'magiclink',
+      email:      data.email,
+      token:      data.token_hash,
+      type:       'magiclink',
     });
     if (error) { showToast('登入失敗：' + error.message); goScreen('screen-login'); return; }
 
