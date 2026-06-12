@@ -1997,9 +1997,22 @@ async function handleLineCallback(code, state) {
       const db = requireSupabase();
       const { data: { session } } = await db.auth.getSession();
       if (!session) { showToast('登入已過期，請重新登入'); goScreen('screen-login'); return; }
+      currentRecyclerId = session.user.id;
       await db.from('recycler_onboarding_accounts')
         .update({ line_user_id: data.line_user_id })
         .eq('id', session.user.id);
+      // 重新取帳號摘要（page reload 後 in-memory 值已清空）
+      const { data: acct } = await db.from('recycler_onboarding_accounts')
+        .select('company_name, business_id')
+        .eq('id', session.user.id)
+        .single();
+      if (acct) {
+        const el1 = document.getElementById('summary-company');
+        const el2 = document.getElementById('summary-business-id');
+        if (el1) el1.textContent = acct.company_name || '—';
+        if (el2) el2.textContent = acct.business_id || '—';
+      }
+      subscribeMatches();
       const bindSection = document.getElementById('line-bind-section');
       if (bindSection) bindSection.innerHTML = `<div style="text-align:center;color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> LINE 綁定成功！${data.display_name ? '（' + data.display_name + '）' : ''}</div>`;
       const lineBindEl = document.getElementById('summary-line-bind');

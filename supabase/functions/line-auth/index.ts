@@ -63,11 +63,12 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const { data: account } = await supabase
+    const { data: accounts } = await supabase
       .from('recycler_onboarding_accounts')
       .select('id, company_name, contact_name, phone')
       .eq('line_user_id', lineUserId)
-      .single()
+      .limit(5)
+    const account = accounts?.[0] ?? null
 
     if (!account) {
       // 尚未綁定帳號，需要引導到登入/註冊
