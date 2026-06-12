@@ -1998,9 +1998,10 @@ async function handleLineCallback(code, state) {
       const { data: { session } } = await db.auth.getSession();
       if (!session) { showToast('登入已過期，請重新登入'); goScreen('screen-login'); return; }
       currentRecyclerId = session.user.id;
-      await db.from('recycler_onboarding_accounts')
+      const { error: bindErr } = await db.from('recycler_onboarding_accounts')
         .update({ line_user_id: data.line_user_id })
         .eq('id', session.user.id);
+      if (bindErr) { showToast('LINE 綁定寫入失敗：' + bindErr.message); goScreen('screen-login'); return; }
       // 重新取帳號摘要（page reload 後 in-memory 值已清空）
       const { data: acct } = await db.from('recycler_onboarding_accounts')
         .select('company_name, business_id')
