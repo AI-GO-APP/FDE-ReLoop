@@ -489,6 +489,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
     </div>
     <div class="main-body">
+      <input class="field-input" id="cases-search" type="text" placeholder="搜尋客戶名稱 / 負責業務" style="margin-bottom:12px" oninput="casesPage=1;renderCasesList()">
       <div id="cases-loading" style="text-align:center;padding:40px;color:var(--ink4);font-size:13px">載入中...</div>
       <div id="cases-list"></div>
     </div>
@@ -938,6 +939,19 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="modal-close" onclick="document.getElementById('modal-recycler-detail').classList.remove('act')"><i class="ti ti-x"></i></button>
     </div>
     <div id="recycler-detail-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     Modal：客戶詳情
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-client-detail">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <div class="modal-title" id="client-detail-title">客戶詳情</div>
+      <button class="modal-close" onclick="document.getElementById('modal-client-detail').classList.remove('act')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="client-detail-content"></div>
   </div>
 </div>
 
@@ -3010,23 +3024,17 @@ function renderClientsList() {
   el.innerHTML = `<table class="data-table">
     <thead><tr><th>公司名稱</th><th>統編</th><th>聯絡人</th><th>電話</th><th>地址</th><th>建立日期</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${paged.items.map(c => `<tr>
-      <td style="font-weight:600">${c.company_name||'—'}</td>
+      <td style="font-weight:600;color:var(--green);cursor:pointer" onclick="openClientDetail('${c.id}')">${c.company_name||'—'}</td>
       <td style="font-size:12px;color:var(--ink3)">${c.business_id||'—'}</td>
       <td>${c.contact_name||'—'}</td>
       <td>${c.contact_phone||'—'}</td>
-      <td>${c.contact_line_id||'—'}</td>
       <td style="font-size:12px;color:var(--ink3)">${c.address||'—'}</td>
       <td style="font-size:12px;color:var(--ink3)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</td>
       <td><div class="td-actions">
-        <button class="btn btn-ghost btn-sm" onclick="toggleClientCases('${c.id}', this)"><i class="ti ti-list"></i> 案件</button>
+        <button class="btn btn-ghost btn-sm" onclick="openClientDetail('${c.id}')"><i class="ti ti-eye"></i> 詳情</button>
         <button class="btn btn-ghost btn-sm" onclick="openCreateCase('${c.id}')"><i class="ti ti-plus"></i> 新增案件</button>
         <button class="btn btn-ghost btn-sm" onclick="openEditClient('${c.id}')"><i class="ti ti-pencil"></i> 編輯</button>
       </div></td>
-    </tr>
-    <tr class="client-cases-row" id="client-cases-${c.id}" style="display:none">
-      <td colspan="8" style="padding:0;background:var(--surface2)">
-        <div style="padding:12px 16px" id="client-cases-content-${c.id}">載入中…</div>
-      </td>
     </tr>`).join('')}
     </tbody></table>
     ${paginationHTML(paged, PAGE_SIZE, 'setClientsPage')}`;
@@ -3034,52 +3042,62 @@ function renderClientsList() {
 
 function setClientsPage(p) { clientsPage = p; renderClientsList(); }
 
-async function toggleClientCases(clientId, btn) {
-  const row = document.getElementById(`client-cases-${clientId}`);
-  if (!row) return;
-  const isOpen = row.style.display !== 'none';
-  if (isOpen) {
-    row.style.display = 'none';
-    btn.innerHTML = '<i class="ti ti-list"></i> 案件';
-    return;
-  }
-  row.style.display = '';
-  btn.innerHTML = '<i class="ti ti-list"></i> 收起';
-  const content = document.getElementById(`client-cases-content-${clientId}`);
-  content.textContent = '載入中…';
+async function openClientDetail(id) {
   const db = getSupabase();
-  if (!db) { content.textContent = '無法連線'; return; }
+  const c = clientsCache.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('client-detail-title').textContent = c.company_name || '客戶詳情';
+  document.getElementById('client-detail-content').innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink4)">載入中...</div>';
+  document.getElementById('modal-client-detail').classList.add('act');
+
   const { data: cases } = await db.from('cases')
-    .select('id, status, created_at, note, estimate_price_min, estimate_price_max')
-    .eq('client_id', clientId)
-    .order('created_at', { ascending: false });
-  if (!cases || cases.length === 0) {
-    content.innerHTML = '<span style="color:var(--ink4);font-size:13px">尚無案件</span>';
-    return;
-  }
-  content.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
-    <thead><tr style="color:var(--ink3)">
-      <th style="text-align:left;padding:4px 8px;font-weight:500">案件編號</th>
-      <th style="text-align:left;padding:4px 8px;font-weight:500">狀態</th>
-      <th style="text-align:left;padding:4px 8px;font-weight:500">估價範圍</th>
-      <th style="text-align:left;padding:4px 8px;font-weight:500">建立日期</th>
-      <th style="text-align:left;padding:4px 8px;font-weight:500">備註</th>
-    </tr></thead>
-    <tbody>${cases.map(c => {
-      const color = CASE_STATUS_COLORS[c.status] || '#94a3b8';
-      const label = CASE_STATUS_LABELS[c.status] || c.status;
-      const price = c.estimate_price_min
-        ? `NT$ ${Number(c.estimate_price_min).toLocaleString()}${c.estimate_price_max ? ' ~ ' + Number(c.estimate_price_max).toLocaleString() : ''}`
-        : '—';
-      return `<tr style="border-top:1px solid var(--border)">
-        <td style="padding:6px 8px;font-family:monospace;font-size:12px">${c.id.slice(0,8).toUpperCase()}</td>
-        <td style="padding:6px 8px"><span style="background:${color}22;color:${color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600">${label}</span></td>
-        <td style="padding:6px 8px">${price}</td>
-        <td style="padding:6px 8px;color:var(--ink3)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</td>
-        <td style="padding:6px 8px;color:var(--ink3)">${c.note||'—'}</td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table>`;
+    .select('id, status, created_at, note, estimate_price, estimate_price_max, assigned_agent:dealer_accounts!cases_assigned_agent_id_fkey(name)')
+    .eq('client_id', id)
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  const casesHtml = !cases || cases.length === 0
+    ? '<div style="font-size:13px;color:var(--ink4)">尚無案件記錄</div>'
+    : `<table class="data-table">
+        <thead><tr><th>案件編號</th><th>狀態</th><th>負責業務</th><th>估價</th><th>建立日期</th></tr></thead>
+        <tbody>${cases.map(cs => {
+          const color = CASE_STATUS_COLORS[cs.status] || '#94a3b8';
+          const label = CASE_STATUS_LABELS[cs.status] || cs.status;
+          const price = cs.estimate_price ? `$${Number(cs.estimate_price).toLocaleString()}${cs.estimate_price_max ? '～$'+Number(cs.estimate_price_max).toLocaleString() : ''}` : '—';
+          return `<tr>
+            <td style="font-family:monospace;font-size:12px">${cs.id.slice(0,8).toUpperCase()}</td>
+            <td><span style="background:${color}22;color:${color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600">${label}</span></td>
+            <td style="font-size:12px">${cs.assigned_agent?.name||'—'}</td>
+            <td style="font-size:12px">${price}</td>
+            <td style="font-size:12px;color:var(--ink3)">${new Date(cs.created_at).toLocaleDateString('zh-TW')}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+
+  document.getElementById('client-detail-content').innerHTML = `
+    <div class="section-label">基本資料</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px">
+      <div><span style="color:var(--ink3)">統一編號：</span><b>${c.business_id||'—'}</b></div>
+      <div><span style="color:var(--ink3)">產業：</span>${c.industry||'—'}</div>
+      <div><span style="color:var(--ink3)">聯絡人：</span>${c.contact_name||'—'}</div>
+      <div><span style="color:var(--ink3)">電話：</span>${c.contact_phone||'—'}</div>
+      <div><span style="color:var(--ink3)">地址：</span>${c.address||'—'}</div>
+      <div><span style="color:var(--ink3)">建立日期：</span>${new Date(c.created_at).toLocaleDateString('zh-TW')}</div>
+      ${c.note ? `<div style="grid-column:1/-1"><span style="color:var(--ink3)">備註：</span>${c.note}</div>` : ''}
+    </div>
+    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between">
+      <span>最近案件記錄（近 10 筆）</span>
+      <button class="btn btn-ghost btn-sm" onclick="viewAllClientCases('${c.company_name||''}')">查看全部 →</button>
+    </div>
+    ${casesHtml}`;
+}
+
+function viewAllClientCases(companyName) {
+  document.getElementById('modal-client-detail').classList.remove('act');
+  const searchEl = document.getElementById('cases-search');
+  if (searchEl) searchEl.value = companyName;
+  casesPage = 1;
+  goScreen('screen-cases');
 }
 
 function _resetClientForm() {
@@ -3191,7 +3209,7 @@ async function loadCasesList() {
   document.getElementById('cases-list').innerHTML = '';
   if (!db) { document.getElementById('cases-loading').style.display = 'none'; return; }
   const { data: cases } = await db.from('cases')
-    .select('*, clients(company_name,contact_name,contact_phone,address)')
+    .select('*, clients(company_name,contact_name,contact_phone,address), assigned_agent:dealer_accounts!cases_assigned_agent_id_fkey(name)')
     .order('created_at', { ascending: false });
   casesCache = cases || [];
   document.getElementById('cases-loading').style.display = 'none';
@@ -3226,6 +3244,11 @@ function renderCasesList() {
   if (currentCasesFilter === 'active') list = list.filter(c => !['completed','cancelled'].includes(c.status));
   else if (currentCasesFilter === 'completed') list = list.filter(c => c.status === 'completed');
   else if (currentCasesFilter === 'cancelled') list = list.filter(c => c.status === 'cancelled');
+  const q = (document.getElementById('cases-search')?.value || '').toLowerCase().trim();
+  if (q) list = list.filter(c =>
+    (c.clients?.company_name||'').toLowerCase().includes(q) ||
+    (c.assigned_agent?.name||'').toLowerCase().includes(q)
+  );
 
   if (list.length === 0) {
     el.innerHTML = '<div class="empty-state"><i class="ti ti-folder-open"></i><p>沒有符合的案件</p></div>';
@@ -3259,6 +3282,7 @@ function renderCasesList() {
           <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;background:${color}22;color:${color}">${label}</span>
         </div>
         <div style="display:flex;gap:12px;align-items:center">
+          ${c.assigned_agent?.name ? `<span style="font-size:11px;color:var(--ink3)">負責業務：${c.assigned_agent.name}</span>` : ''}
           <span style="font-size:11px;color:var(--ink4)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</span>
           <i id="cc-chevron-${safeId}" class="ti ti-chevron-down" style="font-size:16px;color:var(--ink4);transition:transform .2s"></i>
         </div>
