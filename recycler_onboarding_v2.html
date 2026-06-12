@@ -694,6 +694,16 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存基本資料
       </button>
 
+      <!-- LINE 綁定 -->
+      <div style="margin-top:20px;padding:16px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0">
+        <div style="font-size:13px;font-weight:600;color:#276749;margin-bottom:8px"><i class="ti ti-brand-line"></i> LINE 帳號綁定</div>
+        <div id="profile-line-status" style="font-size:13px;color:var(--ink4);margin-bottom:10px">載入中…</div>
+        <button id="profile-line-bind-btn" onclick="handleLineBindFromProfile()" class="btn btn-ghost btn-sm" style="background:#06C755;color:#fff;border:none;display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="margin-right:4px"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          綁定 LINE
+        </button>
+      </div>
+
       <div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--paper3)">
         <button class="btn-main btn-outline" onclick="signOut()" style="color:var(--ink3)">
           <i class="ti ti-logout" style="font-size:15px"></i>登出
@@ -858,10 +868,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="done-wrap">
       <div class="done-icon"><i class="ti ti-circle-check"></i></div>
       <div class="done-title">歡迎加入 ReLoop！</div>
-      <div class="done-sub">
-        您的帳號已建立完成，偏好設定已儲存。<br>
-        現在可以開始瀏覽設備案子並出價了。
-      </div>
+      <div class="done-sub">您的帳號已建立完成！</div>
       <div class="done-summary">
         <div class="done-summary-title">帳號摘要</div>
         <div class="done-row">
@@ -872,31 +879,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
           <span class="done-key">統一編號</span>
           <span class="done-val" id="summary-business-id">—</span>
         </div>
-        <div class="done-row">
-          <span class="done-key">LINE 綁定</span>
-          <span class="done-val" id="summary-line-bind" style="color:var(--ink4)">未綁定</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">服務地區</span>
-          <span class="done-val" id="summary-cities">—</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">設備類型</span>
-          <span class="done-val" id="summary-cats">—</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">接受狀況</span>
-          <span class="done-val" id="summary-conds">—</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">Email 通知</span>
-          <span class="done-val" id="summary-notify">已開啟</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">LINE 通知</span>
-          <span class="done-val" style="color:var(--ink4)">登入後設定</span>
-        </div>
       </div>
+      <span id="summary-line-bind" style="display:none">未綁定</span>
       <!-- LINE 綁定區塊 -->
       <div id="line-bind-section" style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;text-align:center">
         <div style="font-size:14px;font-weight:600;color:#276749;margin-bottom:6px">綁定 LINE 帳號</div>
@@ -1960,6 +1944,11 @@ function handleLineLogin() {
   window.location.href = `https://access.line.me/oauth2/v2.1/authorize?${params}`;
 }
 
+function handleLineBindFromProfile() {
+  sessionStorage.setItem('line_bind_return', 'screen-profile');
+  handleLineBindStart();
+}
+
 function handleLineBindStart() {
   const state = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   sessionStorage.setItem('line_state', state);
@@ -2011,14 +2000,18 @@ async function handleLineCallback(code, state) {
       await db.from('recycler_onboarding_accounts')
         .update({ line_user_id: data.line_user_id })
         .eq('id', session.user.id);
-      // 更新畫面
       const bindSection = document.getElementById('line-bind-section');
       if (bindSection) bindSection.innerHTML = `<div style="text-align:center;color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> LINE 綁定成功！${data.display_name ? '（' + data.display_name + '）' : ''}</div>`;
-      document.getElementById('summary-line-bind').textContent = data.display_name || '已綁定';
-      document.getElementById('summary-line-bind').style.color = '#276749';
-      document.getElementById('btn-go-platform').style.display = '';
+      const lineBindEl = document.getElementById('summary-line-bind');
+      if (lineBindEl) { lineBindEl.textContent = data.display_name || '已綁定'; lineBindEl.style.color = '#276749'; }
+      const goPlatformBtn = document.getElementById('btn-go-platform');
+      if (goPlatformBtn) goPlatformBtn.style.display = '';
+      const profileLineEl = document.getElementById('profile-line-status');
+      if (profileLineEl) profileLineEl.innerHTML = `<span style="color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> 已綁定${data.display_name ? '（' + data.display_name + '）' : ''}</span>`;
       showToast('LINE 綁定成功！之後可直接用 LINE 登入');
-      goScreen('screen-done');
+      const returnScreen = sessionStorage.getItem('line_bind_return') || 'screen-done';
+      sessionStorage.removeItem('line_bind_return');
+      goScreen(returnScreen);
       return;
     }
 
@@ -2376,6 +2369,18 @@ async function loadProfileFromDb() {
   document.getElementById('reg-name').value          = data.contact_name || '';
   document.getElementById('reg-phone').value         = data.phone || '';
   document.getElementById('reg-business-id').value   = data.business_id || '';
+  // LINE 綁定狀態
+  const lineStatusEl = document.getElementById('profile-line-status');
+  const lineBindBtn  = document.getElementById('profile-line-bind-btn');
+  if (lineStatusEl && lineBindBtn) {
+    if (data.line_user_id) {
+      lineStatusEl.innerHTML = `<span style="color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> 已綁定</span>`;
+      lineBindBtn.style.display = 'none';
+    } else {
+      lineStatusEl.textContent = '尚未綁定，綁定後可直接用 LINE 登入';
+      lineBindBtn.style.display = '';
+    }
+  }
   const areas = data.service_areas || [];
   document.querySelectorAll('#service-area-chips .chip').forEach(chip => {
     chip.classList.toggle('sel', areas.includes(chip.textContent));
