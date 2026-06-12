@@ -2020,9 +2020,11 @@ async function saveEquipment() {
 // 媒合推薦名單
 // ════════════════════════════════════════════
 let currentNotifyEquipmentId = null;
+let currentNotifyMatches = []; // 暫存符合條件的回收商
 
 async function openMatchListModal(equipmentId) {
   currentNotifyEquipmentId = equipmentId;
+  currentNotifyMatches = [];
   const eq = equipmentCache.find(e => e.id === equipmentId);
   document.getElementById('match-list-title').textContent = `推薦名單：${eq?.device_name || ''}`;
   document.getElementById('match-list-content').innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink4)">查詢中...</div>';
@@ -2031,10 +2033,10 @@ async function openMatchListModal(equipmentId) {
   const db = getSupabase();
   if (!db) { document.getElementById('match-list-content').innerHTML = '<div class="empty-state"><i class="ti ti-database-off"></i><p>請連接 Supabase</p></div>'; return; }
 
-  // 找符合條件的回收商
+  // 找符合條件的回收商（含 line_user_id 供通知用）
   const { data: prefs } = await db
     .from('recycler_onboarding_preferences')
-    .select('*, recycler_onboarding_accounts(company_name, contact_name, service_areas)')
+    .select('*, recycler_onboarding_accounts(id, company_name, contact_name, service_areas, line_user_id)')
     .eq('subcategory_name', eq.category_name);
 
   const matched = (prefs || []).filter(p => {
@@ -2043,6 +2045,8 @@ async function openMatchListModal(equipmentId) {
     if (!eq.condition) return true;
     return (p.accepted_conditions?.[eq.condition.toLowerCase()] === true);
   });
+
+  currentNotifyMatches = matched;
 
   if (matched.length === 0) {
     document.getElementById('match-list-content').innerHTML = '<div class="empty-state"><i class="ti ti-user-off"></i><p>目前沒有符合條件的回收商</p></div>';
@@ -2053,13 +2057,14 @@ async function openMatchListModal(equipmentId) {
   document.getElementById('confirm-notify-btn').disabled = false;
   document.getElementById('match-list-content').innerHTML = `
     <table class="data-table">
-      <thead><tr><th>公司名稱</th><th>聯絡人</th><th>服務地區</th><th>偏好分類</th></tr></thead>
+      <thead><tr><th>公司名稱</th><th>聯絡人</th><th>服務地區</th><th>偏好分類</th><th>LINE</th></tr></thead>
       <tbody>${matched.map(p => `
         <tr>
           <td style="font-weight:600">${p.recycler_onboarding_accounts?.company_name || '—'}</td>
           <td>${p.recycler_onboarding_accounts?.contact_name || '—'}</td>
           <td>${(p.recycler_onboarding_accounts?.service_areas || []).join('、')}</td>
           <td>${p.subcategory_name}</td>
+          <td>${p.recycler_onboarding_accounts?.line_user_id ? '✓' : '—'}</td>
         </tr>`).join('')}
       </tbody>
     </table>`;
@@ -2077,19 +2082,63 @@ async function confirmAndNotify() {
   btn.disabled = true;
   btn.textContent = '送出中...';
 
+  // 1. 更新設備狀態為 active
   const { error } = await db.from('equipment_listings')
     .update({ status: 'active' }).eq('id', currentNotifyEquipmentId);
+  if (error) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send"></i> 確認送出通知';
+    showToast('送出失敗：' + error.message);
+    return;
+  }
+
+  const eq = equipmentCache.find(e => e.id === currentNotifyEquipmentId);
+
+  // 2. 對每位符合條件的回收商：建立 recycler_matches 並發送 LINE 通知
+  const uniqueRecyclers = new Map();
+  for (const p of currentNotifyMatches) {
+    const acct = p.recycler_onboarding_accounts;
+    if (!acct?.id || uniqueRecyclers.has(acct.id)) continue;
+    uniqueRecyclers.set(acct.id, acct);
+  }
+
+  for (const [recyclerId, acct] of uniqueRecyclers) {
+    // 建立媒合記錄
+    await db.from('recycler_matches').upsert({
+      recycler_id:           recyclerId,
+      equipment_listing_id:  currentNotifyEquipmentId,
+      device_name:           eq?.device_name || '',
+      category_name:         eq?.category_name || '',
+      subcategory_name:      eq?.category_name || '',
+      condition:             eq?.condition || '',
+      brand:                 eq?.brand || null,
+      region:                eq?.region || '',
+      pickup_address:        eq?.pickup_address || '',
+      width_cm:              eq?.width_cm || null,
+      height_cm:             eq?.height_cm || null,
+      depth_cm:              eq?.depth_cm || null,
+      weight_kg:             eq?.weight_kg || null,
+      note:                  eq?.note || null,
+      photo_urls:            eq?.photo_urls || [],
+      status:                'pending',
+    }, { onConflict: 'recycler_id,equipment_listing_id' });
+
+    // 發送 LINE 通知
+    if (acct.line_user_id) {
+      sendLineNotify(acct.line_user_id,
+        `【FDE ReLoop】新設備媒合通知！\n設備：${eq?.device_name || ''}\n地區：${eq?.region || ''}\n狀況：${eq?.condition || ''}\n請登入平台查看詳情。`
+      );
+    }
+  }
 
   btn.disabled = false;
   btn.innerHTML = '<i class="ti ti-send"></i> 確認送出通知';
 
-  if (error) { showToast('送出失敗：' + error.message); return; }
-
-  const eq = equipmentCache.find(e => e.id === currentNotifyEquipmentId);
   if (eq) eq.status = 'active';
   closeMatchList();
-  showToast('通知已送出，回收商將收到媒合通知');
+  showToast(`通知已送出（${uniqueRecyclers.size} 位回收商）`);
   renderEquipmentList();
+  loadAllBadges();
 }
 
 // ════════════════════════════════════════════

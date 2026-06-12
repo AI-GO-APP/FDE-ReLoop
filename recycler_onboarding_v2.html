@@ -2052,7 +2052,9 @@ async function handleLineCallback(code, state) {
     });
     if (error) { showToast('登入失敗：' + error.message); goScreen('screen-login'); return; }
 
-    currentRecyclerId = data.account.id;
+    // 從實際 session 取 user.id 確保與 auth.uid() 完全一致
+    const { data: { session: lineSession } } = await db.auth.getSession();
+    currentRecyclerId = lineSession?.user?.id || data.account.id;
     showToast('LINE 登入成功！');
     subscribeMatches();
     goScreen('screen-matches');
