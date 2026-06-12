@@ -535,7 +535,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <label class="field-label">LINE ID</label>
         <input class="field-input" id="client-line" type="text" placeholder="LINE ID">
       </div>
-      <div class="field"></div>
+      <div class="field">
+        <label class="field-label">負責業務</label>
+        <select class="field-input" id="client-agent">
+          <option value="">（未指定）</option>
+        </select>
+      </div>
     </div>
     <div class="field">
       <label class="field-label">地址</label>
@@ -3000,7 +3005,7 @@ async function loadClientsList() {
   document.getElementById('clients-loading').style.display = 'block';
   document.getElementById('clients-list').innerHTML = '';
   if (!db) { document.getElementById('clients-loading').style.display = 'none'; return; }
-  const { data } = await db.from('clients').select('*').order('created_at', { ascending: false });
+  const { data } = await db.from('clients').select('*, assigned_agent:dealer_accounts!clients_assigned_agent_id_fkey(name)').order('created_at', { ascending: false });
   clientsCache = data || [];
   document.getElementById('clients-loading').style.display = 'none';
   renderClientsList();
@@ -3022,13 +3027,13 @@ function renderClientsList() {
   }
   const paged = paginateList(list, clientsPage, PAGE_SIZE);
   el.innerHTML = `<table class="data-table">
-    <thead><tr><th>公司名稱</th><th>統編</th><th>聯絡人</th><th>電話</th><th>地址</th><th>建立日期</th><th style="text-align:right">操作</th></tr></thead>
+    <thead><tr><th>公司名稱</th><th>統編</th><th>聯絡人</th><th>電話</th><th>負責業務</th><th>建立日期</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${paged.items.map(c => `<tr>
       <td style="font-weight:600;color:var(--green);cursor:pointer" onclick="openClientDetail('${c.id}')">${c.company_name||'—'}</td>
       <td style="font-size:12px;color:var(--ink3)">${c.business_id||'—'}</td>
       <td>${c.contact_name||'—'}</td>
       <td>${c.contact_phone||'—'}</td>
-      <td style="font-size:12px;color:var(--ink3)">${c.address||'—'}</td>
+      <td style="font-size:12px">${c.assigned_agent?.name||'—'}</td>
       <td style="font-size:12px;color:var(--ink3)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="openClientDetail('${c.id}')"><i class="ti ti-eye"></i> 詳情</button>
@@ -3100,12 +3105,21 @@ function viewAllClientCases(companyName) {
   goScreen('screen-cases');
 }
 
+function _populateClientAgentDropdown(selectedId = '') {
+  const sel = document.getElementById('client-agent');
+  if (!sel) return;
+  const approved = staffCache.filter(s => s.status === 'approved');
+  sel.innerHTML = '<option value="">（未指定）</option>' +
+    approved.map(s => `<option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${s.name || s.email}</option>`).join('');
+}
+
 function _resetClientForm() {
   ['client-company','client-business-id','client-industry','client-contact','client-phone','client-line','client-address','client-note'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   document.getElementById('client-business-id-required').style.display = 'none';
   document.getElementById('client-form-error').style.display = 'none';
+  _populateClientAgentDropdown();
 }
 
 function openCreateClient() {
@@ -3129,6 +3143,7 @@ function openEditClient(id) {
   document.getElementById('client-line').value         = c.contact_line_id || '';
   document.getElementById('client-address').value      = c.address         || '';
   document.getElementById('client-note').value         = c.note            || '';
+  _populateClientAgentDropdown(c.assigned_agent_id || '');
   if (c.company_name) document.getElementById('client-business-id-required').style.display = 'inline';
   document.getElementById('modal-client-form').classList.add('act');
 }
@@ -3148,14 +3163,15 @@ async function saveClient() {
   const contact_phone   = document.getElementById('client-phone').value.trim();
   const contact_line_id = document.getElementById('client-line').value.trim();
   const address         = document.getElementById('client-address').value.trim();
-  const note            = document.getElementById('client-note').value.trim();
+  const note              = document.getElementById('client-note').value.trim();
+  const assigned_agent_id = document.getElementById('client-agent').value || null;
   const errEl = document.getElementById('client-form-error');
   errEl.style.display = 'none';
   if (company_name && !business_id) { errEl.textContent = '填寫公司名稱時，統編為必填'; errEl.style.display = 'block'; return; }
   if (!company_name && !contact_name) { errEl.textContent = '請至少填寫公司名稱或聯絡人'; errEl.style.display = 'block'; return; }
   const btn = document.getElementById('client-form-save-btn');
   btn.disabled = true;
-  const payload = { company_name: company_name||null, business_id: business_id||null, industry: industry||null, contact_name: contact_name||null, contact_phone: contact_phone||null, contact_line_id: contact_line_id||null, address: address||null, note: note||null };
+  const payload = { company_name: company_name||null, business_id: business_id||null, industry: industry||null, contact_name: contact_name||null, contact_phone: contact_phone||null, contact_line_id: contact_line_id||null, address: address||null, note: note||null, assigned_agent_id };
   let error;
   if (_editClientId) {
     ({ error } = await db.from('clients').update(payload).eq('id', _editClientId));
