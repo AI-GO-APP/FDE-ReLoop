@@ -3018,15 +3018,69 @@ function renderClientsList() {
       <td style="font-size:12px;color:var(--ink3)">${c.address||'—'}</td>
       <td style="font-size:12px;color:var(--ink3)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</td>
       <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="toggleClientCases('${c.id}', this)"><i class="ti ti-list"></i> 案件</button>
         <button class="btn btn-ghost btn-sm" onclick="openCreateCase('${c.id}')"><i class="ti ti-plus"></i> 新增案件</button>
         <button class="btn btn-ghost btn-sm" onclick="openEditClient('${c.id}')"><i class="ti ti-pencil"></i> 編輯</button>
       </div></td>
+    </tr>
+    <tr class="client-cases-row" id="client-cases-${c.id}" style="display:none">
+      <td colspan="8" style="padding:0;background:var(--surface2)">
+        <div style="padding:12px 16px" id="client-cases-content-${c.id}">載入中…</div>
+      </td>
     </tr>`).join('')}
     </tbody></table>
     ${paginationHTML(paged, PAGE_SIZE, 'setClientsPage')}`;
 }
 
 function setClientsPage(p) { clientsPage = p; renderClientsList(); }
+
+async function toggleClientCases(clientId, btn) {
+  const row = document.getElementById(`client-cases-${clientId}`);
+  if (!row) return;
+  const isOpen = row.style.display !== 'none';
+  if (isOpen) {
+    row.style.display = 'none';
+    btn.innerHTML = '<i class="ti ti-list"></i> 案件';
+    return;
+  }
+  row.style.display = '';
+  btn.innerHTML = '<i class="ti ti-list"></i> 收起';
+  const content = document.getElementById(`client-cases-content-${clientId}`);
+  content.textContent = '載入中…';
+  const db = getSupabase();
+  if (!db) { content.textContent = '無法連線'; return; }
+  const { data: cases } = await db.from('cases')
+    .select('id, status, created_at, note, estimate_price_min, estimate_price_max')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false });
+  if (!cases || cases.length === 0) {
+    content.innerHTML = '<span style="color:var(--ink4);font-size:13px">尚無案件</span>';
+    return;
+  }
+  content.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="color:var(--ink3)">
+      <th style="text-align:left;padding:4px 8px;font-weight:500">案件編號</th>
+      <th style="text-align:left;padding:4px 8px;font-weight:500">狀態</th>
+      <th style="text-align:left;padding:4px 8px;font-weight:500">估價範圍</th>
+      <th style="text-align:left;padding:4px 8px;font-weight:500">建立日期</th>
+      <th style="text-align:left;padding:4px 8px;font-weight:500">備註</th>
+    </tr></thead>
+    <tbody>${cases.map(c => {
+      const color = CASE_STATUS_COLORS[c.status] || '#94a3b8';
+      const label = CASE_STATUS_LABELS[c.status] || c.status;
+      const price = c.estimate_price_min
+        ? `NT$ ${Number(c.estimate_price_min).toLocaleString()}${c.estimate_price_max ? ' ~ ' + Number(c.estimate_price_max).toLocaleString() : ''}`
+        : '—';
+      return `<tr style="border-top:1px solid var(--border)">
+        <td style="padding:6px 8px;font-family:monospace;font-size:12px">${c.id.slice(0,8).toUpperCase()}</td>
+        <td style="padding:6px 8px"><span style="background:${color}22;color:${color};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600">${label}</span></td>
+        <td style="padding:6px 8px">${price}</td>
+        <td style="padding:6px 8px;color:var(--ink3)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</td>
+        <td style="padding:6px 8px;color:var(--ink3)">${c.note||'—'}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
 
 function _resetClientForm() {
   ['client-company','client-business-id','client-industry','client-contact','client-phone','client-line','client-address','client-note'].forEach(id => {
