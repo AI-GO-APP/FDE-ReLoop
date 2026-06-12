@@ -1308,6 +1308,21 @@ async function logActivity(action, entityType, entityId, fromValue, toValue, not
   } catch(e) { console.warn('logActivity failed', e); }
 }
 
+async function sendLineNotify(lineUserId, message) {
+  if (!lineUserId || !SUPABASE_URL || SUPABASE_URL.includes('__SUPABASE')) return;
+  try {
+    await fetch(`${SUPABASE_URL}/functions/v1/line-notify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ to: lineUserId, message }),
+    });
+  } catch(e) { console.warn('sendLineNotify failed', e); }
+}
+
 function getSupabase() {
   if (window._sb) return window._sb;
   if (!SUPABASE_URL || SUPABASE_URL.includes('__SUPABASE')) return null;
@@ -2262,6 +2277,8 @@ async function confirmDelivery() {
   }
   logActivity('delivery_completed', 'match', _deliveryMatchId, null, 'received',
     m ? `設備：${m.device_name}` : null);
+  sendLineNotify(m?.recycler_onboarding_accounts?.line_user_id,
+    `【FDE ReLoop】交付完成！\n設備：${m?.device_name || ''}\n本次媒合已結案，感謝您的配合。`);
   closeDeliveryProcess();
   showToast('交貨完成！案件已結案');
   loadMatchesList();
@@ -2295,6 +2312,8 @@ async function confirmApproveWinner() {
 
   logActivity('bid_approved', 'match', _approveMatchId, null, 'accepted',
     m ? `設備：${m.device_name}，得標商：${m.recycler_onboarding_accounts?.company_name || m.recycler_id}` : null);
+  sendLineNotify(m?.recycler_onboarding_accounts?.line_user_id,
+    `【FDE ReLoop】您的報價已獲選！\n設備：${m?.device_name || ''}\n請登入平台確認媒合詳情。`);
   closeApproveModal();
   showToast('已核定得標，回收商將收到通知');
   loadMatchesList();
@@ -2325,7 +2344,7 @@ async function loadPaymentsList() {
 
   const { data } = await db
     .from('recycler_matches')
-    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone)')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone, line_user_id)')
     .in('status', ['accepted','payment_confirmed','received'])
     .order('created_at', { ascending: false });
 
@@ -2400,6 +2419,9 @@ async function confirmPayment(matchId) {
     .eq('id', matchId);
   if (error) { showToast('操作失敗：' + error.message); return; }
   logActivity('payment_confirmed', 'match', matchId, 'accepted', 'payment_confirmed');
+  const _pm = paymentsCache.find(x => x.id === matchId);
+  sendLineNotify(_pm?.recycler_onboarding_accounts?.line_user_id,
+    `【FDE ReLoop】款項已確認！\n請登入平台查看取貨地址與業務聯絡資訊。`);
   showToast('款項已確認，回收商可查看地址與業務資訊');
   loadPaymentsList();
   loadAllBadges();
@@ -2466,7 +2488,7 @@ async function loadMatchesList() {
 
   const { data: matches } = await db
     .from('recycler_matches')
-    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone)')
+    .select('*, recycler_onboarding_accounts(company_name, contact_name, phone, line_user_id)')
     .in('equipment_listing_id', listings.map(l => l.id));
 
   document.getElementById('matches-loading').style.display = 'none';
