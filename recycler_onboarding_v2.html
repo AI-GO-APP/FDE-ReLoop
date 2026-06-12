@@ -2174,7 +2174,21 @@ async function submitRegister() {
   document.getElementById('reg-business-id').value  = businessId;
 
   subscribeMatches();
-  goScreen('screen-prefs');
+
+  // 填好歡迎畫面摘要（偏好尚未設定）
+  document.getElementById('summary-company').textContent     = company;
+  document.getElementById('summary-business-id').textContent = businessId;
+  document.getElementById('summary-cities').textContent      = '未設定';
+  document.getElementById('summary-cats').textContent        = '未設定';
+  document.getElementById('summary-conds').textContent       = '未設定';
+  document.getElementById('summary-notify').textContent      = '已開啟';
+  document.getElementById('summary-line-bind').textContent   = '未綁定';
+  document.getElementById('summary-line-bind').style.color   = 'var(--ink4)';
+  const bindSection = document.getElementById('line-bind-section');
+  if (bindSection) bindSection.style.display = '';
+  document.getElementById('btn-go-platform').style.display = 'none';
+
+  goScreen('screen-done');
 }
 
 let loginSelectedPhone = null;
@@ -2443,7 +2457,7 @@ function completeRegister(){
 }
 
 function goToPlatform() {
-  showToast('正在進入平台，歡迎加入 ReLoop！');
+  goScreen('screen-prefs');
 }
 
 // ── Toast ──
