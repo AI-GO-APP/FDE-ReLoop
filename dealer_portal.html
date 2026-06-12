@@ -69,6 +69,14 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 
+/* ── 設備選擇 chain-step（同 recycler_onboarding） ── */
+.eq-chain{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.eq-chain-step{display:flex;align-items:center;gap:8px}
+.eq-chain-label{font-size:11px;color:var(--ink4);width:56px;flex-shrink:0;text-align:right}
+.eq-chain-sel{flex:1;padding:10px 28px 10px 12px;font-size:13px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper);color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23AEADA6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer;transition:border-color .15s;font-family:inherit}
+.eq-chain-sel:focus{border-color:var(--ink);background-color:var(--white)}
+.eq-chain-sel:disabled{opacity:.4;cursor:not-allowed}
+
 /* ── 卡片 ── */
 .card{background:var(--white);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
 .card-title{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:16px;display:flex;align-items:center;gap:8px}
@@ -970,31 +978,30 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="modal-close" onclick="closeEquipmentForm()"><i class="ti ti-x"></i></button>
     </div>
 
-    <div class="section-label">基本資訊</div>
-    <div class="field">
-      <label class="field-label">設備名稱 <span style="color:var(--red)">*</span></label>
-      <input class="field-input" id="eq-device-name" type="text" list="eq-device-list"
-        placeholder="輸入或搜尋設備名稱..." autocomplete="off">
-      <datalist id="eq-device-list"></datalist>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label class="field-label">大分類</label>
-        <select class="field-input" id="eq-main-category" onchange="onEquipMainCatChange()">
-          <option value="">全部（不篩選）</option>
-          <option>家電類</option>
-          <option>家具類</option>
-          <option>雜項</option>
-          <option>建材類</option>
+    <div class="section-label">選擇設備</div>
+    <div class="eq-chain">
+      <div class="eq-chain-step">
+        <span class="eq-chain-label">大分類</span>
+        <select class="eq-chain-sel" id="eq-main-category" onchange="onEquipMainCatChange()">
+          <option value="">請選擇大分類...</option>
+          <option>家電類</option><option>家具類</option><option>雜項</option><option>建材類</option>
         </select>
       </div>
-      <div class="field">
-        <label class="field-label">細項 <span style="color:var(--red)">*</span></label>
-        <input class="field-input" id="eq-subcategory" type="text" list="eq-subcategory-list"
-          placeholder="搜尋細項分類..." autocomplete="off" onchange="onEquipSubCatChange()">
+      <div class="eq-chain-step">
+        <span class="eq-chain-label">細項 *</span>
+        <input class="eq-chain-sel" id="eq-subcategory" list="eq-subcategory-list"
+          placeholder="請先選擇大分類" autocomplete="off" onchange="onEquipSubCatChange()">
         <datalist id="eq-subcategory-list"></datalist>
       </div>
+      <div class="eq-chain-step">
+        <span class="eq-chain-label">設備名稱 *</span>
+        <input class="eq-chain-sel" id="eq-device-name" list="eq-device-list"
+          placeholder="請先選擇細項" autocomplete="off">
+        <datalist id="eq-device-list"></datalist>
+      </div>
     </div>
+
+    <div class="section-label">其他資訊</div>
     <div class="field-row">
       <div class="field">
         <label class="field-label">狀況等級 <span style="color:var(--red)">*</span></label>
@@ -1012,9 +1019,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div class="field">
       <label class="field-label">縣市 <span style="color:var(--red)">*</span></label>
-      <input class="field-input" id="eq-region" type="text" list="eq-region-list"
-        placeholder="輸入或搜尋縣市..." autocomplete="off">
-      <datalist id="eq-region-list">
+      <select class="field-input" id="eq-region">
+        <option value="">請選擇</option>
         <option>台北市</option><option>新北市</option><option>桃園市</option>
         <option>台中市</option><option>台南市</option><option>高雄市</option>
         <option>基隆市</option><option>新竹市</option><option>嘉義市</option>
@@ -1022,7 +1028,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <option>南投縣</option><option>雲林縣</option><option>嘉義縣</option>
         <option>屏東縣</option><option>宜蘭縣</option><option>花蓮縣</option>
         <option>台東縣</option><option>澎湖縣</option><option>金門縣</option><option>連江縣</option>
-      </datalist>
+      </select>
     </div>
     <div class="field">
       <label class="field-label">詳細地址 <span style="color:var(--red)">*</span></label>
@@ -1827,8 +1833,8 @@ function openEquipmentForm(id) {
       if (e.photo_urls?.length) renderExistingPhotos(e.photo_urls);
     }
   } else {
-    ['eq-device-name','eq-brand','eq-address','eq-note','eq-subcategory','eq-region'].forEach(id => document.getElementById(id).value = '');
-    ['eq-main-category','eq-condition'].forEach(id => document.getElementById(id).value = '');
+    ['eq-device-name','eq-brand','eq-address','eq-note','eq-subcategory'].forEach(id => document.getElementById(id).value = '');
+    ['eq-main-category','eq-condition','eq-region'].forEach(id => document.getElementById(id).value = '');
     ['eq-width','eq-height','eq-depth','eq-weight'].forEach(id => document.getElementById(id).value = '');
     _buildEquipSubcatList(null);
   }
