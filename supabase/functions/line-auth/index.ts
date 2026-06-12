@@ -51,8 +51,40 @@ Deno.serve(async (req) => {
     const displayName   = profile.displayName
     const pictureUrl    = profile.pictureUrl || null
 
-    // 3. bind 模式：只回傳 LINE user_id，不需建 session
+    // 3. bind 模式：用 service role 直接寫入 DB（繞過 RLS），不建 session
     if (action === 'bind') {
+      const authHeader = req.headers.get('Authorization') || ''
+      const userJwt    = authHeader.replace('Bearer ', '')
+      if (!userJwt) {
+        return new Response(JSON.stringify({ error: 'Missing authorization for bind' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      })
+
+      // 驗證 JWT 取得 userId
+      const { data: { user }, error: authErr } = await supabase.auth.getUser(userJwt)
+      if (authErr || !user) {
+        return new Response(JSON.stringify({ error: '登入已過期，請重新登入' }), {
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // 用 service role 寫入，完全繞過 RLS
+      const { error: updateErr } = await supabase
+        .from('recycler_onboarding_accounts')
+        .update({ line_user_id: lineUserId })
+        .eq('id', user.id)
+
+      if (updateErr) {
+        return new Response(JSON.stringify({ error: 'DB 寫入失敗：' + updateErr.message }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
       return new Response(JSON.stringify({ line_user_id: lineUserId, display_name: displayName }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })

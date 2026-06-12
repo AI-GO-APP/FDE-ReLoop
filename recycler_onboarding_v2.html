@@ -1978,10 +1978,23 @@ async function handleLineCallback(code, state) {
 
   showToast(action === 'bind' ? 'LINE 綁定處理中...' : 'LINE 登入處理中...');
 
+  // bind 模式需先取 session，把 access_token 傳給 Edge Function 做 DB 更新
+  let bindSession = null;
+  if (action === 'bind') {
+    const db = requireSupabase();
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { showToast('登入已過期，請重新登入'); goScreen('screen-login'); return; }
+    bindSession = session;
+    currentRecyclerId = session.user.id;
+  }
+
   try {
     const res = await fetch(`https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/line-auth`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(bindSession ? { 'Authorization': `Bearer ${bindSession.access_token}` } : {}),
+      },
       body: JSON.stringify({ code, redirect_uri: LINE_CALLBACK_URL, action }),
     });
     const data = await res.json();
@@ -1992,20 +2005,13 @@ async function handleLineCallback(code, state) {
       return;
     }
 
-    // ── 綁定模式 ──
+    // ── 綁定模式 ── (DB 更新已在 Edge Function 完成)
     if (action === 'bind') {
       const db = requireSupabase();
-      const { data: { session } } = await db.auth.getSession();
-      if (!session) { showToast('登入已過期，請重新登入'); goScreen('screen-login'); return; }
-      currentRecyclerId = session.user.id;
-      const { error: bindErr } = await db.from('recycler_onboarding_accounts')
-        .update({ line_user_id: data.line_user_id })
-        .eq('id', session.user.id);
-      if (bindErr) { showToast('LINE 綁定寫入失敗：' + bindErr.message); goScreen('screen-login'); return; }
       // 重新取帳號摘要（page reload 後 in-memory 值已清空）
       const { data: acct } = await db.from('recycler_onboarding_accounts')
         .select('company_name, business_id')
-        .eq('id', session.user.id)
+        .eq('id', bindSession.user.id)
         .single();
       if (acct) {
         const el1 = document.getElementById('summary-company');
