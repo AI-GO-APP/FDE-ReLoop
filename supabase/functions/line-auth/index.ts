@@ -114,20 +114,26 @@ Deno.serve(async (req) => {
       })
     }
 
-    // 4. 建立 Supabase session（account.id 即為 auth.users.id）
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: account.id,
-    })
-
-    if (sessionError) {
-      return new Response(JSON.stringify({ error: sessionError.message }), {
+    // 4. 取得 auth.users 裡的 email，產生 magic link token 供前端登入
+    const { data: authUserData, error: authUserErr } = await supabase.auth.admin.getUserById(account.id)
+    if (authUserErr || !authUserData.user) {
+      return new Response(JSON.stringify({ error: '找不到對應的登入帳號，請改用帳號密碼登入' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    const { data: linkData, error: linkErr } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: authUserData.user.email!,
+    })
+    if (linkErr || !linkData.properties?.hashed_token) {
+      return new Response(JSON.stringify({ error: '登入 token 產生失敗：' + (linkErr?.message || '') }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     return new Response(JSON.stringify({
-      access_token:  sessionData.session.access_token,
-      refresh_token: sessionData.session.refresh_token,
+      token_hash: linkData.properties.hashed_token,
       account: {
         id:           account.id,
         company_name: account.company_name,
