@@ -2094,7 +2094,8 @@ async function confirmAndNotify() {
 
   const eq = equipmentCache.find(e => e.id === currentNotifyEquipmentId);
 
-  // 2. 對每位符合條件的回收商：建立 recycler_matches 並發送 LINE 通知
+  // 2. recycler_matches 由 DB trigger 自動建立（draft→active 觸發）
+  //    這裡只負責對有綁定 LINE 的回收商發送推播通知
   const uniqueRecyclers = new Map();
   for (const p of currentNotifyMatches) {
     const acct = p.recycler_onboarding_accounts;
@@ -2102,28 +2103,7 @@ async function confirmAndNotify() {
     uniqueRecyclers.set(acct.id, acct);
   }
 
-  for (const [recyclerId, acct] of uniqueRecyclers) {
-    // 建立媒合記錄
-    await db.from('recycler_matches').upsert({
-      recycler_id:           recyclerId,
-      equipment_listing_id:  currentNotifyEquipmentId,
-      device_name:           eq?.device_name || '',
-      category_name:         eq?.category_name || '',
-      subcategory_name:      eq?.category_name || '',
-      condition:             eq?.condition || '',
-      brand:                 eq?.brand || null,
-      region:                eq?.region || '',
-      pickup_address:        eq?.pickup_address || '',
-      width_cm:              eq?.width_cm || null,
-      height_cm:             eq?.height_cm || null,
-      depth_cm:              eq?.depth_cm || null,
-      weight_kg:             eq?.weight_kg || null,
-      note:                  eq?.note || null,
-      photo_urls:            eq?.photo_urls || [],
-      status:                'pending',
-    }, { onConflict: 'recycler_id,equipment_listing_id' });
-
-    // 發送 LINE 通知
+  for (const [, acct] of uniqueRecyclers) {
     if (acct.line_user_id) {
       sendLineNotify(acct.line_user_id,
         `【FDE ReLoop】新設備媒合通知！\n設備：${eq?.device_name || ''}\n地區：${eq?.region || ''}\n狀況：${eq?.condition || ''}\n請登入平台查看詳情。`
