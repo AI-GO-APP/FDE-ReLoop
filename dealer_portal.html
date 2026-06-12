@@ -3342,7 +3342,7 @@ async function loadCasesList() {
   document.getElementById('cases-list').innerHTML = '';
   if (!db) { document.getElementById('cases-loading').style.display = 'none'; return; }
   const { data: cases } = await db.from('cases')
-    .select('*, clients(company_name,contact_name,contact_phone,address), assigned_agent:dealer_accounts!cases_assigned_agent_id_fkey(name)')
+    .select('*, clients(company_name,contact_name,contact_phone,address,assigned_agent:dealer_accounts!clients_assigned_agent_id_fkey(name)), assigned_agent:dealer_accounts!cases_assigned_agent_id_fkey(name)')
     .order('created_at', { ascending: false });
   casesCache = cases || [];
   document.getElementById('cases-loading').style.display = 'none';
@@ -3378,10 +3378,11 @@ function renderCasesList() {
   else if (currentCasesFilter === 'completed') list = list.filter(c => c.status === 'completed');
   else if (currentCasesFilter === 'cancelled') list = list.filter(c => c.status === 'cancelled');
   const q = (document.getElementById('cases-search')?.value || '').toLowerCase().trim();
-  if (q) list = list.filter(c =>
-    (c.clients?.company_name||'').toLowerCase().includes(q) ||
-    (c.assigned_agent?.name||'').toLowerCase().includes(q)
-  );
+  if (q) list = list.filter(c => {
+    const agentName = c.assigned_agent?.name || c.clients?.assigned_agent?.name || '';
+    return (c.clients?.company_name||'').toLowerCase().includes(q) ||
+           agentName.toLowerCase().includes(q);
+  });
 
   if (list.length === 0) {
     el.innerHTML = '<div class="empty-state"><i class="ti ti-folder-open"></i><p>沒有符合的案件</p></div>';
@@ -3415,7 +3416,7 @@ function renderCasesList() {
           <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;background:${color}22;color:${color}">${label}</span>
         </div>
         <div style="display:flex;gap:12px;align-items:center">
-          ${c.assigned_agent?.name ? `<span style="font-size:11px;color:var(--ink3)">負責業務：${c.assigned_agent.name}</span>` : ''}
+          ${(c.assigned_agent?.name || c.clients?.assigned_agent?.name) ? `<span style="font-size:11px;color:var(--ink3)">負責業務：${c.assigned_agent?.name || c.clients?.assigned_agent?.name}</span>` : ''}
           <span style="font-size:11px;color:var(--ink4)">${new Date(c.created_at).toLocaleDateString('zh-TW')}</span>
           <i id="cc-chevron-${safeId}" class="ti ti-chevron-down" style="font-size:16px;color:var(--ink4);transition:transform .2s"></i>
         </div>
