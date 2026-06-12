@@ -584,6 +584,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn-main btn-dark" id="btn-login" onclick="submitLogin()">
         登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>
       </button>
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+        <div style="flex:1;height:1px;background:var(--paper2)"></div>
+        <div style="font-size:12px;color:var(--ink4)">或</div>
+        <div style="flex:1;height:1px;background:var(--paper2)"></div>
+      </div>
+      <button class="btn-main" onclick="handleLineLogin()" style="background:#06C755;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;border:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        使用 LINE 登入
+      </button>
       <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
         還沒有帳號？<a href="#" style="color:var(--green);text-decoration:none;font-weight:500" onclick="event.preventDefault();goScreen('screen-register')">立即註冊</a>
       </div>
@@ -1072,6 +1081,9 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 <script>
 const SUPABASE_URL = '__SUPABASE_URL__';
 const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+const LINE_CHANNEL_ID = '2010379680';
+const LINE_CALLBACK_URL = 'https://fde-reloop.staging.ai-go.app/recycler_onboarding.html';
+const SUPABASE_PROJECT_ID = 'azhlcujahwjdpgxbhdcm';
 const condSelected = { a:true, b:true, c:true, d:false };
 let notifyEmail = true;
 
@@ -1943,7 +1955,83 @@ async function signOut() {
   goScreen('screen-login');
 }
 
+// ── LINE Login ──────────────────────────────────────
+function handleLineLogin() {
+  const state = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  sessionStorage.setItem('line_state', state);
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: LINE_CHANNEL_ID,
+    redirect_uri: LINE_CALLBACK_URL,
+    state,
+    scope: 'profile openid',
+  });
+  window.location.href = `https://access.line.me/oauth2/v2.1/authorize?${params}`;
+}
+
+async function handleLineCallback(code, state) {
+  const savedState = sessionStorage.getItem('line_state');
+  sessionStorage.removeItem('line_state');
+  window.history.replaceState({}, '', window.location.pathname);
+
+  if (state !== savedState) {
+    showToast('LINE 登入驗證失敗，請重試');
+    goScreen('screen-login');
+    return;
+  }
+
+  showToast('LINE 登入處理中...');
+
+  try {
+    const res = await fetch(`https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/line-auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, redirect_uri: LINE_CALLBACK_URL }),
+    });
+    const data = await res.json();
+
+    if (data.needs_link) {
+      // LINE 帳號尚未綁定，儲存後引導去登入
+      sessionStorage.setItem('line_pending_id', data.line_user_id);
+      showToast('此 LINE 帳號尚未綁定，請先登入後自動完成綁定');
+      goScreen('screen-login');
+      return;
+    }
+
+    if (data.error) {
+      showToast('LINE 登入失敗：' + data.error);
+      goScreen('screen-login');
+      return;
+    }
+
+    const db = requireSupabase();
+    const { error } = await db.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    });
+    if (error) { showToast('登入失敗：' + error.message); goScreen('screen-login'); return; }
+
+    currentRecyclerId = data.account.id;
+    showToast('LINE 登入成功！');
+    subscribeMatches();
+    goScreen('screen-matches');
+
+  } catch (err) {
+    showToast('LINE 登入發生錯誤，請重試');
+    goScreen('screen-login');
+  }
+}
+
 async function initApp() {
+  // 先檢查是否為 LINE callback
+  const urlParams = new URLSearchParams(window.location.search);
+  const lineCode  = urlParams.get('code');
+  const lineState = urlParams.get('state');
+  if (lineCode && lineState) {
+    await handleLineCallback(lineCode, lineState);
+    return;
+  }
+
   const db = requireSupabase();
   if (!db) { goScreen('screen-login'); return; }
   const { data: { session } } = await db.auth.getSession();
@@ -2183,6 +2271,16 @@ async function submitLogin() {
     btn.innerHTML = '登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
     showToast('此帳號尚未完成合作協議書簽署，請重新走註冊流程');
     return;
+  }
+
+  // 若有待綁定的 LINE 帳號，自動完成綁定
+  const pendingLineId = sessionStorage.getItem('line_pending_id');
+  if (pendingLineId) {
+    sessionStorage.removeItem('line_pending_id');
+    await db.from('recycler_onboarding_accounts')
+      .update({ line_user_id: pendingLineId })
+      .eq('id', currentRecyclerId);
+    showToast('LINE 帳號綁定成功！下次可直接用 LINE 登入');
   }
 
   subscribeMatches();
