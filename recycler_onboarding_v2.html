@@ -419,14 +419,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
       </div>
 
-      <!-- LINE ID -->
-      <div class="field">
-        <label class="field-label">LINE ID <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，用於 LINE 推播通知</span></label>
-        <div style="position:relative">
-          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#06C755">L</span>
-          <input class="field-input" type="text" id="signup-line-id" placeholder="您的 LINE ID（例：@reloop_user）" style="padding-left:28px">
-        </div>
-      </div>
 
       <!-- 帳號資料 -->
       <div class="field">
@@ -654,14 +646,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
       </div>
 
-      <!-- LINE ID -->
-      <div class="field">
-        <label class="field-label">LINE ID <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，用於 LINE 推播通知</span></label>
-        <div style="position:relative">
-          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#06C755">L</span>
-          <input class="field-input" type="text" id="reg-line-id" placeholder="您的 LINE ID（例：@reloop_user）" style="padding-left:28px">
-        </div>
-      </div>
 
       <!-- 帳號資料 -->
       <div class="field">
@@ -1149,7 +1133,7 @@ function toNumOrNull(value) {
   return (Number.isFinite(n) && n > 0) ? n : null;
 }
 
-async function createAccountRecord({ company, name, phone, lineId, businessId }) {
+async function createAccountRecord({ company, name, phone, businessId }) {
   const db = requireSupabase();
   if (!db) return false;
 
@@ -1159,7 +1143,6 @@ async function createAccountRecord({ company, name, phone, lineId, businessId })
     contact_name: name,
     phone,
     business_id: businessId,
-    line_id: lineId || null,
     password_set: true,
     password_updated_at: new Date().toISOString()
   });
@@ -1180,7 +1163,6 @@ async function updateAccountRecord({ passwordChanged = false } = {}) {
     company_name: document.getElementById('reg-company').value.trim(),
     contact_name: document.getElementById('reg-name').value.trim(),
     phone: document.getElementById('reg-phone').value.replace(/\D/g, ''),
-    line_id: document.getElementById('reg-line-id')?.value.trim() || null,
     service_areas: serviceAreas,
     service_exclusions: [...document.querySelectorAll('.exclusion-chip.sel')].map(c => c.textContent)
   };
@@ -1304,7 +1286,7 @@ function resetRegisterScreen() {
   const btn = document.getElementById('btn-submit-register');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>'; }
   // 清空表單欄位
-  ['signup-company','signup-name','signup-phone','signup-line-id','signup-business-id','signup-password','signup-password2'].forEach(id => {
+  ['signup-company','signup-name','signup-phone','signup-business-id','signup-password','signup-password2'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2134,7 +2116,6 @@ async function submitRegister() {
   const company    = document.getElementById('signup-company').value.trim();
   const name       = document.getElementById('signup-name').value.trim();
   const phone      = document.getElementById('signup-phone').value.replace(/\D/g, '');
-  const lineId     = document.getElementById('signup-line-id').value.trim();
   const businessId = document.getElementById('signup-business-id').value.trim();
   const pw         = document.getElementById('signup-password').value;
   const pw2        = document.getElementById('signup-password2').value;
@@ -2173,7 +2154,7 @@ async function submitRegister() {
 
   currentRecyclerId = userId;
 
-  const saved = await createAccountRecord({ company, name, phone, lineId, businessId });
+  const saved = await createAccountRecord({ company, name, phone, businessId });
   if (!saved) {
     await db.auth.signOut();
     btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
@@ -2190,7 +2171,6 @@ async function submitRegister() {
   document.getElementById('reg-company').value     = company;
   document.getElementById('reg-name').value         = name;
   document.getElementById('reg-phone').value        = phone;
-  document.getElementById('reg-line-id').value      = lineId;
   document.getElementById('reg-business-id').value  = businessId;
 
   subscribeMatches();
@@ -2382,8 +2362,6 @@ async function loadProfileFromDb() {
   document.getElementById('reg-name').value          = data.contact_name || '';
   document.getElementById('reg-phone').value         = data.phone || '';
   document.getElementById('reg-business-id').value   = data.business_id || '';
-  const lineEl = document.getElementById('reg-line-id');
-  if (lineEl) lineEl.value = data.line_id || '';
   const areas = data.service_areas || [];
   document.querySelectorAll('#service-area-chips .chip').forEach(chip => {
     chip.classList.toggle('sel', areas.includes(chip.textContent));
@@ -2451,10 +2429,6 @@ function submitPrefs() {
 
   document.getElementById('summary-company').textContent     = document.getElementById('reg-company').value || '—';
   document.getElementById('summary-business-id').textContent = document.getElementById('reg-business-id').value || '—';
-  const lineIdVal = document.getElementById('reg-line-id')?.value.trim() || '';
-  const lineElSum = document.getElementById('summary-line-id');
-  if(lineElSum){ lineElSum.textContent = lineIdVal || '未填寫'; lineElSum.style.color = lineIdVal ? 'var(--ink)' : 'var(--ink4)'; }
-
   document.getElementById('summary-cities').textContent  = cities.length ? cities.join('、') : '未設定';
   document.getElementById('summary-cats').textContent    = cats.length   ? cats.join('、')   : '未設定';
   document.getElementById('summary-conds').textContent   = conds.length  ? conds.join('、')  : '未設定';
