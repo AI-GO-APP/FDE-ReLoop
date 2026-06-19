@@ -158,6 +158,23 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 /* ── 分頁 ── */
 .pagination{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:16px;font-size:13px;color:var(--ink3)}
 .pagination button:disabled{opacity:.35;cursor:default}
+
+/* ── 權限與參數設定 ── */
+.settings-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:16px;align-items:start}
+@media(max-width:980px){.settings-grid{grid-template-columns:1fr}}
+.settings-panel{background:var(--white);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.settings-panel-title{font-size:13px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.settings-table{width:100%;border-collapse:collapse;font-size:13px}
+.settings-table th{padding:9px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--paper3);white-space:nowrap}
+.settings-table td{padding:10px;border-bottom:1px solid var(--paper2);vertical-align:middle}
+.settings-table tr:last-child td{border-bottom:none}
+.settings-switch{width:40px;height:22px;border-radius:999px;border:none;background:var(--paper3);position:relative;cursor:pointer;transition:background .15s}
+.settings-switch::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.settings-switch.on{background:var(--green)}
+.settings-switch.on::after{transform:translateX(18px)}
+.settings-switch:disabled{opacity:.45;cursor:not-allowed}
+.settings-note{font-size:12px;color:var(--ink3);line-height:1.6}
+.settings-error{font-size:12px;color:var(--red);display:none;margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -839,7 +856,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="main-header">
       <div class="main-header-top">
         <div class="main-title">回收商管理</div>
-        <button class="btn btn-primary" onclick="document.getElementById('modal-invite-recycler').classList.add('act')"><i class="ti ti-send"></i> 送出邀請</button>
+        <button class="btn btn-primary" onclick="openInviteRecyclerModal()"><i class="ti ti-send"></i> 送出邀請</button>
       </div>
     </div>
     <div class="main-body">
@@ -860,6 +877,107 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 <!-- ══════════════════════════════════════════
      帳號設定
 ══════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     權限與參數設定（manager/admin）
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-settings">
+  <div class="brand-col">
+    <div>
+      <div class="brand-logo">Re<span>Loop</span></div>
+      <div class="brand-role">盤商後台</div>
+      <div class="brand-nav">
+        <button class="brand-nav-item" onclick="goScreen('screen-clients')"><i class="ti ti-building-store"></i><span>客戶管理</span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-recyclers')" style="display:none"><i class="ti ti-recycle"></i><span>回收商管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-cases')"><i class="ti ti-folder-open"></i><span>案件管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-equipment')"><i class="ti ti-box"></i><span>設備管理</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-matches')"><i class="ti ti-list-check"></i><span>交易管理</span><span class="nav-badge" id="nav-badge-matches9" style="display:none"></span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-payments')"><i class="ti ti-credit-card"></i><span>款項管理</span><span class="nav-badge" id="nav-badge-payments9" style="display:none"></span></button>
+        <button class="brand-nav-item dealer-admin-only" onclick="goScreen('screen-staff')" style="display:none"><i class="ti ti-users"></i><span>人員管理</span><span class="nav-badge" id="nav-badge-staff9" style="display:none"></span></button>
+        <button class="brand-nav-item act dealer-settings-only" data-settings-nav="1" onclick="goScreen('screen-settings')" style="display:none"><i class="ti ti-adjustments"></i><span>權限與參數</span></button>
+        <button class="brand-nav-item" onclick="goScreen('screen-profile')"><i class="ti ti-user-circle"></i><span>帳號設定</span></button>
+      </div>
+    </div>
+    <div class="brand-footer">ReLoop · 營運設定</div>
+  </div>
+  <div class="main-col">
+    <div class="main-header">
+      <div class="main-header-top">
+        <div>
+          <div class="main-title">權限與參數</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:4px">控管盤商角色可操作功能，並設定第一版媒合流程參數。</div>
+        </div>
+        <button class="btn btn-primary" id="settings-save-btn" onclick="saveSystemSettings()"><i class="ti ti-device-floppy"></i> 儲存設定</button>
+      </div>
+    </div>
+    <div class="main-body">
+      <div id="settings-error" class="settings-error"></div>
+      <div class="settings-grid">
+        <div class="settings-panel">
+          <div class="settings-panel-title"><i class="ti ti-shield-lock"></i> 角色權限控項</div>
+          <div class="settings-note" style="margin-bottom:12px">角色權限只有管理員可調整；主管可查看權限矩陣，但只能儲存右側流程參數。</div>
+          <table class="settings-table">
+            <thead>
+              <tr>
+                <th>功能</th>
+                <th style="text-align:center">業務</th>
+                <th style="text-align:center">主管</th>
+                <th style="text-align:center">管理員</th>
+              </tr>
+            </thead>
+            <tbody id="permission-settings-body"></tbody>
+          </table>
+        </div>
+        <div>
+          <div class="settings-panel">
+            <div class="settings-panel-title"><i class="ti ti-sliders"></i> 流程參數</div>
+            <div class="field">
+              <label class="field-label">出價期限（小時）</label>
+              <input class="field-input" id="param-bid-deadline-hours" type="number" min="1" max="168" step="1">
+            </div>
+            <div class="field">
+              <label class="field-label">繳費期限（小時）</label>
+              <input class="field-input" id="param-payment-deadline-hours" type="number" min="1" max="336" step="1">
+            </div>
+            <div class="field">
+              <label class="field-label">回收商邀請有效天數</label>
+              <input class="field-input" id="param-default-invite-expiry-days" type="number" min="1" max="90" step="1">
+            </div>
+            <div class="field">
+              <label class="field-label">付款後五碼長度</label>
+              <input class="field-input" id="param-payment-last5-length" type="number" min="4" max="8" step="1">
+            </div>
+            <div class="field">
+              <label class="field-label">最低出價安全倍率</label>
+              <input class="field-input" id="param-min-bid-ratio" type="number" min="0" max="2" step="0.01">
+              <div class="settings-note">例：1 代表不得低於底價；0.9 代表可低於底價 10%，但仍需主管規則核定。</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+              <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px">
+                <span>啟用底價檢查</span>
+                <button type="button" class="settings-switch" id="param-enforce-min-bid" onclick="toggleSettingsSwitch(this)"></button>
+              </label>
+              <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px">
+                <span>交付需上傳照片</span>
+                <button type="button" class="settings-switch" id="param-delivery-requires-photos" onclick="toggleSettingsSwitch(this)"></button>
+              </label>
+              <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px">
+                <span>結案需付款確認</span>
+                <button type="button" class="settings-switch" id="param-close-requires-payment" onclick="toggleSettingsSwitch(this)"></button>
+              </label>
+            </div>
+          </div>
+          <div class="settings-panel">
+            <div class="settings-panel-title"><i class="ti ti-info-circle"></i> 實作範圍</div>
+            <div class="settings-note">
+              此頁先提供盤商後台的操作控項與參數資料來源。正式上線時，仍需把相同規則同步寫入 RLS / RPC / trigger，避免使用者繞過前端直接改資料。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="screen" id="screen-profile">
   <div class="brand-col">
     <div>
@@ -1317,6 +1435,74 @@ const SUPABASE_URL = '__SUPABASE_URL__';
 const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
 let currentDealerRole = 'agent'; // agent | manager | admin
 let currentDealerInfo = {};
+const SETTINGS_ROLES = ['agent', 'manager', 'admin'];
+const PERMISSION_DEFS = [
+  ['view_all_cases', '查看全部客戶/案件'],
+  ['set_floor_price', '設定或修改底價'],
+  ['confirm_recommendations', '確認推薦名單/發通知'],
+  ['propose_winner', '建議得標廠商'],
+  ['approve_winner', '核定最終得標'],
+  ['confirm_payment', '確認回收商付款'],
+  ['schedule_delivery', '安排拉貨時間'],
+  ['complete_delivery', '完成交付與照片'],
+  ['close_case', '案件結案'],
+  ['manage_recyclers', '回收商管理'],
+  ['manage_staff', '人員管理'],
+];
+const DEFAULT_APP_SETTINGS = {
+  workflow_parameters: {
+    bid_deadline_hours: 24,
+    payment_deadline_hours: 48,
+    default_invite_expiry_days: 3,
+    payment_last5_length: 5,
+    min_bid_ratio: 1,
+    enforce_min_bid: true,
+    delivery_requires_photos: true,
+    close_requires_payment: true,
+  },
+  role_permissions: {
+    agent: {
+      view_all_cases: false,
+      set_floor_price: false,
+      confirm_recommendations: true,
+      propose_winner: true,
+      approve_winner: false,
+      confirm_payment: true,
+      schedule_delivery: true,
+      complete_delivery: true,
+      close_case: false,
+      manage_recyclers: false,
+      manage_staff: false,
+    },
+    manager: {
+      view_all_cases: true,
+      set_floor_price: true,
+      confirm_recommendations: true,
+      propose_winner: true,
+      approve_winner: true,
+      confirm_payment: true,
+      schedule_delivery: true,
+      complete_delivery: true,
+      close_case: true,
+      manage_recyclers: true,
+      manage_staff: false,
+    },
+    admin: {
+      view_all_cases: true,
+      set_floor_price: true,
+      confirm_recommendations: true,
+      propose_winner: true,
+      approve_winner: true,
+      confirm_payment: true,
+      schedule_delivery: true,
+      complete_delivery: true,
+      close_case: true,
+      manage_recyclers: true,
+      manage_staff: true,
+    },
+  },
+};
+let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
 
 async function logActivity(action, entityType, entityId, fromValue, toValue, note) {
   const db = getSupabase();
@@ -1353,6 +1539,195 @@ function getSupabase() {
   return window._sb;
 }
 
+function canManageSettings() {
+  return ['manager', 'admin'].includes(currentDealerRole);
+}
+
+function canEditRolePermissions() {
+  return currentDealerRole === 'admin';
+}
+
+function hasRolePermission(permissionKey) {
+  return !!appSettings.role_permissions?.[currentDealerRole]?.[permissionKey];
+}
+
+function getWorkflowParam(key) {
+  return appSettings.workflow_parameters?.[key] ?? DEFAULT_APP_SETTINGS.workflow_parameters[key];
+}
+
+function mergeSystemSettings(rows) {
+  appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
+  (rows || []).forEach(row => {
+    if (row.key === 'workflow_parameters') {
+      appSettings.workflow_parameters = {
+        ...appSettings.workflow_parameters,
+        ...(row.value || {}),
+      };
+    }
+    if (row.key === 'role_permissions') {
+      appSettings.role_permissions = {
+        ...appSettings.role_permissions,
+        ...(row.value || {}),
+      };
+    }
+  });
+}
+
+async function loadSystemSettings(options = {}) {
+  const db = getSupabase();
+  const errEl = document.getElementById('settings-error');
+  if (errEl) errEl.style.display = 'none';
+  if (!db) {
+    renderSystemSettings();
+    return;
+  }
+  const { data, error } = await db
+    .from('dealer_system_settings')
+    .select('key,value')
+    .in('key', ['workflow_parameters', 'role_permissions']);
+  if (error) {
+    if (!options.silent && errEl) {
+      errEl.textContent = '設定表尚未建立或權限不足：' + error.message;
+      errEl.style.display = 'block';
+    }
+    renderSystemSettings();
+    return;
+  }
+  mergeSystemSettings(data || []);
+  renderSystemSettings();
+}
+
+function syncSettingsNav() {
+  const canSeeSettings = canManageSettings();
+  document.querySelectorAll('.brand-nav').forEach(nav => {
+    let btn = nav.querySelector('[data-settings-nav]');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.settingsNav = '1';
+      btn.className = 'brand-nav-item dealer-settings-only';
+      btn.innerHTML = '<i class="ti ti-adjustments"></i><span>權限與參數</span>';
+      btn.onclick = () => goScreen('screen-settings');
+      const profileBtn = Array.from(nav.children).find(el => el.textContent.includes('帳號設定'));
+      nav.insertBefore(btn, profileBtn || null);
+    }
+    btn.style.display = canSeeSettings ? 'flex' : 'none';
+    btn.classList.toggle('act', document.getElementById('screen-settings')?.classList.contains('act'));
+  });
+}
+
+function toggleSettingsSwitch(el) {
+  el.classList.toggle('on');
+}
+
+function setSettingsSwitch(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('on', !!value);
+}
+
+function readSettingsSwitch(id) {
+  return !!document.getElementById(id)?.classList.contains('on');
+}
+
+function renderSystemSettings() {
+  const body = document.getElementById('permission-settings-body');
+  if (body) {
+    body.innerHTML = PERMISSION_DEFS.map(([key, label]) => `
+      <tr>
+        <td>
+          <div style="font-weight:600;color:var(--ink2)">${label}</div>
+          <div style="font-size:11px;color:var(--ink4);font-family:'DM Mono',monospace">${key}</div>
+        </td>
+        ${SETTINGS_ROLES.map(role => `
+          <td style="text-align:center">
+            <button type="button"
+              class="settings-switch ${appSettings.role_permissions?.[role]?.[key] ? 'on' : ''}"
+              data-role="${role}"
+              data-permission="${key}"
+              onclick="toggleSettingsSwitch(this)"
+              ${!canEditRolePermissions() || (role === 'admin' && ['manage_staff','approve_winner','set_floor_price'].includes(key)) ? 'disabled' : ''}></button>
+          </td>`).join('')}
+      </tr>`).join('');
+  }
+
+  const params = appSettings.workflow_parameters;
+  const setValue = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value ?? '';
+  };
+  setValue('param-bid-deadline-hours', params.bid_deadline_hours);
+  setValue('param-payment-deadline-hours', params.payment_deadline_hours);
+  setValue('param-default-invite-expiry-days', params.default_invite_expiry_days);
+  setValue('param-payment-last5-length', params.payment_last5_length);
+  setValue('param-min-bid-ratio', params.min_bid_ratio);
+  setSettingsSwitch('param-enforce-min-bid', params.enforce_min_bid);
+  setSettingsSwitch('param-delivery-requires-photos', params.delivery_requires_photos);
+  setSettingsSwitch('param-close-requires-payment', params.close_requires_payment);
+  syncSettingsNav();
+}
+
+function collectSystemSettingsFromForm() {
+  const next = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
+  next.role_permissions = JSON.parse(JSON.stringify(appSettings.role_permissions || DEFAULT_APP_SETTINGS.role_permissions));
+  document.querySelectorAll('#permission-settings-body .settings-switch[data-role]').forEach(btn => {
+    const role = btn.dataset.role;
+    const key = btn.dataset.permission;
+    if (!canEditRolePermissions()) return;
+    next.role_permissions[role][key] = btn.classList.contains('on');
+  });
+
+  const num = (id, fallback, min, max) => {
+    const value = Number(document.getElementById(id)?.value);
+    if (!Number.isFinite(value)) return fallback;
+    return Math.max(min, Math.min(max, value));
+  };
+  next.workflow_parameters = {
+    bid_deadline_hours: Math.round(num('param-bid-deadline-hours', 24, 1, 168)),
+    payment_deadline_hours: Math.round(num('param-payment-deadline-hours', 48, 1, 336)),
+    default_invite_expiry_days: Math.round(num('param-default-invite-expiry-days', 3, 1, 90)),
+    payment_last5_length: Math.round(num('param-payment-last5-length', 5, 4, 8)),
+    min_bid_ratio: num('param-min-bid-ratio', 1, 0, 2),
+    enforce_min_bid: readSettingsSwitch('param-enforce-min-bid'),
+    delivery_requires_photos: readSettingsSwitch('param-delivery-requires-photos'),
+    close_requires_payment: readSettingsSwitch('param-close-requires-payment'),
+  };
+  appSettings = next;
+  return next;
+}
+
+async function saveSystemSettings() {
+  if (!canManageSettings()) {
+    showToast('只有主管或管理員可調整設定');
+    return;
+  }
+  const db = getSupabase();
+  if (!db) return;
+  const errEl = document.getElementById('settings-error');
+  if (errEl) errEl.style.display = 'none';
+  const next = collectSystemSettingsFromForm();
+  const btn = document.getElementById('settings-save-btn');
+  if (btn) btn.disabled = true;
+  const { data: { user } } = await db.auth.getUser();
+  const rows = [
+    { key: 'workflow_parameters', value: next.workflow_parameters, updated_by: user?.id || null },
+  ];
+  if (canEditRolePermissions()) {
+    rows.push({ key: 'role_permissions', value: next.role_permissions, updated_by: user?.id || null });
+  }
+  const { error } = await db.from('dealer_system_settings').upsert(rows, { onConflict: 'key' });
+  if (btn) btn.disabled = false;
+  if (error) {
+    if (errEl) {
+      errEl.textContent = '儲存失敗：' + error.message;
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+  logActivity('system_settings_updated', 'settings', 'dealer_system_settings');
+  showToast('權限與參數已儲存');
+  syncSettingsNav();
+}
+
 // ════════════════════════════════════════════
 // 分頁輔助
 // ════════════════════════════════════════════
@@ -1385,11 +1760,13 @@ function goScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('act'));
   document.getElementById(id)?.classList.add('act');
   window.scrollTo(0, 0);
+  syncSettingsNav();
   if (id === 'screen-equipment')  { equipPage = 1; equipCategory = ''; loadEquipmentList(); }
   if (id === 'screen-matches')    { matchesPage = 1; loadMatchesList(); }
   if (id === 'screen-payments')   { paymentsPage = 1; loadPaymentsList(); }
   if (id === 'screen-staff')      { staffPage = 1; loadStaffList(); }
   if (id === 'screen-recyclers')  { recyclersPage = 1; loadRecyclersList(); }
+  if (id === 'screen-settings')   loadSystemSettings();
   if (id === 'screen-profile')    loadProfileScreen();
   if (id === 'screen-clients')    { clientsPage = 1; loadClientsList(); }
   if (id === 'screen-cases')      { casesPage = 1; loadCasesList(); }
@@ -1456,6 +1833,7 @@ async function doLogin() {
   currentDealerRole = acct.role || 'agent';
   currentDealerInfo = { name: acct.name, email: acct.email, title: acct.title, role: acct.role, phone: acct.phone, line_id: acct.line_id };
 
+  await loadSystemSettings({ silent: true });
   updateNavForRole();
   goScreen('screen-equipment');
   loadAllBadges();
@@ -1573,12 +1951,18 @@ async function changePassword() {
 // ════════════════════════════════════════════
 // 回收商邀請連結
 // ════════════════════════════════════════════
+function openInviteRecyclerModal() {
+  const expiry = document.getElementById('invite-expiry');
+  if (expiry) expiry.value = String(getWorkflowParam('default_invite_expiry_days') || 3);
+  document.getElementById('modal-invite-recycler').classList.add('act');
+}
+
 function closeInviteModal() {
   document.getElementById('modal-invite-recycler').classList.remove('act');
   document.getElementById('invite-link-section').style.display = 'none';
   document.getElementById('invite-error').style.display = 'none';
   ['invite-company','invite-bizid'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('invite-expiry').value = '3';
+  document.getElementById('invite-expiry').value = String(getWorkflowParam('default_invite_expiry_days') || 3);
   document.getElementById('invite-submit-btn').innerHTML = '<i class="ti ti-send"></i> 產生邀請連結';
   document.getElementById('invite-submit-btn').disabled = false;
 }
@@ -1678,6 +2062,10 @@ function updateNavForRole() {
   document.querySelectorAll('.dealer-admin-only').forEach(el => {
     el.style.display = isAdmin ? 'flex' : 'none';
   });
+  document.querySelectorAll('.dealer-settings-only').forEach(el => {
+    el.style.display = canManageSettings() ? 'flex' : 'none';
+  });
+  syncSettingsNav();
 }
 
 // ════════════════════════════════════════════
@@ -1686,10 +2074,10 @@ function updateNavForRole() {
 async function loadAllBadges() {
   const db = getSupabase();
   if (!db) return;
-  const { data } = await db.from('recycler_matches').select('status, payment_last5');
+  const { data } = await db.from('recycler_matches').select('status, payment_last5, accepted_at, payment_deadline_at');
   if (!data) return;
   const proposed = data.filter(m => m.status === 'proposed').length;
-  const payments = data.filter(m => m.status === 'accepted' && m.payment_last5).length;
+  const payments = data.filter(m => m.status === 'accepted' && (m.payment_last5 || isPaymentOverdue(m))).length;
   setBadge('matches', proposed);
   setBadge('payments', payments);
   // 人員管理：待審核數
@@ -1702,7 +2090,7 @@ async function loadAllBadges() {
 }
 
 function setBadge(key, count) {
-  [1,2,3,4,5,6].forEach(i => {
+  [1,2,3,4,5,6,7,8,9].forEach(i => {
     const el = document.getElementById(`nav-badge-${key}${i > 1 ? i : ''}`);
     if (!el) return;
     el.textContent = count;
@@ -2197,6 +2585,7 @@ let _deliveryDriverSigPad = null;
 let _deliveryPhotoFiles = [];
 
 function openScheduleDelivery(matchId) {
+  if (!hasRolePermission('schedule_delivery')) { showToast('目前角色沒有安排交貨權限'); return; }
   _deliveryMatchId = matchId;
   const now = new Date();
   now.setMinutes(0, 0, 0);
@@ -2225,6 +2614,7 @@ async function saveDeliverySchedule() {
 
 let _deliverySigInited = false;
 function openDeliveryProcess(matchId) {
+  if (!hasRolePermission('complete_delivery')) { showToast('目前角色沒有交付操作權限'); return; }
   _deliveryMatchId = matchId;
   _deliveryPhotoFiles = [];
   _deliverySigInited = false;
@@ -2403,9 +2793,21 @@ async function confirmApproveWinner() {
   const m = matchesMatchCache.find(x => x.id === _approveMatchId);
   const selected = document.querySelector('input[name="bank-account-sel"]:checked');
   const bankAccountId = selected?.value || null;
+  const acceptedAt = new Date();
+  const paymentDeadlineHours = Number(getWorkflowParam('payment_deadline_hours')) || 48;
+  const paymentDeadlineAt = new Date(acceptedAt.getTime() + paymentDeadlineHours * 3600000).toISOString();
 
   const { error } = await db.from('recycler_matches')
-    .update({ status: 'accepted', accepted_at: new Date().toISOString(), is_read: false, dealer_bank_account_id: bankAccountId, contact_name: currentDealerInfo.name || null, contact_phone: currentDealerInfo.phone || null, contact_line_id: currentDealerInfo.line_id || null })
+    .update({
+      status: 'accepted',
+      accepted_at: acceptedAt.toISOString(),
+      payment_deadline_at: paymentDeadlineAt,
+      is_read: false,
+      dealer_bank_account_id: bankAccountId,
+      contact_name: currentDealerInfo.name || null,
+      contact_phone: currentDealerInfo.phone || null,
+      contact_line_id: currentDealerInfo.line_id || null,
+    })
     .eq('id', _approveMatchId);
   if (error) { showToast('核定失敗：' + error.message); btn.disabled = false; return; }
 
@@ -2461,7 +2863,7 @@ async function loadPaymentsList() {
   document.getElementById('payments-loading').style.display = 'none';
 
   // 更新分頁計數
-  const cntPending   = paymentsCache.filter(m => m.status === 'accepted' && m.payment_last5).length;
+  const cntPending   = paymentsCache.filter(m => m.status === 'accepted' && (m.payment_last5 || isPaymentOverdue(m))).length;
   const cntConfirmed = paymentsCache.filter(m => m.status === 'payment_confirmed').length;
   const cntReceived  = paymentsCache.filter(m => m.status === 'received').length;
   const setCnt = (id, n) => { const el = document.getElementById(id); if(el){el.textContent=n||'';el.style.display=n?'inline':'none';} };
@@ -2478,7 +2880,7 @@ function renderPaymentsList() {
   let emptyMsg;
 
   if (currentPayTab === 'pending') {
-    filtered = paymentsCache.filter(m => m.status === 'accepted' && m.payment_last5);
+    filtered = paymentsCache.filter(m => m.status === 'accepted' && (m.payment_last5 || isPaymentOverdue(m)));
     emptyMsg = '目前沒有待確認的匯款';
   } else if (currentPayTab === 'confirmed') {
     filtered = paymentsCache.filter(m => m.status === 'payment_confirmed');
@@ -2494,33 +2896,42 @@ function renderPaymentsList() {
   }
 
   const paged = paginateList(filtered, paymentsPage, PAGE_SIZE);
+  const canConfirmPayment = hasRolePermission('confirm_payment');
   const rows = paged.items.map(m => {
     const payEquipNo = m.equipment_listing_id ? m.equipment_listing_id.slice(0,8).toUpperCase() : '—';
-    const actionCol = currentPayTab === 'pending'
-      ? `<td><div class="td-actions">
+    const overdue = isPaymentOverdue(m);
+    const last5Cell = m.payment_last5
+      ? `<span style="font-family:monospace;font-size:13px;letter-spacing:.1em">${m.payment_last5}</span>`
+      : `<span style="color:${overdue ? 'var(--red)' : 'var(--ink4)'}">${overdue ? '未提交' : '—'}</span>`;
+    const actionCol = currentPayTab === 'pending' && canConfirmPayment
+      ? (m.payment_last5 ? `<td><div class="td-actions">
            <button class="btn btn-green btn-sm" onclick="confirmPayment('${m.id}')"><i class="ti ti-check"></i> 確認款項</button>
            <button class="btn btn-danger btn-sm" onclick="rejectPayment('${m.id}')"><i class="ti ti-x"></i></button>
-         </div></td>`
+         </div></td>` : '<td style="text-align:right;color:var(--red);font-size:12px;font-weight:700">逾期未繳</td>')
       : '';
     return `<tr>
       <td style="font-weight:600">${m.device_name}<div style="font-size:11px;font-family:monospace;color:var(--ink4);margin-top:2px">${payEquipNo}</div></td>
       <td>${m.recycler_onboarding_accounts?.company_name || '—'}</td>
       <td style="font-weight:700;color:var(--green)">$${m.bid_price_min?.toLocaleString() || '—'}</td>
-      <td><span style="font-family:monospace;font-size:13px;letter-spacing:.1em">${m.payment_last5 || '—'}</span></td>
+      <td>${last5Cell}</td>
+      <td>${paymentDeadlineText(m)}</td>
       <td style="color:var(--ink3);font-size:12px">${m.payment_submitted_at ? new Date(m.payment_submitted_at).toLocaleString('zh-TW') : '—'}</td>
       ${actionCol}
     </tr>`;
   }).join('');
 
-  const actionHeader = currentPayTab === 'pending' ? '<th style="text-align:right">操作</th>' : '';
+  const actionHeader = currentPayTab === 'pending' && canConfirmPayment ? '<th style="text-align:right">操作</th>' : '';
   listEl.innerHTML = `<table class="data-table">
-    <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>匯款時間</th>${actionHeader}</tr></thead>
+    <thead><tr><th>設備</th><th>回收商</th><th>出價</th><th>匯款後5碼</th><th>繳費期限</th><th>匯款時間</th>${actionHeader}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
   ${paginationHTML(paged, PAGE_SIZE, 'setPaymentsPage')}`;
 }
 
 async function confirmPayment(matchId) {
+  if (!hasRolePermission('confirm_payment')) { showToast('目前角色沒有確認款項權限'); return; }
+  const target = paymentsCache.find(x => x.id === matchId);
+  if (!target?.payment_last5) { showToast('尚未收到匯款後五碼，不能確認款項'); return; }
   const db = getSupabase();
   if (!db) return;
   const { error } = await db.from('recycler_matches')
@@ -2537,6 +2948,7 @@ async function confirmPayment(matchId) {
 }
 
 async function rejectPayment(matchId) {
+  if (!hasRolePermission('confirm_payment')) { showToast('目前角色沒有確認款項權限'); return; }
   const db = getSupabase();
   if (!db) return;
   if (!confirm('確認退回此款項資訊？回收商需重新填寫。')) return;
@@ -2641,7 +3053,8 @@ function clearMatchesFilter() {
 }
 
 function matchDeadline(m) {
-  return m.bid_deadline ? new Date(m.bid_deadline) : new Date(new Date(m.created_at).getTime() + 86400000);
+  const hours = Number(getWorkflowParam('bid_deadline_hours')) || 24;
+  return m.bid_deadline ? new Date(m.bid_deadline) : new Date(new Date(m.created_at).getTime() + hours * 3600000);
 }
 
 function deadlineText(m) {
@@ -2654,6 +3067,27 @@ function deadlineText(m) {
     ? `<div class="match-countdown" data-dl="${dl.getTime()}" style="font-size:10px;color:var(--red);font-family:monospace;margin-top:2px"></div>`
     : '';
   return `<div><span style="font-size:11px;color:${color}">${dtStr}</span>${countdown}</div>`;
+}
+
+function paymentDeadline(m) {
+  const hours = Number(getWorkflowParam('payment_deadline_hours')) || 48;
+  if (m.payment_deadline_at) return new Date(m.payment_deadline_at);
+  if (!m.accepted_at) return null;
+  return new Date(new Date(m.accepted_at).getTime() + hours * 3600000);
+}
+
+function isPaymentOverdue(m) {
+  const dl = paymentDeadline(m);
+  return !!dl && !Number.isNaN(dl.getTime()) && !m.payment_last5 && Date.now() > dl.getTime();
+}
+
+function paymentDeadlineText(m) {
+  const dl = paymentDeadline(m);
+  if (!dl || Number.isNaN(dl.getTime())) return '<span style="color:var(--ink4);font-size:12px">—</span>';
+  const overdue = isPaymentOverdue(m);
+  const color = overdue ? 'var(--red)' : 'var(--ink3)';
+  const label = dl.toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false });
+  return `<div style="font-size:12px;color:${color}">${label}${overdue ? '<div style="font-size:11px;font-weight:700">已逾期</div>' : ''}</div>`;
 }
 
 // 每秒更新倒數計時
@@ -2711,8 +3145,8 @@ function renderMatchesList() {
     listings = listings.filter(l => {
       const allMs = matchMap[l.id] || [];
       if (matchesStatusFilter === 'needsAction') {
-        const isAg = currentDealerRole === 'agent';
-        const isMg = ['manager','admin'].includes(currentDealerRole);
+        const isAg = hasRolePermission('propose_winner') || hasRolePermission('confirm_payment');
+        const isMg = hasRolePermission('approve_winner');
         return allMs.some(m =>
           (isAg && (m.status === 'bidding' || m.status === 'payment_confirmed')) ||
           (isMg && m.status === 'proposed')
@@ -2774,8 +3208,8 @@ function renderMatchesList() {
       : allMs.some(m=>['accepted','payment_confirmed'].includes(m.status)) ? '#22c55e'
       : allMs.some(m=>m.status==='received') ? '#94a3b8'
       : 'transparent';
-    const isAgent   = currentDealerRole === 'agent';
-    const isManager = ['manager','admin'].includes(currentDealerRole);
+    const isAgent   = hasRolePermission('propose_winner');
+    const isManager = hasRolePermission('approve_winner');
     const needsAction = isAgent
       ? allMs.some(m => m.status === 'bidding') || allMs.some(m => m.status === 'payment_confirmed')
       : isManager
@@ -2828,8 +3262,8 @@ function renderMatchesList() {
               return (b.bid_price_min || 0) - (a.bid_price_min || 0);
             }).map(m => {
             const acct = m.recycler_onboarding_accounts;
-            const isAgent   = currentDealerRole === 'agent';
-            const isManager = ['manager','admin'].includes(currentDealerRole);
+            const isAgent   = hasRolePermission('propose_winner');
+            const isManager = hasRolePermission('approve_winner');
             let action = '';
             if (m.status === 'bidding') {
               if (isAgent)   action = `<button class="btn btn-ghost btn-sm" onclick="proposeWinner('${m.id}')"><i class="ti ti-thumb-up"></i> 建議得標</button>`;
@@ -2907,14 +3341,15 @@ async function reNotify(equipId) {
   if (!db) return;
   const pendingMs = matchesMatchCache.filter(x => x.equipment_listing_id === equipId && x.status === 'pending');
   if (pendingMs.length === 0) { showToast('沒有待回覆的廠商'); return; }
-  if (!confirm(`確認再次通知 ${pendingMs.length} 間未回覆的廠商？截止期限重設為 24 小時後。`)) return;
-  const newDeadline = new Date(Date.now() + 86400000).toISOString();
+  const hours = Number(getWorkflowParam('bid_deadline_hours')) || 24;
+  if (!confirm(`確認再次通知 ${pendingMs.length} 間未回覆的廠商？截止期限重設為 ${hours} 小時後。`)) return;
+  const newDeadline = new Date(Date.now() + hours * 3600000).toISOString();
   const { error } = await db.from('recycler_matches')
     .update({ bid_deadline: newDeadline, is_read: false })
     .in('id', pendingMs.map(m => m.id));
   if (error) { showToast('操作失敗：' + error.message); return; }
   pendingMs.forEach(m => { m.bid_deadline = newDeadline; });
-  showToast(`已通知 ${pendingMs.length} 間廠商，截止重設為 24 小時後`);
+  showToast(`已通知 ${pendingMs.length} 間廠商，截止重設為 ${hours} 小時後`);
   renderMatchesList();
 }
 
@@ -3997,6 +4432,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // status === 'approved'
   currentDealerRole = acctData.role || 'agent';
   currentDealerInfo = { name: acctData.name, email: acctData.email || session.user.email, title: acctData.title, role: acctData.role, phone: acctData.phone, line_id: acctData.line_id };
+  await loadSystemSettings({ silent: true });
   updateNavForRole();
   goScreen('screen-equipment');
   loadAllBadges();
