@@ -175,6 +175,13 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .settings-switch:disabled{opacity:.45;cursor:not-allowed}
 .settings-note{font-size:12px;color:var(--ink3);line-height:1.6}
 .settings-error{font-size:12px;color:var(--red);display:none;margin-bottom:10px}
+.permission-group-head{min-width:150px;vertical-align:top}
+.permission-group-head .field-input{font-size:12px;padding:6px 8px;margin-bottom:6px}
+.permission-group-key{font-size:10px;color:var(--ink4);font-family:'DM Mono',monospace}
+.staff-group-list{display:flex;flex-wrap:wrap;gap:8px}
+.staff-group-option{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--paper3);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--ink2);background:#fff}
+.staff-group-option input{margin:0}
+.staff-group-chip{display:inline-flex;align-items:center;border-radius:999px;background:var(--paper2);color:var(--ink3);font-size:11px;padding:3px 8px;margin:2px}
 </style>
 </head>
 <body>
@@ -427,7 +434,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="main-header">
       <div class="main-header-top">
         <div class="main-title">人員管理</div>
-        <button class="btn btn-primary" onclick="document.getElementById('modal-create-staff').classList.add('act')"><i class="ti ti-user-plus"></i> 新增成員</button>
+        <button class="btn btn-primary" onclick="openCreateStaffModal()"><i class="ti ti-user-plus"></i> 新增成員</button>
       </div>
     </div>
     <div class="main-body">
@@ -904,7 +911,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="main-header-top">
         <div>
           <div class="main-title">權限與參數</div>
-          <div style="font-size:12px;color:var(--ink3);margin-top:4px">控管盤商角色可操作功能，並設定第一版媒合流程參數。</div>
+          <div style="font-size:12px;color:var(--ink3);margin-top:4px">以權限組控管非管理員可操作功能，並設定第一版媒合流程參數。</div>
         </div>
         <button class="btn btn-primary" id="settings-save-btn" onclick="saveSystemSettings()"><i class="ti ti-device-floppy"></i> 儲存設定</button>
       </div>
@@ -913,15 +920,15 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div id="settings-error" class="settings-error"></div>
       <div class="settings-grid">
         <div class="settings-panel">
-          <div class="settings-panel-title"><i class="ti ti-shield-lock"></i> 角色權限控項</div>
-          <div class="settings-note" style="margin-bottom:12px">角色權限只有管理員可調整；主管可查看權限矩陣，但只能儲存右側流程參數。</div>
+          <div class="settings-panel-title" style="justify-content:space-between">
+            <span><i class="ti ti-shield-lock"></i> 權限組控項</span>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="addPermissionGroup()"><i class="ti ti-plus"></i> 新增權限組</button>
+          </div>
+          <div class="settings-note" style="margin-bottom:12px">管理員預設擁有所有權限，不需要套用權限組；其他人員由「人員管理」指派一個或多個權限組。</div>
           <table class="settings-table">
             <thead>
-              <tr>
+              <tr id="permission-settings-head-row">
                 <th>功能</th>
-                <th style="text-align:center">業務</th>
-                <th style="text-align:center">主管</th>
-                <th style="text-align:center">管理員</th>
               </tr>
             </thead>
             <tbody id="permission-settings-body"></tbody>
@@ -1304,17 +1311,40 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       </div>
     </div>
     <div class="field">
-      <label class="field-label">角色</label>
+      <label class="field-label">身份</label>
       <select class="field-input" id="new-staff-role">
         <option value="agent">業務</option>
         <option value="manager">主管</option>
         <option value="admin">管理員</option>
       </select>
     </div>
+    <div class="field" id="new-staff-groups-field">
+      <label class="field-label">權限組</label>
+      <div id="new-staff-groups" class="staff-group-list"></div>
+      <div class="settings-note" style="margin-top:6px">管理員預設全權；非管理員可套用多個權限組。</div>
+    </div>
     <div id="create-staff-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="document.getElementById('modal-create-staff').classList.remove('act')">取消</button>
       <button class="btn btn-primary" id="create-staff-btn" onclick="createStaff()"><i class="ti ti-user-plus"></i> 建立帳號</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal：調整成員權限組 -->
+<div class="modal-overlay" id="modal-staff-groups">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">調整權限組</div>
+      <button class="modal-close" onclick="closeStaffGroups()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="staff-groups-member" style="font-size:13px;color:var(--ink3);margin-bottom:12px"></div>
+    <div id="staff-groups-content" class="staff-group-list" style="margin-bottom:12px"></div>
+    <div class="settings-note" id="staff-groups-note" style="margin-bottom:12px"></div>
+    <div id="staff-groups-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeStaffGroups()">取消</button>
+      <button class="btn btn-primary" id="staff-groups-save-btn" onclick="saveStaffGroups()"><i class="ti ti-device-floppy"></i> 儲存</button>
     </div>
   </div>
 </div>
@@ -1435,7 +1465,6 @@ const SUPABASE_URL = '__SUPABASE_URL__';
 const SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
 let currentDealerRole = 'agent'; // agent | manager | admin
 let currentDealerInfo = {};
-const SETTINGS_ROLES = ['agent', 'manager', 'admin'];
 const PERMISSION_DEFS = [
   ['view_all_cases', '查看全部客戶/案件'],
   ['set_floor_price', '設定或修改底價'],
@@ -1448,6 +1477,46 @@ const PERMISSION_DEFS = [
   ['close_case', '案件結案'],
   ['manage_recyclers', '回收商管理'],
   ['manage_staff', '人員管理'],
+  ['manage_workflow_parameters', '管理流程參數'],
+  ['manage_permission_groups', '管理權限組'],
+];
+const PERMISSION_KEYS = PERMISSION_DEFS.map(([key]) => key);
+const LEGACY_ROLE_GROUP_FALLBACK = { agent: ['sales', 'finance', 'delivery'], manager: ['supervisor', 'finance', 'delivery', 'operations'] };
+function permissionMap(enabledKeys = []) {
+  const enabled = new Set(enabledKeys);
+  return Object.fromEntries(PERMISSION_KEYS.map(key => [key, enabled.has(key)]));
+}
+const DEFAULT_PERMISSION_GROUPS = [
+  {
+    id: 'sales',
+    name: '業務組',
+    description: '案件、媒合通知與建議得標',
+    permissions: permissionMap(['confirm_recommendations', 'propose_winner', 'schedule_delivery', 'complete_delivery']),
+  },
+  {
+    id: 'supervisor',
+    name: '主管組',
+    description: '底價、得標核定與流程參數',
+    permissions: permissionMap(['view_all_cases', 'set_floor_price', 'confirm_recommendations', 'propose_winner', 'approve_winner', 'schedule_delivery', 'close_case', 'manage_workflow_parameters']),
+  },
+  {
+    id: 'finance',
+    name: '財務組',
+    description: '付款確認與款項退回',
+    permissions: permissionMap(['confirm_payment']),
+  },
+  {
+    id: 'delivery',
+    name: '交付組',
+    description: '拉貨排程、交付簽署與交付照片',
+    permissions: permissionMap(['schedule_delivery', 'complete_delivery']),
+  },
+  {
+    id: 'operations',
+    name: '營運管理組',
+    description: '回收商管理與流程參數',
+    permissions: permissionMap(['view_all_cases', 'manage_recyclers', 'manage_workflow_parameters']),
+  },
 ];
 const DEFAULT_APP_SETTINGS = {
   workflow_parameters: {
@@ -1460,49 +1529,11 @@ const DEFAULT_APP_SETTINGS = {
     delivery_requires_photos: true,
     close_requires_payment: true,
   },
-  role_permissions: {
-    agent: {
-      view_all_cases: false,
-      set_floor_price: false,
-      confirm_recommendations: true,
-      propose_winner: true,
-      approve_winner: false,
-      confirm_payment: true,
-      schedule_delivery: true,
-      complete_delivery: true,
-      close_case: false,
-      manage_recyclers: false,
-      manage_staff: false,
-    },
-    manager: {
-      view_all_cases: true,
-      set_floor_price: true,
-      confirm_recommendations: true,
-      propose_winner: true,
-      approve_winner: true,
-      confirm_payment: true,
-      schedule_delivery: true,
-      complete_delivery: true,
-      close_case: true,
-      manage_recyclers: true,
-      manage_staff: false,
-    },
-    admin: {
-      view_all_cases: true,
-      set_floor_price: true,
-      confirm_recommendations: true,
-      propose_winner: true,
-      approve_winner: true,
-      confirm_payment: true,
-      schedule_delivery: true,
-      complete_delivery: true,
-      close_case: true,
-      manage_recyclers: true,
-      manage_staff: true,
-    },
-  },
+  permission_groups: DEFAULT_PERMISSION_GROUPS,
 };
 let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
+let currentDealerGroupIds = [];
+let currentDealerPermissions = {};
 
 async function logActivity(action, entityType, entityId, fromValue, toValue, note) {
   const db = getSupabase();
@@ -1539,16 +1570,129 @@ function getSupabase() {
   return window._sb;
 }
 
-function canManageSettings() {
-  return ['manager', 'admin'].includes(currentDealerRole);
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[ch]));
 }
 
-function canEditRolePermissions() {
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+
+function isAdminUser() {
   return currentDealerRole === 'admin';
 }
 
+function emptyPermissionMap() {
+  return permissionMap([]);
+}
+
+function normalizePermissionGroups(groups) {
+  const source = Array.isArray(groups) && groups.length ? groups : DEFAULT_PERMISSION_GROUPS;
+  const seen = new Set();
+  return source.map((group, index) => {
+    const rawId = String(group.id || group.key || `group_${index + 1}`).trim() || `group_${index + 1}`;
+    let id = rawId.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 48) || `group_${index + 1}`;
+    while (seen.has(id)) id = `${id}_${index + 1}`;
+    seen.add(id);
+    const rawPermissions = group.permissions || {};
+    return {
+      id,
+      name: String(group.name || id),
+      description: String(group.description || ''),
+      permissions: Object.fromEntries(PERMISSION_KEYS.map(key => [key, rawPermissions[key] === true])),
+    };
+  });
+}
+
+function groupsFromLegacyRolePermissions(rolePermissions) {
+  if (!rolePermissions || typeof rolePermissions !== 'object') return DEFAULT_PERMISSION_GROUPS;
+  return normalizePermissionGroups([
+    { id: 'sales', name: '業務組', description: '由舊業務角色權限轉換', permissions: rolePermissions.agent || {} },
+    { id: 'supervisor', name: '主管組', description: '由舊主管角色權限轉換', permissions: rolePermissions.manager || {} },
+    DEFAULT_PERMISSION_GROUPS.find(g => g.id === 'finance'),
+    DEFAULT_PERMISSION_GROUPS.find(g => g.id === 'delivery'),
+    DEFAULT_PERMISSION_GROUPS.find(g => g.id === 'operations'),
+  ].filter(Boolean));
+}
+
+function getPermissionGroups() {
+  return normalizePermissionGroups(appSettings.permission_groups);
+}
+
+function getPermissionGroupName(groupId) {
+  return getPermissionGroups().find(group => group.id === groupId)?.name || groupId;
+}
+
+function fallbackGroupIdsForRole(role) {
+  return LEGACY_ROLE_GROUP_FALLBACK[role] || [];
+}
+
+function applyDealerPermissionGroups(groupIds) {
+  currentDealerGroupIds = [...new Set(groupIds || [])];
+  currentDealerPermissions = emptyPermissionMap();
+  getPermissionGroups()
+    .filter(group => currentDealerGroupIds.includes(group.id))
+    .forEach(group => {
+      PERMISSION_KEYS.forEach(key => {
+        currentDealerPermissions[key] = currentDealerPermissions[key] || group.permissions?.[key] === true;
+      });
+    });
+}
+
+function applyFallbackDealerPermissionGroups() {
+  if (isAdminUser()) {
+    currentDealerGroupIds = [];
+    currentDealerPermissions = permissionMap(PERMISSION_KEYS);
+    return;
+  }
+  applyDealerPermissionGroups(fallbackGroupIdsForRole(currentDealerRole));
+}
+
+async function loadCurrentDealerPermissionGroups(options = {}) {
+  if (isAdminUser()) {
+    applyFallbackDealerPermissionGroups();
+    return;
+  }
+  const db = getSupabase();
+  const accountId = currentDealerInfo?.id;
+  if (!db || !accountId) {
+    applyFallbackDealerPermissionGroups();
+    return;
+  }
+  const { data, error } = await db
+    .from('dealer_account_permission_groups')
+    .select('group_key')
+    .eq('account_id', accountId);
+  if (error) {
+    if (!options.silent) console.warn('load permission groups failed', error.message);
+    applyFallbackDealerPermissionGroups();
+    return;
+  }
+  const groupIds = (data || []).map(row => row.group_key).filter(Boolean);
+  applyDealerPermissionGroups(groupIds.length ? groupIds : fallbackGroupIdsForRole(currentDealerRole));
+}
+
+function hasPermission(permissionKey) {
+  if (isAdminUser()) return true;
+  return currentDealerPermissions[permissionKey] === true;
+}
+
 function hasRolePermission(permissionKey) {
-  return !!appSettings.role_permissions?.[currentDealerRole]?.[permissionKey];
+  return hasPermission(permissionKey);
+}
+
+function canManageSettings() {
+  return hasPermission('manage_workflow_parameters') || hasPermission('manage_permission_groups');
+}
+
+function canEditRolePermissions() {
+  return hasPermission('manage_permission_groups');
+}
+
+function canEditPermissionGroups() {
+  return hasPermission('manage_permission_groups');
 }
 
 function getWorkflowParam(key) {
@@ -1557,6 +1701,7 @@ function getWorkflowParam(key) {
 
 function mergeSystemSettings(rows) {
   appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
+  let legacyRolePermissions = null;
   (rows || []).forEach(row => {
     if (row.key === 'workflow_parameters') {
       appSettings.workflow_parameters = {
@@ -1564,13 +1709,16 @@ function mergeSystemSettings(rows) {
         ...(row.value || {}),
       };
     }
+    if (row.key === 'permission_groups') {
+      appSettings.permission_groups = normalizePermissionGroups(row.value || []);
+    }
     if (row.key === 'role_permissions') {
-      appSettings.role_permissions = {
-        ...appSettings.role_permissions,
-        ...(row.value || {}),
-      };
+      legacyRolePermissions = row.value || null;
     }
   });
+  if (!Array.isArray(appSettings.permission_groups) || !appSettings.permission_groups.length) {
+    appSettings.permission_groups = groupsFromLegacyRolePermissions(legacyRolePermissions);
+  }
 }
 
 async function loadSystemSettings(options = {}) {
@@ -1578,22 +1726,25 @@ async function loadSystemSettings(options = {}) {
   const errEl = document.getElementById('settings-error');
   if (errEl) errEl.style.display = 'none';
   if (!db) {
+    applyFallbackDealerPermissionGroups();
     renderSystemSettings();
     return;
   }
   const { data, error } = await db
     .from('dealer_system_settings')
     .select('key,value')
-    .in('key', ['workflow_parameters', 'role_permissions']);
+    .in('key', ['workflow_parameters', 'permission_groups', 'role_permissions']);
   if (error) {
     if (!options.silent && errEl) {
       errEl.textContent = '設定表尚未建立或權限不足：' + error.message;
       errEl.style.display = 'block';
     }
+    applyFallbackDealerPermissionGroups();
     renderSystemSettings();
     return;
   }
   mergeSystemSettings(data || []);
+  await loadCurrentDealerPermissionGroups(options);
   renderSystemSettings();
 }
 
@@ -1630,6 +1781,18 @@ function readSettingsSwitch(id) {
 }
 
 function renderSystemSettings() {
+  const groups = getPermissionGroups();
+  const canEditGroups = canEditPermissionGroups();
+  const head = document.getElementById('permission-settings-head-row');
+  if (head) {
+    head.innerHTML = '<th>功能</th>' + groups.map(group => `
+      <th class="permission-group-head">
+        <input class="field-input permission-group-name" data-group-id="${escapeAttr(group.id)}" value="${escapeAttr(group.name)}" ${canEditGroups ? '' : 'disabled'}>
+        <div class="permission-group-key">${escapeHtml(group.id)}</div>
+        ${canEditGroups && groups.length > 1 ? `<button class="btn btn-danger btn-sm" type="button" style="margin-top:6px" onclick="removePermissionGroup('${escapeAttr(group.id)}')"><i class="ti ti-trash"></i></button>` : ''}
+      </th>`).join('');
+  }
+
   const body = document.getElementById('permission-settings-body');
   if (body) {
     body.innerHTML = PERMISSION_DEFS.map(([key, label]) => `
@@ -1638,14 +1801,14 @@ function renderSystemSettings() {
           <div style="font-weight:600;color:var(--ink2)">${label}</div>
           <div style="font-size:11px;color:var(--ink4);font-family:'DM Mono',monospace">${key}</div>
         </td>
-        ${SETTINGS_ROLES.map(role => `
+        ${groups.map(group => `
           <td style="text-align:center">
             <button type="button"
-              class="settings-switch ${appSettings.role_permissions?.[role]?.[key] ? 'on' : ''}"
-              data-role="${role}"
+              class="settings-switch ${group.permissions?.[key] ? 'on' : ''}"
+              data-group-id="${escapeAttr(group.id)}"
               data-permission="${key}"
               onclick="toggleSettingsSwitch(this)"
-              ${!canEditRolePermissions() || (role === 'admin' && ['manage_staff','approve_winner','set_floor_price'].includes(key)) ? 'disabled' : ''}></button>
+              ${canEditGroups ? '' : 'disabled'}></button>
           </td>`).join('')}
       </tr>`).join('');
   }
@@ -1663,18 +1826,32 @@ function renderSystemSettings() {
   setSettingsSwitch('param-enforce-min-bid', params.enforce_min_bid);
   setSettingsSwitch('param-delivery-requires-photos', params.delivery_requires_photos);
   setSettingsSwitch('param-close-requires-payment', params.close_requires_payment);
+  document.querySelectorAll('#screen-settings input[id^="param-"], #screen-settings .settings-switch[id^="param-"]').forEach(el => {
+    el.disabled = !hasPermission('manage_workflow_parameters');
+  });
   syncSettingsNav();
+  renderNewStaffPermissionGroups();
 }
 
 function collectSystemSettingsFromForm() {
-  const next = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
-  next.role_permissions = JSON.parse(JSON.stringify(appSettings.role_permissions || DEFAULT_APP_SETTINGS.role_permissions));
-  document.querySelectorAll('#permission-settings-body .settings-switch[data-role]').forEach(btn => {
-    const role = btn.dataset.role;
-    const key = btn.dataset.permission;
-    if (!canEditRolePermissions()) return;
-    next.role_permissions[role][key] = btn.classList.contains('on');
-  });
+  const next = JSON.parse(JSON.stringify(appSettings || DEFAULT_APP_SETTINGS));
+  const groups = canEditPermissionGroups()
+    ? getPermissionGroups().map(group => ({ ...group, permissions: emptyPermissionMap() }))
+    : getPermissionGroups();
+
+  if (canEditPermissionGroups()) {
+    document.querySelectorAll('.permission-group-name[data-group-id]').forEach(input => {
+      const group = groups.find(item => item.id === input.dataset.groupId);
+      if (group) group.name = input.value.trim() || group.id;
+    });
+    document.querySelectorAll('#permission-settings-body .settings-switch[data-group-id]').forEach(btn => {
+      const group = groups.find(item => item.id === btn.dataset.groupId);
+      if (!group) return;
+      const key = btn.dataset.permission;
+      group.permissions[key] = btn.classList.contains('on');
+    });
+  }
+  next.permission_groups = normalizePermissionGroups(groups);
 
   const num = (id, fallback, min, max) => {
     const value = Number(document.getElementById(id)?.value);
@@ -1708,11 +1885,17 @@ async function saveSystemSettings() {
   const btn = document.getElementById('settings-save-btn');
   if (btn) btn.disabled = true;
   const { data: { user } } = await db.auth.getUser();
-  const rows = [
-    { key: 'workflow_parameters', value: next.workflow_parameters, updated_by: user?.id || null },
-  ];
-  if (canEditRolePermissions()) {
-    rows.push({ key: 'role_permissions', value: next.role_permissions, updated_by: user?.id || null });
+  const rows = [];
+  if (hasPermission('manage_workflow_parameters')) {
+    rows.push({ key: 'workflow_parameters', value: next.workflow_parameters, updated_by: user?.id || null });
+  }
+  if (canEditPermissionGroups()) {
+    rows.push({ key: 'permission_groups', value: next.permission_groups, updated_by: user?.id || null });
+  }
+  if (!rows.length) {
+    if (btn) btn.disabled = false;
+    showToast('目前角色沒有儲存設定權限');
+    return;
   }
   const { error } = await db.from('dealer_system_settings').upsert(rows, { onConflict: 'key' });
   if (btn) btn.disabled = false;
@@ -1724,8 +1907,83 @@ async function saveSystemSettings() {
     return;
   }
   logActivity('system_settings_updated', 'settings', 'dealer_system_settings');
+  if (!isAdminUser()) applyDealerPermissionGroups(currentDealerGroupIds);
   showToast('權限與參數已儲存');
   syncSettingsNav();
+}
+
+function makePermissionGroupId() {
+  const suffix = (window.crypto?.randomUUID?.() || String(Date.now())).replace(/-/g, '').slice(0, 8);
+  return `custom_${suffix}`;
+}
+
+function addPermissionGroup() {
+  if (!canEditPermissionGroups()) { showToast('目前角色沒有管理權限組權限'); return; }
+  appSettings.permission_groups = getPermissionGroups();
+  appSettings.permission_groups.push({
+    id: makePermissionGroupId(),
+    name: '自訂權限組',
+    description: '',
+    permissions: emptyPermissionMap(),
+  });
+  renderSystemSettings();
+}
+
+function removePermissionGroup(groupId) {
+  if (!canEditPermissionGroups()) { showToast('目前角色沒有管理權限組權限'); return; }
+  const groups = getPermissionGroups();
+  const group = groups.find(item => item.id === groupId);
+  if (!group || groups.length <= 1) return;
+  if (!confirm(`確認刪除「${group.name}」？已套用此權限組的人員會失去這組權限。`)) return;
+  appSettings.permission_groups = groups.filter(item => item.id !== groupId);
+  staffCache.forEach(staff => {
+    staff.permission_group_keys = (staff.permission_group_keys || []).filter(key => key !== groupId);
+  });
+  renderSystemSettings();
+  renderStaffList();
+}
+
+function renderPermissionGroupCheckboxes(containerId, selected = [], disabled = false) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const selectedSet = new Set(selected || []);
+  const groups = getPermissionGroups();
+  if (!groups.length) {
+    el.innerHTML = '<div class="settings-note">尚未建立權限組</div>';
+    return;
+  }
+  el.innerHTML = groups.map(group => `
+    <label class="staff-group-option">
+      <input type="checkbox" value="${escapeAttr(group.id)}" ${selectedSet.has(group.id) ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+      <span>${escapeHtml(group.name)}</span>
+    </label>`).join('');
+}
+
+function checkedPermissionGroups(containerId) {
+  return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)).map(input => input.value);
+}
+
+function groupChips(groupIds) {
+  const ids = groupIds || [];
+  if (!ids.length) return '<span style="color:var(--ink4);font-size:12px">未指派</span>';
+  return ids.map(id => `<span class="staff-group-chip">${escapeHtml(getPermissionGroupName(id))}</span>`).join('');
+}
+
+function renderNewStaffPermissionGroups() {
+  const role = document.getElementById('new-staff-role')?.value || 'agent';
+  const field = document.getElementById('new-staff-groups-field');
+  if (field) field.style.display = role === 'admin' ? 'none' : '';
+  renderPermissionGroupCheckboxes('new-staff-groups', fallbackGroupIdsForRole(role), role === 'admin');
+}
+
+function openCreateStaffModal() {
+  const roleSelect = document.getElementById('new-staff-role');
+  if (roleSelect && !roleSelect.dataset.groupsBound) {
+    roleSelect.addEventListener('change', renderNewStaffPermissionGroups);
+    roleSelect.dataset.groupsBound = '1';
+  }
+  renderNewStaffPermissionGroups();
+  document.getElementById('modal-create-staff').classList.add('act');
 }
 
 // ════════════════════════════════════════════
@@ -1831,7 +2089,7 @@ async function doLogin() {
 
   // 已 approved，讀取角色與個人資訊
   currentDealerRole = acct.role || 'agent';
-  currentDealerInfo = { name: acct.name, email: acct.email, title: acct.title, role: acct.role, phone: acct.phone, line_id: acct.line_id };
+  currentDealerInfo = { id: userId, name: acct.name, email: acct.email, title: acct.title, role: acct.role, phone: acct.phone, line_id: acct.line_id };
 
   await loadSystemSettings({ silent: true });
   updateNavForRole();
@@ -2016,10 +2274,12 @@ async function createStaff() {
   const email    = document.getElementById('new-staff-email').value.trim();
   const password = document.getElementById('new-staff-password').value;
   const role     = document.getElementById('new-staff-role').value;
+  const groupKeys = role === 'admin' ? [] : checkedPermissionGroups('new-staff-groups');
   const errEl    = document.getElementById('create-staff-error');
   errEl.style.display = 'none';
   if (!name || !email || !password) { errEl.textContent = '請填寫所有必填欄位'; errEl.style.display = 'block'; return; }
   if (password.length < 8) { errEl.textContent = '密碼至少需要 8 個字元'; errEl.style.display = 'block'; return; }
+  if (role !== 'admin' && groupKeys.length === 0) { errEl.textContent = '請至少指派一個權限組'; errEl.style.display = 'block'; return; }
 
   const btn = document.getElementById('create-staff-btn');
   btn.disabled = true;
@@ -2045,11 +2305,22 @@ async function createStaff() {
     btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> 建立帳號';
     return;
   }
+  let groupWarning = '';
+  if (groupKeys.length) {
+    const { error: groupErr } = await db.from('dealer_account_permission_groups').insert(
+      groupKeys.map(group_key => ({ account_id: data.user.id, group_key, assigned_by: currentDealerInfo.id || null }))
+    );
+    if (groupErr) {
+      console.warn('permission group assignment failed', groupErr.message);
+      groupWarning = '帳號已建立，但權限組尚未寫入；請確認 Supabase migration 已套用。';
+    }
+  }
 
   document.getElementById('modal-create-staff').classList.remove('act');
   ['new-staff-name','new-staff-title','new-staff-email','new-staff-password'].forEach(id => document.getElementById(id).value = '');
+  renderNewStaffPermissionGroups();
   btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-plus"></i> 建立帳號';
-  showToast('成員已建立，可直接登入後台');
+  showToast(groupWarning || '成員已建立，可直接登入後台');
   loadStaffList();
 }
 
@@ -2058,9 +2329,12 @@ async function createStaff() {
 // 角色 Nav 控制
 // ════════════════════════════════════════════
 function updateNavForRole() {
-  const isAdmin = currentDealerRole === 'admin';
   document.querySelectorAll('.dealer-admin-only').forEach(el => {
-    el.style.display = isAdmin ? 'flex' : 'none';
+    const target = el.getAttribute('onclick') || '';
+    let permission = null;
+    if (target.includes('screen-recyclers')) permission = 'manage_recyclers';
+    if (target.includes('screen-staff')) permission = 'manage_staff';
+    el.style.display = permission ? (hasPermission(permission) ? 'flex' : 'none') : (isAdminUser() ? 'flex' : 'none');
   });
   document.querySelectorAll('.dealer-settings-only').forEach(el => {
     el.style.display = canManageSettings() ? 'flex' : 'none';
@@ -2081,7 +2355,7 @@ async function loadAllBadges() {
   setBadge('matches', proposed);
   setBadge('payments', payments);
   // 人員管理：待審核數
-  if (currentDealerRole === 'admin') {
+  if (hasPermission('manage_staff')) {
     const db2 = getSupabase();
     const { data: staff } = await db2.from('dealer_accounts').select('status').eq('status','pending');
     const pendingStaff = (staff||[]).length;
@@ -3372,8 +3646,18 @@ async function loadStaffList() {
   document.getElementById('staff-loading').style.display = 'block';
   document.getElementById('staff-list').innerHTML = '';
   if (!db) { document.getElementById('staff-loading').style.display = 'none'; return; }
-  const { data } = await db.from('dealer_accounts').select('*').order('created_at', { ascending: false });
-  staffCache = data || [];
+  let { data, error } = await db
+    .from('dealer_accounts')
+    .select('*, dealer_account_permission_groups(group_key)')
+    .order('created_at', { ascending: false });
+  if (error) {
+    const fallback = await db.from('dealer_accounts').select('*').order('created_at', { ascending: false });
+    data = fallback.data || [];
+  }
+  staffCache = (data || []).map(staff => ({
+    ...staff,
+    permission_group_keys: (staff.dealer_account_permission_groups || []).map(row => row.group_key).filter(Boolean),
+  }));
   document.getElementById('staff-loading').style.display = 'none';
   renderStaffList();
 }
@@ -3415,7 +3699,7 @@ function renderStaffList() {
   const paged = paginateList(filtered, staffPage, PAGE_SIZE);
   const roleLabel = { agent:'業務', manager:'主管', admin:'管理員' };
   el.innerHTML = `<table class="data-table">
-    <thead><tr><th>姓名</th><th>Email</th><th>職稱</th><th>角色</th><th>申請時間</th><th>審核</th><th style="text-align:right">操作</th></tr></thead>
+    <thead><tr><th>姓名</th><th>Email</th><th>職稱</th><th>身份</th><th>權限組</th><th>申請時間</th><th>審核</th><th style="text-align:right">操作</th></tr></thead>
     <tbody>${paged.items.map(s => {
       let actions = '';
       const statusBadge = s.status === 'rejected'
@@ -3434,6 +3718,7 @@ function renderStaffList() {
                      <option value="admin"   ${s.role==='admin'   ? 'selected' : ''}>管理員</option>
                    </select>
                    <button class="btn btn-ghost btn-sm" onclick="openStaffEdit('${s.id}')"><i class="ti ti-pencil"></i> 編輯</button>
+                   <button class="btn btn-ghost btn-sm" onclick="openStaffGroups('${s.id}')"><i class="ti ti-shield-lock"></i> 權限組</button>
                    <button class="btn btn-danger btn-sm" onclick="staffAction('${s.id}','suspend')"><i class="ti ti-ban"></i> 停用</button>`;
       } else if (s.status === 'suspended') {
         actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-player-play"></i> 恢復</button>`;
@@ -3444,6 +3729,7 @@ function renderStaffList() {
         <td style="color:var(--ink3);font-size:12px">${s.email}</td>
         <td>${s.title || '—'}</td>
         <td><span class="badge badge-${s.role==='admin'?'payment_confirmed':s.role==='manager'?'bidding':'pending'}">${roleLabel[s.role]||s.role}</span></td>
+        <td>${s.role === 'admin' ? '<span class="staff-group-chip">管理員全權</span>' : groupChips(s.permission_group_keys)}</td>
         <td style="color:var(--ink3);font-size:12px">${new Date(s.created_at).toLocaleDateString('zh-TW')}</td>
         <td>${showStatusCol ? (s.status === 'rejected' ? `<span class="badge" style="background:var(--red-l);color:var(--red)">已拒絕</span>` : `<span class="badge badge-pending">待審核</span>`) : '—'}</td>
         <td><div class="td-actions">${actions}</div></td>
@@ -3506,10 +3792,74 @@ async function staffAction(id, action) {
   if (error) { showToast('操作失敗：' + error.message); return; }
   const s = staffCache.find(x => x.id === id);
   if (s) s.status = newStatus;
+  if (s && action === 'approve' && s.role !== 'admin' && !(s.permission_group_keys || []).length) {
+    const fallbackGroups = fallbackGroupIdsForRole(s.role);
+    await setStaffPermissionGroups(id, fallbackGroups);
+    s.permission_group_keys = fallbackGroups;
+  }
   const msgMap = { approve:'已核准', reject:'已拒絕', suspend:'已停用', unreject:'已撤銷，退回待審核' };
   showToast(msgMap[action]);
   renderStaffList();
   loadAllBadges();
+}
+
+let _staffGroupsEditId = null;
+
+function openStaffGroups(id) {
+  const s = staffCache.find(x => x.id === id);
+  if (!s) return;
+  _staffGroupsEditId = id;
+  document.getElementById('staff-groups-member').textContent = `${s.name}／${s.email}`;
+  document.getElementById('staff-groups-error').style.display = 'none';
+  const isAdmin = s.role === 'admin';
+  document.getElementById('staff-groups-note').textContent = isAdmin
+    ? '管理員預設擁有所有權限，不需要也不能套用權限組。'
+    : '可套用多個權限組；實際權限會合併所有已勾選的權限組。';
+  renderPermissionGroupCheckboxes('staff-groups-content', s.permission_group_keys || [], isAdmin);
+  document.getElementById('staff-groups-save-btn').disabled = isAdmin;
+  document.getElementById('modal-staff-groups').classList.add('act');
+}
+
+function closeStaffGroups() {
+  document.getElementById('modal-staff-groups').classList.remove('act');
+  _staffGroupsEditId = null;
+}
+
+async function setStaffPermissionGroups(accountId, groupKeys) {
+  const db = getSupabase();
+  if (!db) return { error: new Error('Supabase not configured') };
+  const { error: deleteError } = await db
+    .from('dealer_account_permission_groups')
+    .delete()
+    .eq('account_id', accountId);
+  if (deleteError) return { error: deleteError };
+  if (!groupKeys.length) return { error: null };
+  return db.from('dealer_account_permission_groups').insert(
+    groupKeys.map(group_key => ({ account_id: accountId, group_key, assigned_by: currentDealerInfo.id || null }))
+  );
+}
+
+async function saveStaffGroups() {
+  if (!hasPermission('manage_staff')) { showToast('目前角色沒有管理人員權限'); return; }
+  const s = staffCache.find(x => x.id === _staffGroupsEditId);
+  if (!s || s.role === 'admin') return;
+  const groupKeys = checkedPermissionGroups('staff-groups-content');
+  const errEl = document.getElementById('staff-groups-error');
+  errEl.style.display = 'none';
+  if (!groupKeys.length) { errEl.textContent = '請至少指派一個權限組'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('staff-groups-save-btn');
+  btn.disabled = true;
+  const { error } = await setStaffPermissionGroups(s.id, groupKeys);
+  btn.disabled = false;
+  if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
+  s.permission_group_keys = groupKeys;
+  if (s.id === currentDealerInfo.id) {
+    await loadCurrentDealerPermissionGroups({ silent: true });
+    updateNavForRole();
+  }
+  closeStaffGroups();
+  showToast('權限組已更新');
+  renderStaffList();
 }
 
 async function changeRole(id, role) {
@@ -3519,7 +3869,16 @@ async function changeRole(id, role) {
   if (error) { showToast('變更失敗：' + error.message); return; }
   const s = staffCache.find(x => x.id === id);
   if (s) s.role = role;
+  if (role === 'admin') {
+    await setStaffPermissionGroups(id, []);
+    if (s) s.permission_group_keys = [];
+  } else if (s && !(s.permission_group_keys || []).length) {
+    const fallbackGroups = fallbackGroupIdsForRole(role);
+    await setStaffPermissionGroups(id, fallbackGroups);
+    s.permission_group_keys = fallbackGroups;
+  }
   showToast('角色已更新');
+  renderStaffList();
 }
 
 // ════════════════════════════════════════════
@@ -4431,7 +4790,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   // status === 'approved'
   currentDealerRole = acctData.role || 'agent';
-  currentDealerInfo = { name: acctData.name, email: acctData.email || session.user.email, title: acctData.title, role: acctData.role, phone: acctData.phone, line_id: acctData.line_id };
+  currentDealerInfo = { id: session.user.id, name: acctData.name, email: acctData.email || session.user.email, title: acctData.title, role: acctData.role, phone: acctData.phone, line_id: acctData.line_id };
   await loadSystemSettings({ silent: true });
   updateNavForRole();
   goScreen('screen-equipment');
