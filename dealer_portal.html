@@ -4230,7 +4230,9 @@ function getCaseActionBtn(c) {
     case 'surveying':
       return `<button class="btn btn-primary btn-sm" onclick="advanceCaseStatus('${id}','pricing')"><i class="ti ti-check"></i> 設備建檔完成，進入評估</button>`;
     case 'pricing':
-      return `<button class="btn btn-primary btn-sm" onclick="openCasePricing('${id}','estimate')"><i class="ti ti-currency-dollar"></i> 記錄評估總包價</button>`;
+      return hasPermission('set_floor_price')
+        ? `<button class="btn btn-primary btn-sm" onclick="openCasePricing('${id}','estimate')"><i class="ti ti-currency-dollar"></i> 記錄評估總包價</button>`
+        : `<button class="btn btn-sm" disabled style="opacity:.55;cursor:not-allowed"><i class="ti ti-lock"></i> 待主管設定底價</button>`;
     case 'pending_mandate':
       return `<button class="btn btn-primary btn-sm" onclick="openCaseSign('${id}','mandate')"><i class="ti ti-writing-sign"></i> 簽署委任同意書</button>`;
     case 'matching':
@@ -4354,6 +4356,11 @@ async function saveCaseSurvey() {
 }
 
 function openCasePricing(caseId, type) {
+  // 底價（評估總包價）僅具 set_floor_price 權限者（主管）可設定或修改
+  if (type === 'estimate' && !hasPermission('set_floor_price')) {
+    showToast('僅主管可設定或修改底價（評估總包價）');
+    return;
+  }
   _pricingCaseId = caseId; _pricingType = type;
   const isEstimate = type === 'estimate';
   document.getElementById('pricing-modal-title').textContent = isEstimate ? '記錄評估總包價' : '提出正式報價';
@@ -4376,6 +4383,11 @@ async function saveCasePricing() {
   const db = getSupabase();
   if (!db || !_pricingCaseId) return;
   const isEst = _pricingType === 'estimate';
+  // 後端送出前再次把關：底價僅主管可寫入（防止繞過 UI）
+  if (isEst && !hasPermission('set_floor_price')) {
+    showToast('僅主管可設定或修改底價');
+    return;
+  }
   let payload, valid;
   if (isEst) {
     const min = Number(document.getElementById('case-price-input').value);
