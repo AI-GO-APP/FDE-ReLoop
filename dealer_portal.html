@@ -649,7 +649,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <div class="field" style="flex:1;margin-bottom:0">
         <label class="field-label">最低（元）<span id="pricing-floor-lock" style="display:none;color:var(--ink4);font-weight:400"><i class="ti ti-lock"></i></span></label>
         <input class="field-input" id="case-price-input" type="number" min="0" placeholder="0">
-        <div id="pricing-floor-lock-hint" style="display:none;font-size:11px;color:var(--ink4);margin-top:4px">底價僅主管可設定</div>
+        <div id="pricing-floor-lock-hint" style="display:none;font-size:11px;color:var(--ink4);margin-top:4px">底價由主管設定，此處僅供檢視、不可修改</div>
       </div>
       <div style="padding-top:20px;color:var(--ink4)">～</div>
       <div class="field" style="flex:1;margin-bottom:0">
@@ -4370,11 +4370,14 @@ function openCasePricing(caseId, type) {
   if (isEstimate) {
     document.getElementById('case-price-input').value = c?.estimate_price || '';
     document.getElementById('case-price-max-input').value = c?.estimate_price_max || '';
-    // B 方案：業務可記錄推薦（最高金額），但最低金額（底價）僅主管可動
+    // B 方案：業務可記錄推薦（最高金額），且可「檢視」最低金額（底價），但不能改；僅主管可改
     const canFloor = hasPermission('set_floor_price');
     const floorInput = document.getElementById('case-price-input');
-    floorInput.disabled = !canFloor;
+    floorInput.disabled = false;             // 不用 disabled（會變灰看不清），改用 readonly：值照常顯示、僅不可編輯
+    floorInput.readOnly = !canFloor;
     floorInput.placeholder = canFloor ? '0' : '待主管設定';
+    floorInput.style.background = canFloor ? '' : 'var(--paper)';
+    floorInput.style.cursor = canFloor ? '' : 'not-allowed';
     document.getElementById('pricing-floor-lock').style.display = canFloor ? 'none' : '';
     document.getElementById('pricing-floor-lock-hint').style.display = canFloor ? 'none' : '';
   } else {
