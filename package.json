@@ -1,0 +1,20 @@
+{
+  "name": "fde-reloop",
+  "version": "1.0.0",
+  "description": "FDE-ReLoop 盤商後台測試（冒煙/單元/整合，零相依）",
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AI-GO-APP/FDE-ReLoop.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/AI-GO-APP/FDE-ReLoop/issues"
+  },
+  "homepage": "https://github.com/AI-GO-APP/FDE-ReLoop#readme"
+}

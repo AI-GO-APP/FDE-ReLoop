@@ -2485,6 +2485,27 @@ function renderEquipmentList() {
     ${paginationHTML(paged, PAGE_SIZE, 'setEquipPage')}`;
 }
 
+// 純函式：依輸入與是否為審核者，算出底價相關欄位（含審核狀態流轉）。獨立出來方便單元測試。
+//   floorRaw   輸入框字串（'' 或 null 視為未設定）
+//   isApprover 是否具 approve_floor_price（admin）→ true 直接生效；false（主管）→ 待審
+//   userId     當前操作者 id
+//   nowIso     時間戳
+function computeFloorPriceFields(floorRaw, isApprover, userId, nowIso) {
+  const floorVal = (floorRaw === '' || floorRaw == null) ? null : Number(floorRaw);
+  const f = { floor_price: floorVal, floor_price_by: userId || null, floor_price_updated_at: nowIso };
+  if (floorVal == null) {
+    f.floor_price_status = 'none';
+    f.floor_price_approved_by = null;
+  } else if (isApprover) {
+    f.floor_price_status = 'approved';
+    f.floor_price_approved_by = userId || null;
+  } else {
+    f.floor_price_status = 'pending';
+    f.floor_price_approved_by = null;
+  }
+  return f;
+}
+
 // 設備清單的底價欄：顯示金額 + 審核狀態小點（盤商內部可見）
 function floorPriceCell(e) {
   if (e.floor_price == null) return '<span style="color:var(--ink4)">—</span>';
@@ -2781,23 +2802,12 @@ async function saveEquipment() {
 
   // 底價：只有具 set_floor_price 權限者（主管/admin）能寫；業務唯讀，payload 不含底價欄位 → 不覆寫
   if (hasPermission('set_floor_price')) {
-    const floorRaw = document.getElementById('eq-floor-price').value;
-    const floorVal = floorRaw === '' ? null : Number(floorRaw);
-    payload.floor_price = floorVal;
-    payload.floor_price_by = currentDealerInfo?.id || null;
-    payload.floor_price_updated_at = new Date().toISOString();
-    if (floorVal == null) {
-      payload.floor_price_status = 'none';
-      payload.floor_price_approved_by = null;
-    } else if (hasPermission('approve_floor_price')) {
-      // admin 填 → 直接生效，免審
-      payload.floor_price_status = 'approved';
-      payload.floor_price_approved_by = currentDealerInfo?.id || null;
-    } else {
-      // 主管填 → 待 admin 審核
-      payload.floor_price_status = 'pending';
-      payload.floor_price_approved_by = null;
-    }
+    Object.assign(payload, computeFloorPriceFields(
+      document.getElementById('eq-floor-price').value,
+      hasPermission('approve_floor_price'),   // admin 一律 true → 直接生效免審
+      currentDealerInfo?.id,
+      new Date().toISOString()
+    ));
   }
 
   let error;
@@ -2990,6 +3000,11 @@ function updateBaSelection() {
 function closeApproveModal() {
   document.getElementById('modal-approve-winner').classList.remove('act');
   _approveMatchId = null;
+}
+
+// 關閉「選定得標廠商」modal（modal-select-winner 的關閉/取消鈕呼叫）
+function closeWinnerModal() {
+  document.getElementById('modal-select-winner').classList.remove('act');
 }
 
 // ════════════════════════════════════════════
