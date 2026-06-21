@@ -1181,6 +1181,19 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <input class="field-input" id="eq-weight" type="number" placeholder="85">
     </div>
 
+    <div class="section-label">底價（內部）<span style="font-weight:400;color:var(--ink4);font-size:11px">　僅盤商內部可見，回收商看不到</span></div>
+    <div id="eq-case-row" class="field" style="display:none">
+      <label class="field-label">所屬案件</label>
+      <input class="field-input" id="eq-case-no" type="text" readonly style="background:var(--paper);font-family:monospace">
+    </div>
+    <div class="field">
+      <label class="field-label">底價（元）<span id="eq-floor-lock" style="display:none;color:var(--ink4);font-weight:400"><i class="ti ti-lock"></i></span>
+        <span id="eq-floor-status" style="margin-left:6px;font-weight:600;font-size:11px"></span></label>
+      <input class="field-input" id="eq-floor-price" type="number" min="0" placeholder="0（可留空，待設定）" oninput="updateFloorReminder()">
+      <div id="eq-floor-hint" style="display:none;font-size:11px;color:var(--ink4);margin-top:4px"></div>
+      <div id="eq-floor-reminder" style="display:none;margin-top:8px;padding:8px 10px;border-radius:var(--r);font-size:12px"></div>
+    </div>
+
     <div class="section-label">備註與照片</div>
     <div class="field">
       <label class="field-label">備註說明</label>
@@ -1469,6 +1482,8 @@ let currentDealerInfo = {};
 const PERMISSION_DEFS = [
   ['view_all_cases', '查看全部客戶/案件'],
   ['set_floor_price', '設定或修改底價'],
+  ['approve_floor_price', '審核底價（核可主管填的底價）'],
+  ['view_case_financials', '查看案件成本/毛利彙總'],
   ['confirm_recommendations', '確認推薦名單/發通知'],
   ['propose_winner', '建議得標廠商'],
   ['approve_winner', '核定最終得標'],
@@ -2447,7 +2462,7 @@ function renderEquipmentList() {
   const statusLabel = { draft:'草稿', active:'媒合中', matched:'已媒合', completed:'已完成', cancelled:'已取消' };
   el.innerHTML = `<table class="data-table">
     <thead><tr>
-      <th>設備名稱</th><th>設備ID</th><th>分類</th><th>狀況</th><th>品牌</th><th>地區</th><th>建立日期</th><th>狀態</th><th style="text-align:right">操作</th>
+      <th>設備名稱</th><th>設備ID</th><th>分類</th><th>狀況</th><th>品牌</th><th>地區</th><th>建立日期</th><th>底價</th><th>狀態</th><th style="text-align:right">操作</th>
     </tr></thead>
     <tbody>${paged.items.map(e => `
     <tr>
@@ -2458,14 +2473,42 @@ function renderEquipmentList() {
       <td>${e.brand || '—'}</td>
       <td>${e.region}</td>
       <td style="font-size:12px;color:var(--ink3)">${new Date(e.created_at).toLocaleDateString('zh-TW')}</td>
+      <td style="white-space:nowrap">${floorPriceCell(e)}</td>
       <td><span class="badge badge-${e.status}">${statusLabel[e.status] || e.status}</span></td>
       <td><div class="td-actions">
+        ${e.floor_price_status === 'pending' && hasPermission('approve_floor_price') ? `<button class="btn btn-primary btn-sm" onclick="approveFloorPrice('${e.id}')"><i class="ti ti-gavel"></i> 審核底價</button>` : ''}
         ${e.status === 'draft' ? `<button class="btn btn-green btn-sm" onclick="openMatchListModal('${e.id}')"><i class="ti ti-send"></i> 發送通知</button>` : ''}
         <button class="btn btn-ghost btn-sm" onclick="openEquipmentForm('${e.id}')"><i class="ti ti-edit"></i></button>
       </div></td>
     </tr>`).join('')}
     </tbody></table>
     ${paginationHTML(paged, PAGE_SIZE, 'setEquipPage')}`;
+}
+
+// 設備清單的底價欄：顯示金額 + 審核狀態小點（盤商內部可見）
+function floorPriceCell(e) {
+  if (e.floor_price == null) return '<span style="color:var(--ink4)">—</span>';
+  const amt = `NT$ ${Number(e.floor_price).toLocaleString()}`;
+  if (e.floor_price_status === 'approved') return `${amt} <span style="color:var(--green);font-size:11px">●生效</span>`;
+  if (e.floor_price_status === 'pending')  return `${amt} <span style="color:#b45309;font-size:11px">●待審</span>`;
+  return amt;
+}
+
+// admin 審核核可主管填的底價
+async function approveFloorPrice(equipId) {
+  if (!hasPermission('approve_floor_price')) { showToast('沒有審核底價權限'); return; }
+  const db = getSupabase();
+  if (!db) return;
+  const e = equipmentCache.find(x => x.id === equipId);
+  if (!e || e.floor_price_status !== 'pending') { showToast('此設備底價非待審狀態'); return; }
+  if (!confirm(`核可「${e.device_name}」底價 NT$ ${Number(e.floor_price).toLocaleString()}？`)) return;
+  const payload = { floor_price_status: 'approved', floor_price_approved_by: currentDealerInfo?.id || null, floor_price_updated_at: new Date().toISOString() };
+  const { error } = await db.from('equipment_listings').update(payload).eq('id', equipId);
+  if (error) { showToast('審核失敗：' + error.message); return; }
+  Object.assign(e, payload);
+  logActivity('floor_price_approved', 'equipment', equipId, null, `底價 ${e.floor_price} 已核可`);
+  showToast('底價已核可生效');
+  renderEquipmentList();
 }
 
 function openEquipmentForm(id) {
@@ -2501,7 +2544,82 @@ function openEquipmentForm(id) {
     ['eq-width','eq-height','eq-depth','eq-weight'].forEach(id => document.getElementById(id).value = '');
     _buildEquipSubcatList(null);
   }
+  setupFloorPriceField(id ? equipmentCache.find(x => x.id === id) : null);
   document.getElementById('modal-equipment').classList.add('act');
+}
+
+// 底價欄位：依權限決定可填/唯讀，顯示案件編號、審核狀態、毛利軟提醒
+function setupFloorPriceField(e) {
+  const canSet = hasPermission('set_floor_price');      // 主管/admin 可填
+  const input = document.getElementById('eq-floor-price');
+  const lock = document.getElementById('eq-floor-lock');
+  const hint = document.getElementById('eq-floor-hint');
+  const statusEl = document.getElementById('eq-floor-status');
+  const caseRow = document.getElementById('eq-case-row');
+  const caseNo = document.getElementById('eq-case-no');
+
+  input.value = (e && e.floor_price != null) ? e.floor_price : '';
+  input.readOnly = !canSet;
+  input.style.background = canSet ? '' : 'var(--paper)';
+  input.style.cursor = canSet ? '' : 'not-allowed';
+  lock.style.display = canSet ? 'none' : '';
+  hint.style.display = canSet ? 'none' : 'block';
+  hint.textContent = canSet ? '' : '底價由主管設定，此處僅供檢視、不可修改';
+
+  // 審核狀態徽章
+  const st = e?.floor_price_status || 'none';
+  if (st === 'approved') { statusEl.textContent = '● 已生效'; statusEl.style.color = 'var(--green)'; }
+  else if (st === 'pending') { statusEl.textContent = '● 待 admin 審核'; statusEl.style.color = '#b45309'; }
+  else { statusEl.textContent = '○ 未設定'; statusEl.style.color = 'var(--ink4)'; }
+
+  // 所屬案件編號
+  const caseId = e?.case_id || null;
+  _floorReminderCaseId = caseId;
+  _floorReminderEquipId = e?.id || null;
+  if (caseId) {
+    caseRow.style.display = '';
+    caseNo.value = caseDisplayNo(caseId);
+  } else {
+    caseRow.style.display = 'none';
+  }
+  updateFloorReminder();
+}
+
+let _floorReminderCaseId = null;
+let _floorReminderEquipId = null;
+
+// 案件「編號」：優先用案件本身的編號欄位，否則用短 id
+function caseDisplayNo(caseId) {
+  const c = casesCache.find(x => x.id === caseId);
+  return c?.case_no || c?.code || ('#' + String(caseId).slice(0, 8));
+}
+
+// 軟提醒：本案設備底價加總 vs 總包價（formal 優先，否則 estimate）
+function updateFloorReminder() {
+  const box = document.getElementById('eq-floor-reminder');
+  const caseId = _floorReminderCaseId;
+  if (!caseId) { box.style.display = 'none'; return; }
+  const c = casesCache.find(x => x.id === caseId);
+  const base = (c && c.formal_price != null) ? Number(c.formal_price)
+             : (c && c.estimate_price != null) ? Number(c.estimate_price) : null;
+  if (base == null) { box.style.display = 'none'; return; }
+  // 加總本案所有設備底價，當前這台用輸入框即時值
+  let sum = 0;
+  equipmentCache.filter(x => x.case_id === caseId).forEach(x => {
+    if (x.id === _floorReminderEquipId) return;
+    if (x.floor_price != null) sum += Number(x.floor_price);
+  });
+  const cur = Number(document.getElementById('eq-floor-price').value);
+  if (cur > 0) sum += cur;
+  const margin = sum - base;
+  box.style.display = 'block';
+  if (margin >= 0) {
+    box.style.background = '#f0fdf4'; box.style.border = '1px solid #86efac'; box.style.color = '#166534';
+    box.innerHTML = `本案設備底價加總 NT$ ${sum.toLocaleString()} ≥ 總包價 NT$ ${base.toLocaleString()}　毛利 +${margin.toLocaleString()}`;
+  } else {
+    box.style.background = '#fffbeb'; box.style.border = '1px solid #fcd34d'; box.style.color = '#92400e';
+    box.innerHTML = `⚠ 本案設備底價加總 NT$ ${sum.toLocaleString()} 低於總包價 NT$ ${base.toLocaleString()}，照此底價全售仍會虧損 ${Math.abs(margin).toLocaleString()}，請確認（仍可儲存，後續由 admin 審核）`;
+  }
 }
 
 function renderExistingPhotos(urls) {
@@ -2660,6 +2778,27 @@ async function saveEquipment() {
     note:           document.getElementById('eq-note').value.trim() || null,
     photo_urls:     photoUrls,
   };
+
+  // 底價：只有具 set_floor_price 權限者（主管/admin）能寫；業務唯讀，payload 不含底價欄位 → 不覆寫
+  if (hasPermission('set_floor_price')) {
+    const floorRaw = document.getElementById('eq-floor-price').value;
+    const floorVal = floorRaw === '' ? null : Number(floorRaw);
+    payload.floor_price = floorVal;
+    payload.floor_price_by = currentDealerInfo?.id || null;
+    payload.floor_price_updated_at = new Date().toISOString();
+    if (floorVal == null) {
+      payload.floor_price_status = 'none';
+      payload.floor_price_approved_by = null;
+    } else if (hasPermission('approve_floor_price')) {
+      // admin 填 → 直接生效，免審
+      payload.floor_price_status = 'approved';
+      payload.floor_price_approved_by = currentDealerInfo?.id || null;
+    } else {
+      // 主管填 → 待 admin 審核
+      payload.floor_price_status = 'pending';
+      payload.floor_price_approved_by = null;
+    }
+  }
 
   let error;
   if (db) {
@@ -4266,7 +4405,7 @@ async function loadCaseEquipment(caseId, safeId) {
   const db = getSupabase();
   const equipEl = document.getElementById(`cc-equip-${safeId}`);
   if (!db || !equipEl) return;
-  const { data } = await db.from('equipment_listings').select('id,device_name,category_name,condition,status').eq('case_id', caseId).order('created_at');
+  const { data } = await db.from('equipment_listings').select('id,device_name,category_name,condition,status,floor_price,floor_price_status').eq('case_id', caseId).order('created_at');
   if (!data || data.length === 0) {
     equipEl.innerHTML = '<div style="color:var(--ink4);padding:8px 0">尚無設備</div>';
     return;
@@ -4274,15 +4413,42 @@ async function loadCaseEquipment(caseId, safeId) {
   const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
   const stLabel = { draft:'草稿', active:'媒合中', matched:'已媒合', completed:'已完成', cancelled:'已取消' };
   equipEl.innerHTML = `<table class="data-table" style="font-size:12px">
-    <thead><tr><th>設備名稱</th><th>設備ID</th><th>類別</th><th>狀況</th><th>媒合狀態</th></tr></thead>
+    <thead><tr><th>設備名稱</th><th>設備ID</th><th>類別</th><th>狀況</th><th>底價</th><th>媒合狀態</th></tr></thead>
     <tbody>${data.map(e => `<tr>
       <td style="font-weight:600">${e.device_name}</td>
       <td><span style="font-family:monospace;font-size:11px;background:var(--ink7);padding:2px 6px;border-radius:4px;user-select:text;cursor:text" onclick="event.stopPropagation()">${e.id}</span></td>
       <td>${e.category_name||'—'}</td>
       <td>${e.condition}・${condLabel[e.condition]||''}</td>
+      <td style="white-space:nowrap">${floorPriceCell(e)}</td>
       <td><span class="badge badge-${e.status}">${stLabel[e.status]||e.status}</span></td>
     </tr>`).join('')}
-    </tbody></table>`;
+    </tbody></table>${caseFinancialSummary(caseId, data)}`;
+}
+
+// 案件成本/毛利彙總（僅 view_case_financials；admin 預設有）
+function caseFinancialSummary(caseId, equips) {
+  if (!hasPermission('view_case_financials')) return '';
+  const c = casesCache.find(x => x.id === caseId);
+  const base = (c && c.formal_price != null) ? Number(c.formal_price)
+             : (c && c.estimate_price != null) ? Number(c.estimate_price) : null;
+  const sum = equips.reduce((s, e) => s + (e.floor_price != null ? Number(e.floor_price) : 0), 0);
+  const setCount = equips.filter(e => e.floor_price != null).length;
+  const pendingCount = equips.filter(e => e.floor_price_status === 'pending').length;
+  const baseLabel = (c && c.formal_price != null) ? '正式報價' : '評估總包價';
+  let marginHtml = '';
+  if (base != null) {
+    const margin = sum - base;
+    const ok = margin >= 0;
+    marginHtml = `<div style="margin-top:6px;padding:8px 10px;border-radius:var(--r);font-size:12px;${ok?'background:#f0fdf4;border:1px solid #86efac;color:#166534':'background:#fffbeb;border:1px solid #fcd34d;color:#92400e'}">
+      ${ok ? '毛利' : '⚠ 虧損'} ${ok?'+':''}${margin.toLocaleString()}（底價加總 ${sum.toLocaleString()} − ${baseLabel} ${base.toLocaleString()}）</div>`;
+  } else {
+    marginHtml = `<div style="margin-top:6px;font-size:12px;color:var(--ink4)">尚未設定總包價/正式報價，無法計算毛利</div>`;
+  }
+  return `<div style="margin-top:12px;padding:12px 14px;border:1px dashed var(--paper3);border-radius:var(--r);background:var(--paper)">
+    <div style="font-size:12px;font-weight:700;color:var(--ink3);margin-bottom:6px"><i class="ti ti-calculator"></i> 成本/毛利彙總（內部）</div>
+    <div style="font-size:12px;color:var(--ink3)">設備底價加總：<strong>NT$ ${sum.toLocaleString()}</strong>（已填 ${setCount}/${equips.length} 台${pendingCount?`，其中 ${pendingCount} 台待審核`:''}）</div>
+    ${marginHtml}
+  </div>`;
 }
 
 function setCasesPage(p) { casesPage = p; renderCasesList(); }
