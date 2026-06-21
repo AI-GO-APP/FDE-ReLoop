@@ -164,6 +164,10 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 @media(max-width:980px){.settings-grid{grid-template-columns:1fr}}
 .settings-panel{background:var(--white);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
 .settings-panel-title{font-size:13px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.settings-tabs{display:flex;gap:4px;border-bottom:1px solid var(--paper3);margin-bottom:18px;flex-wrap:wrap}
+.settings-tab-btn{padding:9px 18px;font-size:13px;font-weight:600;color:var(--ink4);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1px}
+.settings-tab-btn.act{color:var(--green);border-bottom-color:var(--green)}
+.settings-tab-btn:hover{color:var(--ink2)}
 .settings-table{width:100%;border-collapse:collapse;font-size:13px}
 .settings-table th{padding:9px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--paper3);white-space:nowrap}
 .settings-table td{padding:10px;border-bottom:1px solid var(--paper2);vertical-align:middle}
@@ -919,7 +923,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     </div>
     <div class="main-body">
       <div id="settings-error" class="settings-error"></div>
-      <div class="settings-grid">
+      <div class="settings-tabs">
+        <button type="button" class="settings-tab-btn act" data-stab="perms" onclick="switchSettingsTab('perms')"><i class="ti ti-shield-lock"></i> 權限組</button>
+        <button type="button" class="settings-tab-btn" data-stab="params" onclick="switchSettingsTab('params')"><i class="ti ti-sliders"></i> 流程參數</button>
+        <button type="button" class="settings-tab-btn" data-stab="line" onclick="switchSettingsTab('line')"><i class="ti ti-brand-line"></i> LINE 文案</button>
+      </div>
+      <div id="stab-perms" class="settings-tab-panel">
         <div class="settings-panel">
           <div class="settings-panel-title" style="justify-content:space-between">
             <span><i class="ti ti-shield-lock"></i> 權限組控項</span>
@@ -935,7 +944,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
             <tbody id="permission-settings-body"></tbody>
           </table>
         </div>
-        <div>
+      </div>
+      <div id="stab-params" class="settings-tab-panel" style="display:none">
           <div class="settings-panel">
             <div class="settings-panel-title"><i class="ti ti-sliders"></i> 流程參數</div>
             <div class="field">
@@ -974,6 +984,14 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
               </label>
             </div>
           </div>
+          <div class="settings-panel">
+            <div class="settings-panel-title"><i class="ti ti-info-circle"></i> 實作範圍</div>
+            <div class="settings-note">
+              此頁先提供盤商後台的操作控項與參數資料來源。正式上線時，仍需把相同規則同步寫入 RLS / RPC / trigger，避免使用者繞過前端直接改資料。
+            </div>
+          </div>
+      </div>
+      <div id="stab-line" class="settings-tab-panel" style="display:none">
           <div class="settings-panel" id="line-templates-panel">
             <div class="settings-panel-title"><i class="ti ti-brand-line"></i> LINE 通知文案</div>
             <div class="settings-note" style="margin-bottom:12px">編輯推播給回收商的訊息。可用變數會自動帶入；變數寫法為大括號，例如 <code>{device_name}</code>。</div>
@@ -998,13 +1016,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
               <div class="settings-note">可用變數：<code>{device_name}</code></div>
             </div>
           </div>
-          <div class="settings-panel">
-            <div class="settings-panel-title"><i class="ti ti-info-circle"></i> 實作範圍</div>
-            <div class="settings-note">
-              此頁先提供盤商後台的操作控項與參數資料來源。正式上線時，仍需把相同規則同步寫入 RLS / RPC / trigger，避免使用者繞過前端直接改資料。
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -1828,6 +1839,15 @@ function syncSettingsNav() {
 
 function toggleSettingsSwitch(el) {
   el.classList.toggle('on');
+}
+
+// 設定頁分頁切換：權限組 / 流程參數 / LINE 文案
+function switchSettingsTab(tab) {
+  document.querySelectorAll('#screen-settings .settings-tab-btn').forEach(b => b.classList.toggle('act', b.dataset.stab === tab));
+  ['perms', 'params', 'line'].forEach(t => {
+    const el = document.getElementById('stab-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
 }
 
 function setSettingsSwitch(id, value) {
