@@ -2600,10 +2600,25 @@ function setupFloorPriceField(e) {
   if (caseId) {
     caseRow.style.display = '';
     caseNo.value = caseDisplayNo(caseId);
+    // 若尚未載入過案件（沒逛過案件頁），自動補抓該案件，確保毛利提醒算得準
+    if (!casesCache.find(x => x.id === caseId)) ensureCaseForReminder(caseId);
   } else {
     caseRow.style.display = 'none';
   }
   updateFloorReminder();
+}
+
+// 設備表單開啟時，若 casesCache 缺這筆案件就即時補抓，補抓完重算毛利提醒
+async function ensureCaseForReminder(caseId) {
+  const db = getSupabase();
+  if (!db) return;
+  const { data } = await db.from('cases').select('id, estimate_price, formal_price').eq('id', caseId).single();
+  if (!data) return;
+  if (!casesCache.find(x => x.id === data.id)) casesCache.push(data);
+  if (_floorReminderCaseId === caseId) {
+    document.getElementById('eq-case-no').value = caseDisplayNo(caseId);
+    updateFloorReminder();
+  }
 }
 
 let _floorReminderCaseId = null;

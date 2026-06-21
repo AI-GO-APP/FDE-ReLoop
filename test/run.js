@@ -115,6 +115,22 @@ ok(/floor_price_status.*IN \('none', 'pending', 'approved'\)/s.test(floorMig), '
 const floorRb = fs.readFileSync(path.join(rbDir, '202606200001_equipment_floor_price_down.sql'), 'utf8');
 ok(/DROP COLUMN IF EXISTS floor_price\b/.test(floorRb), 'floor 回滾有移除 floor_price 欄位');
 
+section('冒煙(資安)：回收商前台不得引用任何底價/估價欄位（防外洩回歸測試）');
+['recycler_onboarding.html', 'recycler_onboarding_v2.html'].forEach(f => {
+  const c = fs.readFileSync(path.join(ROOT, f), 'utf8');
+  ['floor_price', 'estimate_price', 'formal_price'].forEach(col => {
+    ok(!c.includes(col), `${f} 未引用 ${col}`);
+  });
+});
+
+section('冒煙：HTML 無重複 element id');
+{
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+  const seen = new Set(), dup = new Set();
+  ids.forEach(id => { if (seen.has(id)) dup.add(id); else seen.add(id); });
+  ok(dup.size === 0, '無重複 id' + (dup.size ? `（重複：${[...dup].join(', ')}）` : ''));
+}
+
 // ============================================================================
 section('單元：computeFloorPriceFields（底價狀態流轉）');
 const computeFloorPriceFields = buildFns([extractFn(html, 'computeFloorPriceFields')], [], [], 'computeFloorPriceFields');
@@ -246,6 +262,25 @@ function makeApprove(perm, equipCache, captured, info) {
   ok(cap1.payload && cap1.payload.floor_price_status === 'approved', 'admin 核可→狀態 approved');
   eq(cap1.payload.floor_price_approved_by, 'admin', '核可人=admin');
   eq(eqArr[0].floor_price_status, 'approved', '本地快取同步更新');
+}
+
+section('整合：ensureCaseForReminder（沒逛過案件頁也能自動補抓→提醒算得準）');
+{
+  const ids = ['eq-floor-price', 'eq-case-no', 'eq-floor-reminder'];
+  const doc = makeFakeDoc(ids);
+  const cases = []; // 模擬「沒逛過案件頁」→ 快取為空
+  // 假 DB：回傳該案件的總包價
+  const db = { from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: { id: 'c9', estimate_price: 5000 } }) }) }) }) };
+  const m = buildFns(
+    [extractFn(html, 'ensureCaseForReminder'), extractFn(html, 'caseDisplayNo'), extractFn(html, 'updateFloorReminder')],
+    ['getSupabase', 'casesCache', 'document', 'equipmentCache', '_floorReminderCaseId', '_floorReminderEquipId'],
+    [() => db, cases, doc, [], 'c9', null],
+    '({ ensureCaseForReminder })'
+  );
+  doc._map['eq-floor-price'].value = '6000'; // 6000 ≥ 5000 → 應顯示毛利
+  await m.ensureCaseForReminder('c9');
+  eq(cases.length, 1, '補抓後案件進入快取');
+  ok(/毛利/.test(doc._map['eq-floor-reminder'].innerHTML), '補抓後毛利提醒正確顯示');
 }
 
 // ============================================================================
