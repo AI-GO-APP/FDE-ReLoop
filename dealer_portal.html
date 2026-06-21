@@ -988,12 +988,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
               </label>
             </div>
           </div>
-          <div class="settings-panel">
-            <div class="settings-panel-title"><i class="ti ti-info-circle"></i> 實作範圍</div>
-            <div class="settings-note">
-              此頁先提供盤商後台的操作控項與參數資料來源。正式上線時，仍需把相同規則同步寫入 RLS / RPC / trigger，避免使用者繞過前端直接改資料。
-            </div>
-          </div>
       </div>
       <div id="stab-line" class="settings-tab-panel" style="display:none">
           <div class="settings-panel" id="line-templates-panel">
@@ -2552,8 +2546,16 @@ async function loadEquipmentList() {
     document.getElementById('equipment-list').innerHTML = '<div class="empty-state"><i class="ti ti-database-off"></i><p>請連接 Supabase</p></div>';
     return;
   }
-  const { data } = await db.from('equipment_listings').select('*').order('created_at', { ascending: false });
-  equipmentCache = data || [];
+  let { data } = await db.from('equipment_listings').select('*').order('created_at', { ascending: false });
+  data = data || [];
+  // 資料隔離：無「查看全部」權限者，只看自己負責案件底下的設備
+  if (!hasPermission('view_all_cases')) {
+    const myId = currentDealerInfo?.id;
+    const { data: myCases } = await db.from('cases').select('id').eq('assigned_agent_id', myId);
+    const ids = new Set((myCases || []).map(r => r.id));
+    data = data.filter(e => e.case_id && ids.has(e.case_id));
+  }
+  equipmentCache = data;
   document.getElementById('equipment-loading').style.display = 'none';
   buildEquipCategoryTabs();
   renderEquipmentList();
@@ -4211,6 +4213,11 @@ async function loadClientsList() {
   if (!db) { document.getElementById('clients-loading').style.display = 'none'; return; }
   const { data } = await db.from('clients').select('*, assigned_agent:dealer_accounts!clients_assigned_agent_id_fkey(name)').order('created_at', { ascending: false });
   clientsCache = data || [];
+  // 資料隔離：無「查看全部」權限者，只看自己負責的客戶
+  if (!hasPermission('view_all_cases')) {
+    const myId = currentDealerInfo?.id;
+    clientsCache = clientsCache.filter(c => c.assigned_agent_id === myId);
+  }
   document.getElementById('clients-loading').style.display = 'none';
   renderClientsList();
 }
@@ -4429,9 +4436,14 @@ async function loadCasesList() {
   document.getElementById('cases-list').innerHTML = '';
   if (!db) { document.getElementById('cases-loading').style.display = 'none'; return; }
   const { data: cases } = await db.from('cases')
-    .select('*, clients(company_name,contact_name,contact_phone,address,assigned_agent:dealer_accounts!clients_assigned_agent_id_fkey(name)), assigned_agent:dealer_accounts!cases_assigned_agent_id_fkey(name)')
+    .select('*, clients(company_name,contact_name,contact_phone,address,assigned_agent_id,assigned_agent:dealer_accounts!clients_assigned_agent_id_fkey(name)), assigned_agent:dealer_accounts!cases_assigned_agent_id_fkey(name)')
     .order('created_at', { ascending: false });
   casesCache = cases || [];
+  // 資料隔離：無「查看全部」權限者，只看自己負責（案件指派或客戶負責業務）的案件
+  if (!hasPermission('view_all_cases')) {
+    const myId = currentDealerInfo?.id;
+    casesCache = casesCache.filter(c => c.assigned_agent_id === myId || c.clients?.assigned_agent_id === myId);
+  }
   document.getElementById('cases-loading').style.display = 'none';
   updateCasesTabCounts();
   renderCasesList();

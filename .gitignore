@@ -5,6 +5,7 @@
 
 # Markdown（內部文件，不推上 GitHub）
 *.md
+!README.md
 
 # Supabase CLI 本機暫存（不該進版控）
 supabase/.temp/
