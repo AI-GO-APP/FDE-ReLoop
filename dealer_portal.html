@@ -974,6 +974,30 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
               </label>
             </div>
           </div>
+          <div class="settings-panel" id="line-templates-panel">
+            <div class="settings-panel-title"><i class="ti ti-brand-line"></i> LINE 通知文案</div>
+            <div class="settings-note" style="margin-bottom:12px">編輯推播給回收商的訊息。可用變數會自動帶入；變數寫法為大括號，例如 <code>{device_name}</code>。</div>
+            <div class="field">
+              <label class="field-label">新設備媒合通知</label>
+              <textarea class="field-input field-textarea" id="line-tpl-match" rows="4"></textarea>
+              <div class="settings-note">可用變數：<code>{device_name}</code> <code>{region}</code> <code>{condition}</code></div>
+            </div>
+            <div class="field">
+              <label class="field-label">報價已獲選</label>
+              <textarea class="field-input field-textarea" id="line-tpl-bid_won" rows="3"></textarea>
+              <div class="settings-note">可用變數：<code>{device_name}</code></div>
+            </div>
+            <div class="field">
+              <label class="field-label">款項已確認</label>
+              <textarea class="field-input field-textarea" id="line-tpl-payment_confirmed" rows="3"></textarea>
+              <div class="settings-note">（此則無可帶入變數）</div>
+            </div>
+            <div class="field">
+              <label class="field-label">交付完成 / 結案</label>
+              <textarea class="field-input field-textarea" id="line-tpl-delivery_done" rows="3"></textarea>
+              <div class="settings-note">可用變數：<code>{device_name}</code></div>
+            </div>
+          </div>
           <div class="settings-panel">
             <div class="settings-panel-title"><i class="ti ti-info-circle"></i> 實作範圍</div>
             <div class="settings-note">
@@ -1494,6 +1518,7 @@ const PERMISSION_DEFS = [
   ['manage_recyclers', '回收商管理'],
   ['manage_staff', '人員管理'],
   ['manage_workflow_parameters', '管理流程參數'],
+  ['manage_line_templates', '編輯 LINE 通知文案'],
   ['manage_permission_groups', '管理權限組'],
 ];
 const PERMISSION_KEYS = PERMISSION_DEFS.map(([key]) => key);
@@ -1544,6 +1569,12 @@ const DEFAULT_APP_SETTINGS = {
     enforce_min_bid: true,
     delivery_requires_photos: true,
     close_requires_payment: true,
+  },
+  line_templates: {
+    match: '【FDE ReLoop】新設備媒合通知！\n設備：{device_name}\n地區：{region}\n狀況：{condition}\n請登入平台查看詳情。',
+    bid_won: '【FDE ReLoop】您的報價已獲選！\n設備：{device_name}\n請登入平台確認媒合詳情。',
+    payment_confirmed: '【FDE ReLoop】款項已確認！\n請登入平台查看取貨地址與業務聯絡資訊。',
+    delivery_done: '【FDE ReLoop】交付完成！\n設備：{device_name}\n本次媒合已結案，感謝您的配合。',
   },
   permission_groups: DEFAULT_PERMISSION_GROUPS,
 };
@@ -1700,7 +1731,13 @@ function hasRolePermission(permissionKey) {
 }
 
 function canManageSettings() {
-  return hasPermission('manage_workflow_parameters') || hasPermission('manage_permission_groups');
+  return hasPermission('manage_workflow_parameters') || hasPermission('manage_permission_groups') || hasPermission('manage_line_templates');
+}
+
+// 套用 LINE 通知文案模板：讀後台設定（找不到用預設），代入 {變數}
+function renderLineTemplate(key, vars = {}) {
+  const tpl = (appSettings.line_templates && appSettings.line_templates[key]) || DEFAULT_APP_SETTINGS.line_templates[key] || '';
+  return tpl.replace(/\{(\w+)\}/g, (m, name) => (vars[name] != null ? String(vars[name]) : ''));
 }
 
 function canEditRolePermissions() {
@@ -1722,6 +1759,12 @@ function mergeSystemSettings(rows) {
     if (row.key === 'workflow_parameters') {
       appSettings.workflow_parameters = {
         ...appSettings.workflow_parameters,
+        ...(row.value || {}),
+      };
+    }
+    if (row.key === 'line_templates') {
+      appSettings.line_templates = {
+        ...appSettings.line_templates,
         ...(row.value || {}),
       };
     }
@@ -1749,7 +1792,7 @@ async function loadSystemSettings(options = {}) {
   const { data, error } = await db
     .from('dealer_system_settings')
     .select('key,value')
-    .in('key', ['workflow_parameters', 'permission_groups', 'role_permissions']);
+    .in('key', ['workflow_parameters', 'line_templates', 'permission_groups', 'role_permissions']);
   if (error) {
     if (!options.silent && errEl) {
       errEl.textContent = '設定表尚未建立或權限不足：' + error.message;
@@ -1845,6 +1888,15 @@ function renderSystemSettings() {
   document.querySelectorAll('#screen-settings input[id^="param-"], #screen-settings .settings-switch[id^="param-"]').forEach(el => {
     el.disabled = !hasPermission('manage_workflow_parameters');
   });
+
+  // LINE 通知文案：載入到 textarea，並依 manage_line_templates 權限決定可編/唯讀
+  const tpls = appSettings.line_templates || DEFAULT_APP_SETTINGS.line_templates;
+  const canEditTpl = hasPermission('manage_line_templates');
+  ['match', 'bid_won', 'payment_confirmed', 'delivery_done'].forEach(k => {
+    const el = document.getElementById('line-tpl-' + k);
+    if (el) { el.value = tpls[k] ?? ''; el.disabled = !canEditTpl; }
+  });
+
   syncSettingsNav();
   renderNewStaffPermissionGroups();
 }
@@ -1884,6 +1936,14 @@ function collectSystemSettingsFromForm() {
     delivery_requires_photos: readSettingsSwitch('param-delivery-requires-photos'),
     close_requires_payment: readSettingsSwitch('param-close-requires-payment'),
   };
+  // LINE 通知文案（只有具編輯權限者的輸入才採用；否則沿用既有值）
+  if (hasPermission('manage_line_templates')) {
+    next.line_templates = { ...(next.line_templates || {}) };
+    ['match', 'bid_won', 'payment_confirmed', 'delivery_done'].forEach(k => {
+      const el = document.getElementById('line-tpl-' + k);
+      if (el) next.line_templates[k] = el.value;
+    });
+  }
   appSettings = next;
   return next;
 }
@@ -1904,6 +1964,9 @@ async function saveSystemSettings() {
   const rows = [];
   if (hasPermission('manage_workflow_parameters')) {
     rows.push({ key: 'workflow_parameters', value: next.workflow_parameters, updated_by: user?.id || null });
+  }
+  if (hasPermission('manage_line_templates')) {
+    rows.push({ key: 'line_templates', value: next.line_templates, updated_by: user?.id || null });
   }
   if (canEditPermissionGroups()) {
     rows.push({ key: 'permission_groups', value: next.permission_groups, updated_by: user?.id || null });
@@ -2934,7 +2997,7 @@ async function confirmAndNotify() {
   for (const [, acct] of uniqueRecyclers) {
     if (acct.line_user_id) {
       sendLineNotify(acct.line_user_id,
-        `【FDE ReLoop】新設備媒合通知！\n設備：${eq?.device_name || ''}\n地區：${eq?.region || ''}\n狀況：${eq?.condition || ''}\n請登入平台查看詳情。`
+        renderLineTemplate('match', { device_name: eq?.device_name || '', region: eq?.region || '', condition: eq?.condition || '' })
       );
     }
   }
@@ -3224,7 +3287,7 @@ async function confirmDelivery() {
   logActivity('delivery_completed', 'match', _deliveryMatchId, null, 'received',
     m ? `設備：${m.device_name}` : null);
   sendLineNotify(m?.recycler_onboarding_accounts?.line_user_id,
-    `【FDE ReLoop】交付完成！\n設備：${m?.device_name || ''}\n本次媒合已結案，感謝您的配合。`);
+    renderLineTemplate('delivery_done', { device_name: m?.device_name || '' }));
   closeDeliveryProcess();
   showToast('交貨完成！案件已結案');
   loadMatchesList();
@@ -3272,7 +3335,7 @@ async function confirmApproveWinner() {
   logActivity('bid_approved', 'match', _approveMatchId, null, 'accepted',
     m ? `設備：${m.device_name}，得標商：${m.recycler_onboarding_accounts?.company_name || m.recycler_id}` : null);
   sendLineNotify(m?.recycler_onboarding_accounts?.line_user_id,
-    `【FDE ReLoop】您的報價已獲選！\n設備：${m?.device_name || ''}\n請登入平台確認媒合詳情。`);
+    renderLineTemplate('bid_won', { device_name: m?.device_name || '' }));
   closeApproveModal();
   showToast('已核定得標，回收商將收到通知');
   loadMatchesList();
@@ -3389,7 +3452,7 @@ async function confirmPayment(matchId) {
   logActivity('payment_confirmed', 'match', matchId, 'accepted', 'payment_confirmed');
   const _pm = paymentsCache.find(x => x.id === matchId);
   sendLineNotify(_pm?.recycler_onboarding_accounts?.line_user_id,
-    `【FDE ReLoop】款項已確認！\n請登入平台查看取貨地址與業務聯絡資訊。`);
+    renderLineTemplate('payment_confirmed', {}));
   showToast('款項已確認，回收商可查看地址與業務資訊');
   loadPaymentsList();
   loadAllBadges();
