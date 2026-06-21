@@ -168,6 +168,12 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .settings-tab-btn{padding:9px 18px;font-size:13px;font-weight:600;color:var(--ink4);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1px}
 .settings-tab-btn.act{color:var(--green);border-bottom-color:var(--green)}
 .settings-tab-btn:hover{color:var(--ink2)}
+.pg-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--paper3);border-radius:var(--r);margin-bottom:8px;background:var(--white)}
+.pg-row-name{font-weight:600;color:var(--ink2);font-size:14px}
+.pg-row-meta{font-size:11px;color:var(--ink4);font-family:'DM Mono',monospace}
+.pg-row-actions{display:flex;gap:6px;flex-shrink:0}
+.pg-perm-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--paper2)}
+.pg-perm-key{font-size:11px;color:var(--ink4);font-family:'DM Mono',monospace}
 .settings-table{width:100%;border-collapse:collapse;font-size:13px}
 .settings-table th{padding:9px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--paper3);white-space:nowrap}
 .settings-table td{padding:10px;border-bottom:1px solid var(--paper2);vertical-align:middle}
@@ -835,6 +841,11 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         <input class="field-input" id="staff-edit-line-id" type="text" placeholder="LINE ID">
       </div>
     </div>
+    <div class="field" id="staff-edit-groups-field">
+      <label class="field-label">權限組</label>
+      <div id="staff-edit-groups" class="staff-group-list"></div>
+      <div class="settings-note" id="staff-edit-groups-note" style="margin-top:6px"></div>
+    </div>
     <div id="staff-edit-error" style="font-size:12px;color:var(--red);display:none;margin-bottom:8px"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeStaffEdit()">取消</button>
@@ -934,15 +945,8 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
             <span><i class="ti ti-shield-lock"></i> 權限組控項</span>
             <button class="btn btn-ghost btn-sm" type="button" onclick="addPermissionGroup()"><i class="ti ti-plus"></i> 新增權限組</button>
           </div>
-          <div class="settings-note" style="margin-bottom:12px">管理員預設擁有所有權限，不需要套用權限組；其他人員由「人員管理」指派一個或多個權限組。</div>
-          <table class="settings-table">
-            <thead>
-              <tr id="permission-settings-head-row">
-                <th>功能</th>
-              </tr>
-            </thead>
-            <tbody id="permission-settings-body"></tbody>
-          </table>
+          <div class="settings-note" style="margin-bottom:12px">管理員預設擁有所有權限，不需要套用權限組；其他人員由「人員管理」指派一個或多個權限組。點「編輯」可調整該組權限。</div>
+          <div id="permission-groups-list"></div>
         </div>
       </div>
       <div id="stab-params" class="settings-tab-panel" style="display:none">
@@ -1394,6 +1398,27 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeStaffGroups()">取消</button>
       <button class="btn btn-primary" id="staff-groups-save-btn" onclick="saveStaffGroups()"><i class="ti ti-device-floppy"></i> 儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal：編輯權限組 -->
+<div class="modal-overlay" id="modal-permission-group">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title" id="pg-modal-title">編輯權限組</div>
+      <button class="modal-close" onclick="closePermissionGroupModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <label class="field-label">權限組名稱</label>
+      <input class="field-input" id="pg-modal-name" type="text" placeholder="例：業務組">
+      <div class="pg-row-meta" id="pg-modal-key" style="margin-top:4px"></div>
+    </div>
+    <div style="font-size:12px;font-weight:600;color:var(--ink3);margin:14px 0 4px">權限項目</div>
+    <div id="pg-modal-perms" style="max-height:46vh;overflow-y:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePermissionGroupModal()">取消</button>
+      <button class="btn btn-primary" id="pg-modal-save-btn" onclick="savePermissionGroupModal()"><i class="ti ti-device-floppy"></i> 儲存權限組</button>
     </div>
   </div>
 </div>
@@ -1862,34 +1887,21 @@ function readSettingsSwitch(id) {
 function renderSystemSettings() {
   const groups = getPermissionGroups();
   const canEditGroups = canEditPermissionGroups();
-  const head = document.getElementById('permission-settings-head-row');
-  if (head) {
-    head.innerHTML = '<th>功能</th>' + groups.map(group => `
-      <th class="permission-group-head">
-        <input class="field-input permission-group-name" data-group-id="${escapeAttr(group.id)}" value="${escapeAttr(group.name)}" ${canEditGroups ? '' : 'disabled'}>
-        <div class="permission-group-key">${escapeHtml(group.id)}</div>
-        ${canEditGroups && groups.length > 1 ? `<button class="btn btn-danger btn-sm" type="button" style="margin-top:6px" onclick="removePermissionGroup('${escapeAttr(group.id)}')"><i class="ti ti-trash"></i></button>` : ''}
-      </th>`).join('');
-  }
-
-  const body = document.getElementById('permission-settings-body');
-  if (body) {
-    body.innerHTML = PERMISSION_DEFS.map(([key, label]) => `
-      <tr>
-        <td>
-          <div style="font-weight:600;color:var(--ink2)">${label}</div>
-          <div style="font-size:11px;color:var(--ink4);font-family:'DM Mono',monospace">${key}</div>
-        </td>
-        ${groups.map(group => `
-          <td style="text-align:center">
-            <button type="button"
-              class="settings-switch ${group.permissions?.[key] ? 'on' : ''}"
-              data-group-id="${escapeAttr(group.id)}"
-              data-permission="${key}"
-              onclick="toggleSettingsSwitch(this)"
-              ${canEditGroups ? '' : 'disabled'}></button>
-          </td>`).join('')}
-      </tr>`).join('');
+  const list = document.getElementById('permission-groups-list');
+  if (list) {
+    list.innerHTML = groups.map(group => {
+      const onCount = PERMISSION_KEYS.filter(k => group.permissions?.[k]).length;
+      return `<div class="pg-row">
+        <div style="min-width:0">
+          <div class="pg-row-name">${escapeHtml(group.name)}</div>
+          <div class="pg-row-meta">${escapeHtml(group.id)}　·　已開啟 ${onCount} 項權限</div>
+        </div>
+        <div class="pg-row-actions">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="openPermissionGroupModal('${escapeAttr(group.id)}')"><i class="ti ti-edit"></i> 編輯</button>
+          ${canEditGroups && groups.length > 1 ? `<button class="btn btn-danger btn-sm" type="button" onclick="removePermissionGroup('${escapeAttr(group.id)}')"><i class="ti ti-trash"></i></button>` : ''}
+        </div>
+      </div>`;
+    }).join('') || '<div class="settings-note">尚無權限組</div>';
   }
 
   const params = appSettings.workflow_parameters;
@@ -1923,23 +1935,8 @@ function renderSystemSettings() {
 
 function collectSystemSettingsFromForm() {
   const next = JSON.parse(JSON.stringify(appSettings || DEFAULT_APP_SETTINGS));
-  const groups = canEditPermissionGroups()
-    ? getPermissionGroups().map(group => ({ ...group, permissions: emptyPermissionMap() }))
-    : getPermissionGroups();
-
-  if (canEditPermissionGroups()) {
-    document.querySelectorAll('.permission-group-name[data-group-id]').forEach(input => {
-      const group = groups.find(item => item.id === input.dataset.groupId);
-      if (group) group.name = input.value.trim() || group.id;
-    });
-    document.querySelectorAll('#permission-settings-body .settings-switch[data-group-id]').forEach(btn => {
-      const group = groups.find(item => item.id === btn.dataset.groupId);
-      if (!group) return;
-      const key = btn.dataset.permission;
-      group.permissions[key] = btn.classList.contains('on');
-    });
-  }
-  next.permission_groups = normalizePermissionGroups(groups);
+  // 權限組改由「編輯權限組」modal 直接更新 appSettings.permission_groups，此處沿用即可
+  next.permission_groups = normalizePermissionGroups(getPermissionGroups());
 
   const num = (id, fallback, min, max) => {
     const value = Number(document.getElementById(id)?.value);
@@ -2018,14 +2015,55 @@ function makePermissionGroupId() {
 
 function addPermissionGroup() {
   if (!canEditPermissionGroups()) { showToast('目前角色沒有管理權限組權限'); return; }
+  const id = makePermissionGroupId();
   appSettings.permission_groups = getPermissionGroups();
   appSettings.permission_groups.push({
-    id: makePermissionGroupId(),
+    id,
     name: '自訂權限組',
     description: '',
     permissions: emptyPermissionMap(),
   });
   renderSystemSettings();
+  openPermissionGroupModal(id);   // 新增後直接開 modal 讓使用者設定
+}
+
+let _editingPgId = null;
+
+function openPermissionGroupModal(groupId) {
+  if (!canEditPermissionGroups()) { showToast('目前角色沒有管理權限組權限'); return; }
+  const g = getPermissionGroups().find(x => x.id === groupId);
+  if (!g) return;
+  _editingPgId = groupId;
+  document.getElementById('pg-modal-name').value = g.name;
+  document.getElementById('pg-modal-key').textContent = g.id;
+  document.getElementById('pg-modal-perms').innerHTML = PERMISSION_DEFS.map(([key, label]) => `
+    <label class="pg-perm-row">
+      <span style="min-width:0">
+        <div style="font-weight:600;color:var(--ink2)">${label}</div>
+        <div class="pg-perm-key">${key}</div>
+      </span>
+      <button type="button" class="settings-switch ${g.permissions?.[key] ? 'on' : ''}" data-permission="${escapeAttr(key)}" onclick="toggleSettingsSwitch(this)"></button>
+    </label>`).join('');
+  document.getElementById('modal-permission-group').classList.add('act');
+}
+
+function closePermissionGroupModal() {
+  document.getElementById('modal-permission-group').classList.remove('act');
+  _editingPgId = null;
+}
+
+function savePermissionGroupModal() {
+  if (!canEditPermissionGroups()) { showToast('目前角色沒有管理權限組權限'); return; }
+  const g = (appSettings.permission_groups || []).find(x => x.id === _editingPgId);
+  if (!g) { closePermissionGroupModal(); return; }
+  g.name = document.getElementById('pg-modal-name').value.trim() || g.id;
+  g.permissions = g.permissions || {};
+  document.querySelectorAll('#pg-modal-perms .settings-switch[data-permission]').forEach(btn => {
+    g.permissions[btn.dataset.permission] = btn.classList.contains('on');
+  });
+  closePermissionGroupModal();
+  renderSystemSettings();
+  saveSystemSettings();   // 直接持久化
 }
 
 function removePermissionGroup(groupId) {
@@ -3975,7 +4013,6 @@ function renderStaffList() {
                      <option value="admin"   ${s.role==='admin'   ? 'selected' : ''}>管理員</option>
                    </select>
                    <button class="btn btn-ghost btn-sm" onclick="openStaffEdit('${s.id}')"><i class="ti ti-pencil"></i> 編輯</button>
-                   <button class="btn btn-ghost btn-sm" onclick="openStaffGroups('${s.id}')"><i class="ti ti-shield-lock"></i> 權限組</button>
                    <button class="btn btn-danger btn-sm" onclick="staffAction('${s.id}','suspend')"><i class="ti ti-ban"></i> 停用</button>`;
       } else if (s.status === 'suspended') {
         actions = `<button class="btn btn-ghost btn-sm" onclick="staffAction('${s.id}','approve')"><i class="ti ti-player-play"></i> 恢復</button>`;
@@ -4008,6 +4045,13 @@ function openStaffEdit(id) {
   document.getElementById('staff-edit-phone').value   = s.phone   || '';
   document.getElementById('staff-edit-line-id').value = s.line_id || '';
   document.getElementById('staff-edit-error').style.display = 'none';
+  // 權限組（併入編輯）：admin 不需套用；非 admin 可勾選多組
+  const isAdmin = s.role === 'admin';
+  const canManage = hasPermission('manage_staff');
+  renderPermissionGroupCheckboxes('staff-edit-groups', s.permission_group_keys || [], isAdmin || !canManage);
+  document.getElementById('staff-edit-groups-note').textContent = isAdmin
+    ? '管理員預設擁有所有權限，不需套用權限組。'
+    : (canManage ? '可勾選多個權限組，實際權限為所有勾選組的聯集。' : '僅具人員管理權限者可調整。');
   document.getElementById('modal-staff-edit').classList.add('act');
 }
 
@@ -4035,6 +4079,18 @@ async function saveStaffEdit() {
   if (error) { errEl.textContent = '儲存失敗：' + error.message; errEl.style.display = 'block'; return; }
   const s = staffCache.find(x => x.id === _staffEditId);
   if (s) { s.name = name; s.title = title || null; s.phone = phone || null; s.line_id = line_id || null; }
+  // 一併儲存權限組（非 admin、且具人員管理權限）
+  if (s && s.role !== 'admin' && hasPermission('manage_staff')) {
+    const groupKeys = checkedPermissionGroups('staff-edit-groups');
+    if (!groupKeys.length) {
+      btn.disabled = false;
+      errEl.textContent = '請至少指派一個權限組'; errEl.style.display = 'block'; return;
+    }
+    const { error: gErr } = await setStaffPermissionGroups(s.id, groupKeys);
+    if (gErr) { btn.disabled = false; errEl.textContent = '權限組儲存失敗：' + gErr.message; errEl.style.display = 'block'; return; }
+    s.permission_group_keys = groupKeys;
+    if (s.id === currentDealerInfo.id) { await loadCurrentDealerPermissionGroups({ silent: true }); updateNavForRole(); }
+  }
   closeStaffEdit();
   showToast('人員資訊已更新');
   renderStaffList();
