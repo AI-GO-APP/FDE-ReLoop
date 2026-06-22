@@ -240,6 +240,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
 .chain-select{flex:1;padding:10px 28px 10px 12px;font-size:13px;border:1.5px solid var(--paper3);border-radius:var(--r);background:var(--paper);color:var(--ink);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23AEADA6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;cursor:pointer;transition:border-color .15s}
 .chain-select:focus{border-color:var(--ink);background-color:var(--white)}
 .chain-select:disabled{opacity:.4;cursor:not-allowed}
+input.chain-select{appearance:none}
 .chain-add-row{display:flex;gap:6px;padding-left:56px}
 .chain-add-input{flex:1;padding:8px 10px;font-size:12px;border:1px solid var(--paper3);border-radius:6px;background:var(--paper);color:var(--ink);outline:none}
 .chain-add-input:focus{border-color:var(--ink)}
@@ -419,14 +420,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
       </div>
 
-      <!-- LINE ID -->
-      <div class="field">
-        <label class="field-label">LINE ID <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，用於 LINE 推播通知</span></label>
-        <div style="position:relative">
-          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#06C755">L</span>
-          <input class="field-input" type="text" id="signup-line-id" placeholder="您的 LINE ID（例：@reloop_user）" style="padding-left:28px">
-        </div>
-      </div>
 
       <!-- 帳號資料 -->
       <div class="field">
@@ -584,7 +577,16 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn-main btn-dark" id="btn-login" onclick="submitLogin()">
         登入 <i class="ti ti-arrow-right" style="font-size:14px"></i>
       </button>
-<div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+        <div style="flex:1;height:1px;background:var(--paper2)"></div>
+        <div style="font-size:12px;color:var(--ink4)">或</div>
+        <div style="flex:1;height:1px;background:var(--paper2)"></div>
+      </div>
+      <button class="btn-main" onclick="handleLineLogin()" style="background:#06C755;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;border:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+        使用 LINE 登入
+      </button>
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--ink4)">
         還沒有帳號？<a href="#" style="color:var(--green);text-decoration:none;font-weight:500" onclick="event.preventDefault();goScreen('screen-register')">立即註冊</a>
       </div>
     </div>
@@ -645,14 +647,6 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
         </div>
       </div>
 
-      <!-- LINE ID -->
-      <div class="field">
-        <label class="field-label">LINE ID <span style="font-size:10px;font-weight:400;color:var(--ink4);text-transform:none;letter-spacing:0">選填，用於 LINE 推播通知</span></label>
-        <div style="position:relative">
-          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:#06C755">L</span>
-          <input class="field-input" type="text" id="reg-line-id" placeholder="您的 LINE ID（例：@reloop_user）" style="padding-left:28px">
-        </div>
-      </div>
 
       <!-- 帳號資料 -->
       <div class="field">
@@ -700,6 +694,16 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
       <button class="btn-main btn-dark" onclick="saveProfile()">
         <i class="ti ti-device-floppy" style="font-size:15px"></i>儲存基本資料
       </button>
+
+      <!-- LINE 綁定 -->
+      <div style="margin-top:20px;padding:16px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0">
+        <div style="font-size:13px;font-weight:600;color:#276749;margin-bottom:8px"><i class="ti ti-brand-line"></i> LINE 帳號綁定</div>
+        <div id="profile-line-status" style="font-size:13px;color:var(--ink4);margin-bottom:10px">載入中…</div>
+        <button id="profile-line-bind-btn" onclick="handleLineBindFromProfile()" class="btn btn-ghost btn-sm" style="background:#06C755;color:#fff;border:none;display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="margin-right:4px"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          綁定 LINE
+        </button>
+      </div>
 
       <div style="margin-top:40px;padding-top:24px;border-top:1px solid var(--paper3)">
         <button class="btn-main btn-outline" onclick="signOut()" style="color:var(--ink3)">
@@ -865,10 +869,7 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
     <div class="done-wrap">
       <div class="done-icon"><i class="ti ti-circle-check"></i></div>
       <div class="done-title">歡迎加入 ReLoop！</div>
-      <div class="done-sub">
-        您的帳號已建立完成，偏好設定已儲存。<br>
-        現在可以開始瀏覽設備案子並出價了。
-      </div>
+      <div class="done-sub">您的帳號已建立完成！</div>
       <div class="done-summary">
         <div class="done-summary-title">帳號摘要</div>
         <div class="done-row">
@@ -879,36 +880,21 @@ input,select,button,textarea{font-family:'DM Sans',sans-serif}
           <span class="done-key">統一編號</span>
           <span class="done-val" id="summary-business-id">—</span>
         </div>
-        <div class="done-row">
-          <span class="done-key">LINE ID</span>
-          <span class="done-val" id="summary-line-id" style="color:var(--ink4)">未填寫</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">LINE ID</span>
-          <span class="done-val" id="summary-line-id" style="color:var(--ink4)">未填寫</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">服務地區</span>
-          <span class="done-val" id="summary-cities">—</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">設備類型</span>
-          <span class="done-val" id="summary-cats">—</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">接受狀況</span>
-          <span class="done-val" id="summary-conds">—</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">Email 通知</span>
-          <span class="done-val" id="summary-notify">已開啟</span>
-        </div>
-        <div class="done-row">
-          <span class="done-key">LINE 通知</span>
-          <span class="done-val" style="color:var(--ink4)">登入後設定</span>
+      </div>
+      <span id="summary-line-bind" style="display:none">未綁定</span>
+      <!-- LINE 綁定區塊 -->
+      <div id="line-bind-section" style="margin:16px 0;padding:16px;background:#f0fdf4;border-radius:12px;border:1px solid #bbf7d0;text-align:center">
+        <div style="font-size:14px;font-weight:600;color:#276749;margin-bottom:6px">綁定 LINE 帳號</div>
+        <div style="font-size:12px;color:#4a7c59;margin-bottom:12px">綁定後下次可直接用 LINE 登入，不需輸入密碼</div>
+        <button class="btn-main" id="btn-line-bind" onclick="handleLineBindStart()" style="background:#06C755;color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;border:none;margin:0 auto">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+          綁定 LINE
+        </button>
+        <div style="margin-top:10px">
+          <a href="#" style="font-size:12px;color:var(--ink4);text-decoration:none" onclick="event.preventDefault();goToPlatform()">略過，稍後再綁定</a>
         </div>
       </div>
-      <button class="btn-main btn-dark" onclick="goToPlatform()">
+      <button class="btn-main btn-dark" id="btn-go-platform" onclick="goToPlatform()" style="display:none">
         <i class="ti ti-layout-grid" style="font-size:15px"></i>進入平台瀏覽案子
       </button>
     </div>
@@ -1132,7 +1118,7 @@ function toNumOrNull(value) {
   return (Number.isFinite(n) && n > 0) ? n : null;
 }
 
-async function createAccountRecord({ company, name, phone, lineId, businessId }) {
+async function createAccountRecord({ company, name, phone, businessId }) {
   const db = requireSupabase();
   if (!db) return false;
 
@@ -1142,7 +1128,6 @@ async function createAccountRecord({ company, name, phone, lineId, businessId })
     contact_name: name,
     phone,
     business_id: businessId,
-    line_id: lineId || null,
     password_set: true,
     password_updated_at: new Date().toISOString()
   });
@@ -1163,7 +1148,6 @@ async function updateAccountRecord({ passwordChanged = false } = {}) {
     company_name: document.getElementById('reg-company').value.trim(),
     contact_name: document.getElementById('reg-name').value.trim(),
     phone: document.getElementById('reg-phone').value.replace(/\D/g, ''),
-    line_id: document.getElementById('reg-line-id')?.value.trim() || null,
     service_areas: serviceAreas,
     service_exclusions: [...document.querySelectorAll('.exclusion-chip.sel')].map(c => c.textContent)
   };
@@ -1287,7 +1271,7 @@ function resetRegisterScreen() {
   const btn = document.getElementById('btn-submit-register');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; btn.innerHTML = '完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>'; }
   // 清空表單欄位
-  ['signup-company','signup-name','signup-phone','signup-line-id','signup-business-id','signup-password','signup-password2'].forEach(id => {
+  ['signup-company','signup-name','signup-phone','signup-business-id','signup-password','signup-password2'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -1693,12 +1677,33 @@ async function openMatchDetail(id, fromScreen) {
   renderMatchDetail(match);
 }
 
+function paymentDeadline(m) {
+  if (m?.payment_deadline_at) return new Date(m.payment_deadline_at);
+  if (!m?.accepted_at) return null;
+  return new Date(new Date(m.accepted_at).getTime() + 48 * 3600000);
+}
+
+function isPaymentOverdue(m) {
+  const dl = paymentDeadline(m);
+  return !!dl && !Number.isNaN(dl.getTime()) && !m.payment_last5 && Date.now() > dl.getTime();
+}
+
+function paymentDeadlineHtml(m) {
+  const s = m.status || 'pending';
+  if (!['accepted', 'payment_confirmed', 'received'].includes(s)) return '';
+  const dl = paymentDeadline(m);
+  if (!dl || Number.isNaN(dl.getTime())) return '';
+  const overdue = isPaymentOverdue(m);
+  return `<div class="detail-info-row" style="color:${overdue ? '#c53030' : 'var(--ink3)'}"><i class="ti ti-clock-hour-4"></i><div>繳費期限：${dl.toLocaleString('zh-TW')}${overdue ? '（已逾期）' : ''}</div></div>`;
+}
+
 async function renderMatchDetail(m) {
   const condLabel = { A:'良好', B:'普通', C:'堪用', D:'待修' };
   const statusLabel = { pending:'待出價', bidding:'已出價・等待確認', accepted:'已得標・待付款', outbid:'未得標', payment_confirmed:'已付款', received:'已收貨', rejected:'已拒絕' };
   const statusColor = { pending:'var(--ink4)', bidding:'#92400e', accepted:'#c53030', outbid:'#c53030', payment_confirmed:'#276749', received:'#2b6cb0', rejected:'#c53030' };
   const s = m.status || 'pending';
   const showFull = ['payment_confirmed', 'received'].includes(s);
+  const paymentOverdue = isPaymentOverdue(m);
 
   const deadline = m.bid_deadline
     ? new Date(m.bid_deadline)
@@ -1749,6 +1754,7 @@ async function renderMatchDetail(m) {
     ${contactInfo}
     ${s === 'accepted' && m.payment_last5 ? `<div class="detail-info-row"><i class="ti ti-clock-hour-4" style="color:#92400e"></i><div style="color:#92400e">匯款後5碼已提交，等待盤商確認</div></div>` : ''}
     ${m.accepted_at ? `<div class="detail-info-row"><i class="ti ti-trophy"></i><div>得標時間：${new Date(m.accepted_at).toLocaleString('zh-TW')}</div></div>` : ''}
+    ${paymentDeadlineHtml(m)}
     ${m.payment_confirmed_at ? `<div class="detail-info-row"><i class="ti ti-credit-card"></i><div>付款確認：${new Date(m.payment_confirmed_at).toLocaleString('zh-TW')}</div></div>` : ''}
     ${m.received_at ? `<div class="detail-info-row"><i class="ti ti-package"></i><div>收貨時間：${new Date(m.received_at).toLocaleString('zh-TW')}</div></div>` : ''}
   `;
@@ -1770,6 +1776,8 @@ async function renderMatchDetail(m) {
   } else if (s === 'accepted') {
     if (m.payment_last5) {
       actEl.innerHTML = `<div style="text-align:center;color:#92400e;font-size:13px;padding:10px 0;background:#fef3c7;border-radius:var(--r)">匯款資訊已提交（後5碼：${m.payment_last5}），等待盤商確認...</div>`;
+    } else if (paymentOverdue) {
+      actEl.innerHTML = `<div style="text-align:center;color:#c53030;font-size:13px;padding:12px 14px;background:#fff5f5;border-radius:var(--r);line-height:1.6">繳費期限已逾期，無法再提交匯款資訊。請聯繫盤商重新處理。</div>`;
     } else {
       actEl.innerHTML = `<div style="text-align:center;color:var(--ink4);font-size:13px;padding:16px 0">載入匯款資訊中...</div>`;
       let ba = null;
@@ -1848,6 +1856,12 @@ function bankAccountHtml(ba) {
 function showPaymentForm(id) {
   const m = allMatchesCache.find(x => x.id === id);
   const actEl = document.getElementById('detail-actions');
+  if (isPaymentOverdue(m)) {
+    actEl.innerHTML = `
+      <div style="text-align:center;color:#c53030;font-size:13px;padding:12px 14px;background:#fff5f5;border-radius:var(--r);line-height:1.6;margin-bottom:12px">繳費期限已逾期，無法再提交匯款資訊。請聯繫盤商重新處理。</div>
+      <button class="btn-main btn-outline" onclick="renderMatchDetail(allMatchesCache.find(x=>x.id==='${id}'))">返回</button>`;
+    return;
+  }
   actEl.innerHTML = `
     ${m?.dealer_bank_accounts ? `<div style="padding:12px 16px;background:#ebf4ff;border-radius:var(--r);border:1px solid #bee3f8;margin-bottom:12px">
       <div style="font-size:12px;font-weight:600;color:#2b6cb0;margin-bottom:6px">盤商匯款帳號</div>
@@ -1869,6 +1883,11 @@ async function submitPaymentLast5(id) {
   const val = (document.getElementById('payment-last5-input')?.value || '').trim();
   if (!/^\d{5}$/.test(val)) { showToast('請輸入5位數字'); return; }
   const m = allMatchesCache.find(x => x.id === id);
+  if (isPaymentOverdue(m)) {
+    showToast('繳費期限已逾期，無法送出匯款資訊');
+    renderMatchDetail(m);
+    return;
+  }
   const dealerLast5 = m?.dealer_bank_accounts?.account_number?.slice(-5);
   if (dealerLast5 && val === dealerLast5) {
     showToast('不能填入盤商的匯款帳號後5碼'); return;
@@ -1946,10 +1965,30 @@ async function signOut() {
   goScreen('screen-login');
 }
 
-// ── LINE Login ──────────────────────────────────────
+// ── LINE Login / Bind ────────────────────────────────
 function handleLineLogin() {
   const state = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   sessionStorage.setItem('line_state', state);
+  sessionStorage.setItem('line_action', 'login');
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: LINE_CHANNEL_ID,
+    redirect_uri: LINE_CALLBACK_URL,
+    state,
+    scope: 'profile openid',
+  });
+  window.location.href = `https://access.line.me/oauth2/v2.1/authorize?${params}`;
+}
+
+function handleLineBindFromProfile() {
+  sessionStorage.setItem('line_bind_return', 'screen-profile');
+  handleLineBindStart();
+}
+
+function handleLineBindStart() {
+  const state = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  sessionStorage.setItem('line_state', state);
+  sessionStorage.setItem('line_action', 'bind');
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: LINE_CHANNEL_ID,
@@ -1962,54 +2001,102 @@ function handleLineLogin() {
 
 async function handleLineCallback(code, state) {
   const savedState = sessionStorage.getItem('line_state');
+  const action = sessionStorage.getItem('line_action') || 'login';
   sessionStorage.removeItem('line_state');
+  sessionStorage.removeItem('line_action');
   window.history.replaceState({}, '', window.location.pathname);
 
   if (state !== savedState) {
-    showToast('LINE 登入驗證失敗，請重試');
-    goScreen('screen-login');
+    showToast('LINE 驗證失敗，請重試');
+    goScreen(action === 'bind' ? 'screen-done' : 'screen-login');
     return;
   }
 
-  showToast('LINE 登入處理中...');
+  showToast(action === 'bind' ? 'LINE 綁定處理中...' : 'LINE 登入處理中...');
+
+  // bind 模式需先取 session，把 access_token 傳給 Edge Function 做 DB 更新
+  let bindSession = null;
+  if (action === 'bind') {
+    const db = requireSupabase();
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) { showToast('登入已過期，請重新登入'); goScreen('screen-login'); return; }
+    bindSession = session;
+    currentRecyclerId = session.user.id;
+  }
 
   try {
     const res = await fetch(`https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/line-auth`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, redirect_uri: LINE_CALLBACK_URL }),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(bindSession ? { 'Authorization': `Bearer ${bindSession.access_token}` } : {}),
+      },
+      body: JSON.stringify({ code, redirect_uri: LINE_CALLBACK_URL, action }),
     });
     const data = await res.json();
+    console.log('[LINE debug] Edge Function response:', JSON.stringify(data));
 
+    if (!res.ok || data.error || data.message) {
+      showToast((action === 'bind' ? 'LINE 綁定失敗：' : 'LINE 登入失敗：') + (data.error || data.message || res.status));
+      goScreen(action === 'bind' ? 'screen-done' : 'screen-login');
+      return;
+    }
+
+    // ── 綁定模式 ── (DB 更新已在 Edge Function 完成)
+    if (action === 'bind') {
+      const db = requireSupabase();
+      // 重新取帳號摘要（page reload 後 in-memory 值已清空）
+      const { data: acct } = await db.from('recycler_onboarding_accounts')
+        .select('company_name, business_id')
+        .eq('id', bindSession.user.id)
+        .single();
+      if (acct) {
+        const el1 = document.getElementById('summary-company');
+        const el2 = document.getElementById('summary-business-id');
+        if (el1) el1.textContent = acct.company_name || '—';
+        if (el2) el2.textContent = acct.business_id || '—';
+      }
+      subscribeMatches();
+      const bindSection = document.getElementById('line-bind-section');
+      if (bindSection) bindSection.innerHTML = `<div style="text-align:center;color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> LINE 綁定成功！${data.display_name ? '（' + data.display_name + '）' : ''}</div>`;
+      const lineBindEl = document.getElementById('summary-line-bind');
+      if (lineBindEl) { lineBindEl.textContent = data.display_name || '已綁定'; lineBindEl.style.color = '#276749'; }
+      const goPlatformBtn = document.getElementById('btn-go-platform');
+      if (goPlatformBtn) goPlatformBtn.style.display = '';
+      const profileLineEl = document.getElementById('profile-line-status');
+      if (profileLineEl) profileLineEl.innerHTML = `<span style="color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> 已綁定${data.display_name ? '（' + data.display_name + '）' : ''}</span>`;
+      showToast('LINE 綁定成功！之後可直接用 LINE 登入');
+      const returnScreen = sessionStorage.getItem('line_bind_return') || 'screen-done';
+      sessionStorage.removeItem('line_bind_return');
+      goScreen(returnScreen);
+      return;
+    }
+
+    // ── 登入模式 ──
     if (data.needs_link) {
-      // LINE 帳號尚未綁定，儲存後引導去登入
       sessionStorage.setItem('line_pending_id', data.line_user_id);
       showToast('此 LINE 帳號尚未綁定，請先登入後自動完成綁定');
       goScreen('screen-login');
       return;
     }
 
-    if (data.error) {
-      showToast('LINE 登入失敗：' + data.error);
-      goScreen('screen-login');
-      return;
-    }
-
     const db = requireSupabase();
-    const { error } = await db.auth.setSession({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
+    const { error } = await db.auth.verifyOtp({
+      token_hash: data.token_hash,
+      type:       'magiclink',
     });
     if (error) { showToast('登入失敗：' + error.message); goScreen('screen-login'); return; }
 
-    currentRecyclerId = data.account.id;
+    // 從實際 session 取 user.id 確保與 auth.uid() 完全一致
+    const { data: { session: lineSession } } = await db.auth.getSession();
+    currentRecyclerId = lineSession?.user?.id || data.account.id;
     showToast('LINE 登入成功！');
     subscribeMatches();
     goScreen('screen-matches');
 
   } catch (err) {
-    showToast('LINE 登入發生錯誤，請重試');
-    goScreen('screen-login');
+    showToast('LINE 發生錯誤，請重試');
+    goScreen(action === 'bind' ? 'screen-done' : 'screen-login');
   }
 }
 
@@ -2081,7 +2168,6 @@ async function submitRegister() {
   const company    = document.getElementById('signup-company').value.trim();
   const name       = document.getElementById('signup-name').value.trim();
   const phone      = document.getElementById('signup-phone').value.replace(/\D/g, '');
-  const lineId     = document.getElementById('signup-line-id').value.trim();
   const businessId = document.getElementById('signup-business-id').value.trim();
   const pw         = document.getElementById('signup-password').value;
   const pw2        = document.getElementById('signup-password2').value;
@@ -2120,7 +2206,7 @@ async function submitRegister() {
 
   currentRecyclerId = userId;
 
-  const saved = await createAccountRecord({ company, name, phone, lineId, businessId });
+  const saved = await createAccountRecord({ company, name, phone, businessId });
   if (!saved) {
     await db.auth.signOut();
     btn.disabled = false; btn.style.opacity='1'; btn.innerHTML='完成註冊 <i class="ti ti-arrow-right" style="font-size:14px"></i>';
@@ -2137,11 +2223,20 @@ async function submitRegister() {
   document.getElementById('reg-company').value     = company;
   document.getElementById('reg-name').value         = name;
   document.getElementById('reg-phone').value        = phone;
-  document.getElementById('reg-line-id').value      = lineId;
   document.getElementById('reg-business-id').value  = businessId;
 
   subscribeMatches();
-  goScreen('screen-prefs');
+
+  // 填好歡迎畫面摘要
+  document.getElementById('summary-company').textContent     = company;
+  document.getElementById('summary-business-id').textContent = businessId;
+  const lineBindEl = document.getElementById('summary-line-bind');
+  if (lineBindEl) { lineBindEl.textContent = '未綁定'; lineBindEl.style.color = 'var(--ink4)'; }
+  const bindSection = document.getElementById('line-bind-section');
+  if (bindSection) bindSection.style.display = '';
+  document.getElementById('btn-go-platform').style.display = 'none';
+
+  goScreen('screen-done');
 }
 
 let loginSelectedPhone = null;
@@ -2329,8 +2424,18 @@ async function loadProfileFromDb() {
   document.getElementById('reg-name').value          = data.contact_name || '';
   document.getElementById('reg-phone').value         = data.phone || '';
   document.getElementById('reg-business-id').value   = data.business_id || '';
-  const lineEl = document.getElementById('reg-line-id');
-  if (lineEl) lineEl.value = data.line_id || '';
+  // LINE 綁定狀態
+  const lineStatusEl = document.getElementById('profile-line-status');
+  const lineBindBtn  = document.getElementById('profile-line-bind-btn');
+  if (lineStatusEl && lineBindBtn) {
+    if (data.line_user_id) {
+      lineStatusEl.innerHTML = `<span style="color:#276749;font-weight:600"><i class="ti ti-circle-check"></i> 已綁定</span>`;
+      lineBindBtn.style.display = 'none';
+    } else {
+      lineStatusEl.textContent = '尚未綁定，綁定後可直接用 LINE 登入';
+      lineBindBtn.style.display = '';
+    }
+  }
   const areas = data.service_areas || [];
   document.querySelectorAll('#service-area-chips .chip').forEach(chip => {
     chip.classList.toggle('sel', areas.includes(chip.textContent));
@@ -2398,10 +2503,6 @@ function submitPrefs() {
 
   document.getElementById('summary-company').textContent     = document.getElementById('reg-company').value || '—';
   document.getElementById('summary-business-id').textContent = document.getElementById('reg-business-id').value || '—';
-  const lineIdVal = document.getElementById('reg-line-id')?.value.trim() || '';
-  const lineElSum = document.getElementById('summary-line-id');
-  if(lineElSum){ lineElSum.textContent = lineIdVal || '未填寫'; lineElSum.style.color = lineIdVal ? 'var(--ink)' : 'var(--ink4)'; }
-
   document.getElementById('summary-cities').textContent  = cities.length ? cities.join('、') : '未設定';
   document.getElementById('summary-cats').textContent    = cats.length   ? cats.join('、')   : '未設定';
   document.getElementById('summary-conds').textContent   = conds.length  ? conds.join('、')  : '未設定';
@@ -2416,11 +2517,11 @@ function completeRegister(){
 }
 
 function goToPlatform() {
-  showToast('正在進入平台，歡迎加入 ReLoop！');
+  goScreen('screen-prefs');
 }
 
 // ── Toast ──
-let toastTimer;
+var toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = msg;
@@ -2487,10 +2588,13 @@ function closeModal() {
 
 function resetForm() {
   document.getElementById('sel-l1').value = '';
-  document.getElementById('sel-l2').innerHTML = '<option value="">請先選擇大分類</option>';
-  document.getElementById('sel-l2').disabled = true;
-  document.getElementById('sel-dev').innerHTML = '<option value="">請先選擇細項分類</option>';
-  document.getElementById('sel-dev').disabled = true;
+  document.getElementById('sel-l2-text').value    = '';
+  document.getElementById('sel-l2-text').disabled = true;
+  document.getElementById('sel-l2').value          = '';
+  document.getElementById('sel-dev').value         = '';
+  document.getElementById('sel-dev').disabled      = true;
+  document.getElementById('sel-l2-list').innerHTML = '';
+  document.getElementById('sel-dev-list').innerHTML = '';
   document.getElementById('dev-add-row').style.display = 'none';
   ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
     document.getElementById(id).style.display = 'none';
@@ -2508,10 +2612,12 @@ function loadPrefToForm(pref) {
   document.getElementById('sel-l1').value = pref.l1id;
   onL1Change();
   setTimeout(() => {
-    document.getElementById('sel-l2').value = pref.l2id;
+    document.getElementById('sel-l2').value      = pref.l2id || '';
+    document.getElementById('sel-l2-text').value = pref.l2name || '';
+    document.getElementById('sel-l2-text').disabled = !pref.l2id;
     onL2Change();
     setTimeout(() => {
-      document.getElementById('sel-dev').value = pref.device;
+      document.getElementById('sel-dev').value = pref.device || '';
       onDevChange();
       setTimeout(() => {
         document.querySelectorAll('#brand-chips .chip').forEach(c => {
@@ -2535,29 +2641,46 @@ function loadPrefToForm(pref) {
 }
 
 function onL1Change() {
-  const l1id = document.getElementById('sel-l1').value;
-  const l2sel = document.getElementById('sel-l2');
-  const devsel = document.getElementById('sel-dev');
-  l2sel.innerHTML = '<option value="">請選擇細項分類...</option>';
-  devsel.innerHTML = '<option value="">請先選擇細項分類</option>';
-  l2sel.disabled = !l1id;
-  devsel.disabled = true;
+  const l1id   = document.getElementById('sel-l1').value;
+  const l2text = document.getElementById('sel-l2-text');
+  const l2hid  = document.getElementById('sel-l2');
+  const l2list = document.getElementById('sel-l2-list');
+  const devInp = document.getElementById('sel-dev');
+  const devList = document.getElementById('sel-dev-list');
+  l2text.value  = '';
+  l2hid.value   = '';
+  l2text.disabled = !l1id;
+  devInp.value  = '';
+  devInp.disabled = true;
+  l2list.innerHTML = '';
+  devList.innerHTML = '';
   document.getElementById('dev-add-row').style.display = 'none';
   ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
   if (!l1id) return;
-  Object.entries(CATS[l1id].subs).forEach(([id, sub]) => {
-    l2sel.innerHTML += '<option value="' + id + '">' + sub.name + '</option>';
+  Object.values(CATS[l1id].subs).forEach(sub => {
+    l2list.innerHTML += `<option value="${sub.name}">`;
   });
 }
 
+function onL2TextChange() {
+  const text  = document.getElementById('sel-l2-text').value;
+  const l1id  = document.getElementById('sel-l1').value;
+  if (!l1id) return;
+  const match = Object.entries(CATS[l1id].subs).find(([, sub]) => sub.name === text);
+  document.getElementById('sel-l2').value = match ? match[0] : '';
+  if (match) onL2Change();
+}
+
 function onL2Change() {
-  const l1id = document.getElementById('sel-l1').value;
-  const l2id = document.getElementById('sel-l2').value;
-  const devsel = document.getElementById('sel-dev');
-  devsel.innerHTML = '<option value="">請選擇設備...</option>';
-  devsel.disabled = !l2id;
+  const l1id  = document.getElementById('sel-l1').value;
+  const l2id  = document.getElementById('sel-l2').value;
+  const devInp = document.getElementById('sel-dev');
+  const devList = document.getElementById('sel-dev-list');
+  devInp.value  = '';
+  devInp.disabled = !l2id;
+  devList.innerHTML = '';
   document.getElementById('dev-add-row').style.display = 'none';
   ['section-brands','section-year','section-size','section-cond','section-note'].forEach(id => {
     document.getElementById(id).style.display = 'none';
@@ -2565,7 +2688,7 @@ function onL2Change() {
   if (!l2id) return;
   const sub = CATS[l1id].subs[l2id];
   sub.devices.forEach(dev => {
-    devsel.innerHTML += '<option value="' + dev + '">' + dev + '</option>';
+    devList.innerHTML += `<option value="${dev}">`;
   });
   document.getElementById('dev-add-row').style.display = 'flex';
 }
@@ -3353,15 +3476,18 @@ async function forceAddNotifPref() {
         </div>
         <div class="chain-step">
           <span class="chain-label">細項</span>
-          <select class="chain-select" id="sel-l2" onchange="onL2Change()" disabled>
-            <option value="">請先選擇大分類</option>
-          </select>
+          <input class="chain-select" id="sel-l2-text" list="sel-l2-list"
+            placeholder="請先選擇大分類" disabled autocomplete="off"
+            onchange="onL2TextChange()">
+          <datalist id="sel-l2-list"></datalist>
+          <input type="hidden" id="sel-l2">
         </div>
         <div class="chain-step">
           <span class="chain-label">設備</span>
-          <select class="chain-select" id="sel-dev" onchange="onDevChange()" disabled>
-            <option value="">請先選擇細項分類</option>
-          </select>
+          <input class="chain-select" id="sel-dev" list="sel-dev-list"
+            placeholder="請先選擇細項分類" disabled autocomplete="off"
+            onchange="onDevChange()">
+          <datalist id="sel-dev-list"></datalist>
         </div>
         <div id="dev-added-hint" style="display:none;padding:5px 0 0 56px;font-size:11px;color:var(--green);display:none;align-items:center;gap:4px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="13"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
